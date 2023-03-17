@@ -1,7 +1,7 @@
 from pathlib import Path
 import logging
 from datetime import datetime, timedelta
-import yaml
+import json
 from minio import Minio
 import pandas as pd
 import psycopg2
@@ -20,7 +20,7 @@ config_file = Path(__file__).parents[3] / "config/configs.yaml"
 
 if config_file.exists():
     with config_file.open("r",) as f:
-        config = yaml.safe_load(f)
+        config = json.load(f)
 else:
     raise RuntimeError("configs file don't exists")
 
@@ -120,12 +120,13 @@ def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.D
         secret_key= secretkey,
         secure=False)
     logging.info("start to save data")
-    if not client.bucket_exists(table):
-        client.make_bucket(table)
+    objet = [t for t in config["tables"] if t["name"] == table][0]
+    if not client.bucket_exists(objet["bucket"]):
+        client.make_bucket(objet["bucket"])
     csv_bytes = data.to_csv().encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
     client.put_object(table,
-                       f"{date}.csv",
+                       f"{objet['folder']}/{date}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
