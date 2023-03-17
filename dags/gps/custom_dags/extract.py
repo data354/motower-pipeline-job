@@ -37,7 +37,7 @@ def extract_job(**kwargs):
 
     data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
 
-    if data.shape[0] == 0:
+    if data.shape[0] != 0:
         save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["thetable"], kwargs["ingest_date"], data)
     else:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
