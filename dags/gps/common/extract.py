@@ -88,11 +88,11 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
         logging.info("Getting data of the table %s ", table)
         logging.info("where date is %s", date)
         if table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
-                    {table} where date_jour = '{date.replace("-","")}' group by date_jour, techno;"""
+            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
+                    {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
         elif table == "Taux_succes_2g":
             sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, SUM(CAST(cssr_cs AS DECIMAL)) AS cssr_cs, techno 
-                    from {table} where date_jour='{date.replace("-","")}' group by date_jour,oci_code, techno;"""
+                    from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
         elif table == "Call_drop_2g":
             sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
