@@ -85,7 +85,8 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
         cur = conn.cursor()
 
         # execute a statement
-        logging.info("Getting data of the date %s", date)
+        logging.info("Getting data of the table %s ", table)
+        logging.info("where date is %s", date)
         if table == "hourly_datas_radio_prod":
             sql = f"""select  date_jour, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = {date.replace("-","")} group by date_jour, techno;"""
