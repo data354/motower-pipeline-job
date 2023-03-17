@@ -98,16 +98,12 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
     logging.info('Connecting to the PostgreSQL database...')
     try:
 
-        with psycopg2.connect(host= host,database= database,user= user,password= password) as conn:
+        with psycopg2.connect(host= host,database= database,user= user,password= password,) as conn:
             agregate_data = pd.read_sql_query(sql, conn)
     
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        return None
-    finally:
-        if conn is not None:
-            conn.close()
-            print('Database connection closed.')
+   
     return agregate_data
 
 
