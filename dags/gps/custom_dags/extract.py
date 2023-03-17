@@ -29,8 +29,9 @@ def extract_job(**kwargs):
     """
         extract
     """
+
     logical_date = '{{ds_add(ds, -2)}}'
-    
+    print(kwargs["thetable"])
 
     data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , logical_date)
 
@@ -60,7 +61,7 @@ with DAG(
         task_id='ingest_hourly_datas_radio_prod',
         provide_context=True,
         python_callable=extract_job,
-        op_args={'thetable': config["tables"][0]},
+        op_kwargs={'thetable': config["tables"][0]},
         dag=dag,
     ),
 
@@ -68,7 +69,7 @@ with DAG(
         task_id='ingest_Taux_succes_deuxg',
         provide_context=True,
         python_callable=extract_job,
-        op_args={'thetable': config["tables"][1]},
+        op_kwargs={'thetable': config["tables"][1]},
         dag=dag,
     ),
 
@@ -76,21 +77,21 @@ with DAG(
         task_id='ingest_Taux_succes_troisg',
         provide_context=True,
         python_callable=extract_job,
-        op_args={'thetable': config["tables"][2]},
+        op_kwargs={'thetable': config["tables"][2]},
         dag=dag,
     ),
     ingest_cd2g = PythonOperator(
         task_id='ingest_call_drop_deuxg',
         provide_context=True,
         python_callable=extract_job,
-        op_args={'thetable': config["tables"][3]},
+        op_kwargs={'thetable': config["tables"][3]},
         dag=dag,
     ),
     ingest_cd3g = PythonOperator(
         task_id='ingest_call_drop_troisg',
         provide_context=True,
         python_callable=extract_job,
-        op_args={'thetable': config["tables"][4]},
+        op_kwargs={'thetable': config["tables"][4]},
         dag=dag,
     )
 
