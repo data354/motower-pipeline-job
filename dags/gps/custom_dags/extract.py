@@ -1,6 +1,6 @@
 from pathlib import Path
 from datetime import datetime
-import yaml
+import json
 from airflow import DAG
 from gps.common.extract import extract, save_minio
 from airflow.operators.python import PythonOperator
@@ -20,10 +20,10 @@ MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 INGEST_DATE = "{{ macros.ds_add(ds, -2) }}"
 
 
-config_file = Path(__file__).parents[3] / "config/configs.yaml"
+config_file = Path(__file__).parents[3] / "config/configs.json"
 if config_file.exists():
     with config_file.open("r",) as f:
-        config = yaml.safe_load(f)
+        config = json.load(f)
 else:
     raise RuntimeError("configs file don't exists")
 
@@ -63,7 +63,7 @@ with DAG(
         task_id='ingest_hourly_datas_radio_prod',
         provide_context=True,
         python_callable=extract_job,
-        op_kwargs={'thetable': config["tables"][0],
+        op_kwargs={'thetable': config["tables"][0]["name"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -72,7 +72,7 @@ with DAG(
         task_id='ingest_Taux_succes_deuxg',
         provide_context=True,
         python_callable=extract_job,
-        op_kwargs={'thetable': config["tables"][1],
+        op_kwargs={'thetable': config["tables"][1]["name"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -81,7 +81,7 @@ with DAG(
         task_id='ingest_Taux_succes_troisg',
         provide_context=True,
         python_callable=extract_job,
-        op_kwargs={'thetable': config["tables"][2],
+        op_kwargs={'thetable': config["tables"][2]["name"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -89,7 +89,7 @@ with DAG(
         task_id='ingest_call_drop_deuxg',
         provide_context=True,
         python_callable=extract_job,
-        op_kwargs={'thetable': config["tables"][3],
+        op_kwargs={'thetable': config["tables"][3]["name"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -97,7 +97,7 @@ with DAG(
         task_id='ingest_call_drop_troisg',
         provide_context=True,
         python_callable=extract_job,
-        op_kwargs={'thetable': config["tables"][4],
+        op_kwargs={'thetable': config["tables"][4]["name"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     )
