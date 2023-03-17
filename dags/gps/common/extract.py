@@ -5,6 +5,7 @@ import yaml
 from minio import Minio
 import pandas as pd
 import psycopg2
+from io import BytesIO
 
 
 # Get BD settings
@@ -70,45 +71,36 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
          Return:
              pandas DataFrame
     """
-    conn = None
     agregate_data = pd.DataFrame()
-    try:
         # connect to the PostgreSQL server
-        logging.info('Connecting to the PostgreSQL database...')
-        conn = psycopg2.connect(
-            host= host,
-            database= database,
-            user= user,
-            password= password)
-
-        # create a cursor
-        cur = conn.cursor()
+              
 
         # execute a statement
-        logging.info("Getting data of the table %s ", table)
-        logging.info("where date is %s", date)
-        if table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
+    logging.info("Getting data of the table %s ", table)
+    logging.info("where date is %s", date)
+    if table == "hourly_datas_radio_prod":
+        sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Taux_succes_2g":
-            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, SUM(CAST(cssr_cs AS DECIMAL)) AS cssr_cs, techno 
+    elif table == "Taux_succes_2g":
+        sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, SUM(CAST(cssr_cs AS DECIMAL)) AS cssr_cs, techno 
                     from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Call_drop_2g":
-            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
+    elif table == "Call_drop_2g":
+        sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Call_drop_3g":
-            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno 
+    elif table == "Call_drop_3g":
+        sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Taux_succes_3g":
-            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(""3g_call_setup_suceess_rate_speech_h"" AS DECIMAL)) as call_setup_suceess_rate_speech_h, techno 
-            from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        else:
-            raise RuntimeError(f"No request for this table {table}")
-        cur.execute(sql)
-        # display the PostgreSQL database server version
-        agregate_data = cur.fetchall()
-        # close the communication with the PostgreSQL
-        cur.close()
+    elif table == "Taux_succes_3g":
+        sql = f'''select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as call_setup_suceess_rate_speech_h, techno 
+            from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
+    else:
+        raise RuntimeError(f"No request for this table {table}")
+    logging.info('Connecting to the PostgreSQL database...')
+    try:
+
+        with psycopg2.connect(host= host,database= database,user= user,password= password) as conn:
+            agregate_data = pd.read_sql_query(sql, conn)
+    
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
         return None
@@ -137,5 +129,11 @@ def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.D
     logging.info("start to save data")
     if not client.bucket_exists(table):
         client.make_bucket(table)
-    outputpath = f"s3a://{table}/{table}-{date}.parquet"
-    data.write.mode("overwrite").parquet(outputpath)
+    csv_bytes = data.to_csv().encode('utf-8')
+    csv_buffer = BytesIO(csv_bytes)
+    client.put_object(table,
+                       f"{date}.csv",
+                        data=csv_buffer,
+                        length=len(csv_bytes),
+                        content_type='application/csv')
+
