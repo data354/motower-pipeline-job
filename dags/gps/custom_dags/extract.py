@@ -29,7 +29,8 @@ def extract_job(table: str):
     """
         extract
     """
-    logical_date = "{{ds}}"
+    logical_date = '{{ macros.ds_add(ds, 1)}}'
+    
 
     data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD ,table, logical_date)
 
