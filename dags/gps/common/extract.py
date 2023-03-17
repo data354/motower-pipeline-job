@@ -121,12 +121,12 @@ def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.D
         secure=False)
     logging.info("start to save data")
     objet = [t for t in config["tables"] if t["name"] == table][0]
-    if not client.bucket_exists(objet["bucket"]):
-        client.make_bucket(objet["bucket"])
+    if not client.bucket_exists(objet.get("bucket")):
+        client.make_bucket(objet.get("buget"))
     csv_bytes = data.to_csv().encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
-    client.put_object(table,
-                       f"{objet['folder']}/{date}.csv",
+    client.put_object(objet.get("bucket"),
+                       f"{objet.get("folder")}/{date}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
