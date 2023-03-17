@@ -5,6 +5,7 @@ from airflow import DAG
 from gps.common.extract import extract, save_minio
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
+from airflow.macros import ds_add
 
 
 PG_HOST = Variable.get('pg_host')
@@ -23,6 +24,7 @@ if config_file.exists():
 else:
     raise RuntimeError("configs file don't exists")
 
+logical_date = '{{ macros.ds_add(ds, -2) }}'
 
 
 def extract_job(**kwargs):
@@ -30,7 +32,6 @@ def extract_job(**kwargs):
         extract
     """
 
-    logical_date = "{{ds_add(ds, -2)}}"
     print(kwargs["thetable"])
 
     data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , logical_date)
