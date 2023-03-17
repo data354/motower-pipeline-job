@@ -51,7 +51,7 @@ with DAG(
     },
     description='ingest data from postgresql',
     schedule_interval="30 5 * * *",
-    start_date=datetime(2023, 3, 13, 5, 30, 0),
+    start_date=datetime(2023, 2, 3, 5, 30, 0),
     catchup=False
 ) as dag:
 
@@ -64,7 +64,7 @@ with DAG(
     ),
 
     ingest_ts2g = PythonOperator(
-        task_id='ingest Taux_succes_2g',
+        task_id='ingest_Taux_succes_2g',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][1]},
@@ -72,21 +72,28 @@ with DAG(
     ),
 
     ingest_ts3g = PythonOperator(
-        task_id='ingest Taux_succes_3g',
+        task_id='ingest_Taux_succes_3g',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][2]},
         dag=dag,
     ),
-    ingest_ts3g = PythonOperator(
-        task_id='ingest Taux_succes_3g',
+    ingest_cd2g = PythonOperator(
+        task_id='ingest_call_drop_2g',
         provide_context=True,
         python_callable=extract_job,
-        op_args={'table': config["tables"][2]},
+        op_args={'table': config["tables"][3]},
         dag=dag,
     ),
+    ingest_cd3g = PythonOperator(
+        task_id='ingest_call_drop_3g',
+        provide_context=True,
+        python_callable=extract_job,
+        op_args={'table': config["tables"][4]},
+        dag=dag,
+    )
 
-    ingest_hdrp
+    [ingest_hdrp, ingest_ts2g, ingest_ts3g, ingest_cd2g, ingest_cd3g]
 
 if __name__ == "__main__":
     from airflow.utils.state import State
