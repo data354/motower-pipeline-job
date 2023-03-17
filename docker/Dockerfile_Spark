@@ -1,0 +1,30 @@
+FROM apache/spark-py:latest
+ARG HADOOP_VERSION=3.2.2
+ENV HADOOP_HOME="/opt/hadoop-${HADOOP_VERSION}"
+ENV HADOOP_CLASSPATH="${HADOOP_HOME}/share/hadoop/tools/lib/*:${METASTORE_HOME}/lib"
+ENV PATH="${HADOOP_HOME}/bin:${METASTORE_HOME}/lib/:${HADOOP_HOME}/share/hadoop/tools/lib/:/opt/postgresql-jdbc.jar:/opt/spark/postgresql-42.2.5.jar:${PATH}"
+ENV SPARK_HOME="/opt/spark"
+USER root
+RUN apt-get update -y && apt-get install -y curl  && apt-get install -y wget && pip install minio && apt install s3fs -y
+RUN curl -O https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
+
+RUN curl -O https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz  
+
+RUN tar xvzf hadoop-$HADOOP_VERSION.tar.gz -C /opt/  
+# Add S3a jars to the Hadoop classpath
+
+RUN cp ${HADOOP_HOME}/share/hadoop/tools/lib/hadoop-aws* ${HADOOP_HOME}/share/hadoop/common/lib/ && \
+    cp ${HADOOP_HOME}/share/hadoop/tools/lib/aws-java-sdk* ${HADOOP_HOME}/share/hadoop/common/lib/ 
+    
+RUN cp ${HADOOP_HOME}/share/hadoop/tools/lib/hadoop-aws* ${SPARK_HOME}/jars && \
+    cp ${HADOOP_HOME}/share/hadoop/tools/lib/aws-java-sdk* ${SPARK_HOME}/jars 
+
+COPY postgresql-42.2.5.jar /opt/spark/postgresql-42.2.5.jar
+COPY gcs-connector-hadoop3-2.2.2.jar  ${SPARK_HOME}/jars/gcs-connector-hadoop3-2.2.2.jar
+COPY pod-template.yaml /opt/spark/examples/jars/pod-template.yaml
+# COPY config.json /opt/spark/examples/jars/config.json
+#COPY owid-covid-latest.csv /opt/spark/examples/jars/owid-covid-latest.csv
+# COPY extraction.py /opt/spark/examples/jars/extraction.py
+# COPY extraction_pg.py /opt/spark/examples/jars/extraction_pg.py
+
+
