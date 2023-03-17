@@ -11,7 +11,7 @@ from io import BytesIO
 # Get BD settings
 
 #db_file = Path(__file__).parents[3] / "config/database.yaml"
-config_file = Path(__file__).parents[3] / "config/configs.yaml"
+config_file = Path(__file__).parents[3] / "config/configs.json"
 # if db_file.exists():
 #     with db_file.open("r",) as f:
 #         settings = yaml.safe_load(f)
