@@ -84,19 +84,23 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
         # create a cursor
         cur = conn.cursor()
 
-        ingest_date = datetime.strptime(date, "%Y-%m-%d") - timedelta(days=2)
         # execute a statement
         logging.info("Getting data of the date %s", date)
         if table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from {table} where date_jour = {(datetime.strftime(ingest_date)).replace("-","")} group by date_jour, techno;"""
+            sql = f"""select  date_jour, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
+                    {table} where date_jour = {date.replace("-","")} group by date_jour, techno;"""
         elif table == "Taux_succes_2g":
-            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, SUM(CAST(cssr_cs AS DECIMAL)) AS cssr_cs, techno from {table} where date_jour={(datetime.strftime(ingest_date)).replace("-","")} group by date_jour,oci_code, techno;"""
+            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, SUM(CAST(cssr_cs AS DECIMAL)) AS cssr_cs, techno 
+                    from {table} where date_jour={date.replace("-","")} group by date_jour,oci_code, techno;"""
         elif table == "Call_drop_2g":
-            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno from {table} where date_jour={(datetime.strftime(ingest_date)).replace("-","")} group by date_jour, code_site, techno;"""
+            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
+            from {table} where date_jour={date.replace("-","")} group by date_jour, code_site, techno;"""
         elif table == "Call_drop_3g":
-            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno from {table} where date_jour={(datetime.strftime(ingest_date)).replace("-","")} group by date_jour, code_site, techno;"""
+            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno 
+            from {table} where date_jour={date.replace("-","")} group by date_jour, code_site, techno;"""
         elif table == "Taux_succes_3g":
-            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(""3g_call_setup_suceess_rate_speech_h"" AS DECIMAL)) as call_setup_suceess_rate_speech_h, techno from {table} where date_jour={(datetime.strftime(ingest_date)).replace("-","")} group by date_jour, code_site, techno;"""
+            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(""3g_call_setup_suceess_rate_speech_h"" AS DECIMAL)) as call_setup_suceess_rate_speech_h, techno 
+            from {table} where date_jour={date.replace("-","")} group by date_jour, code_site, techno;"""
         else:
             raise RuntimeError(f"No request for this table {table}")
         cur.execute(sql)
