@@ -64,7 +64,7 @@ with DAG(
     ),
 
     ingest_ts2g = PythonOperator(
-        task_id='ingest_Taux_succes_2g',
+        task_id='ingest_Taux_succes_deuxg',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][1]},
@@ -72,21 +72,21 @@ with DAG(
     ),
 
     ingest_ts3g = PythonOperator(
-        task_id='ingest_Taux_succes_3g',
+        task_id='ingest_Taux_succes_troisg',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][2]},
         dag=dag,
     ),
     ingest_cd2g = PythonOperator(
-        task_id='ingest_call_drop_2g',
+        task_id='ingest_call_drop_deuxg',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][3]},
         dag=dag,
     ),
     ingest_cd3g = PythonOperator(
-        task_id='ingest_call_drop_3g',
+        task_id='ingest_call_drop_troisg',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][4]},
