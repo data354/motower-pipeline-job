@@ -25,7 +25,7 @@ else:
 
 
 
-def extract_job(table: str):
+def extract_job(table: str, **context):
     """
         extract
     """
