@@ -40,7 +40,7 @@ def extract_job(table: str):
 
 
 with DAG(
-    'etl_dag_test_local',
+    'etl',
     default_args={
         'depends_on_past': False,
         'email': ["yasmine.kouadio@data354.co"],
@@ -56,7 +56,7 @@ with DAG(
 ) as dag:
 
     ingest_hdrp = PythonOperator(
-        task_id='ingest hourly_datas_radio_prod',
+        task_id='ingest_hourly_datas_radio_prod',
         provide_context=True,
         python_callable=extract_job,
         op_args={'table': config["tables"][0]},
