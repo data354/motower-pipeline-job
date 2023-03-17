@@ -4,7 +4,17 @@ import yaml
 from airflow import DAG
 from gps.common.extract import extract, save_minio
 from airflow.operators.python import PythonOperator
+from airflow.models import Variable
 
+
+PG_HOST = Variable.get('pg_host')
+PG_DB = Variable.get('pg_db')
+PG_USER = Variable.get('pg_user')
+PG_PASSWORD = Variable.get('pg_password')
+
+MINIO_ENDPOINT = Variable.get('minio_host')
+MINIO_ACCESS_KEY = Variable.get('minio_access_key')
+MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 
 config_file = Path(__file__).parents[3] / "config/configs.yaml"
 if config_file.exists():
@@ -14,16 +24,17 @@ else:
     raise RuntimeError("configs file don't exists")
 
 
+
 def extract_job(table: str):
     """
         extract
     """
     logical_date = "{{ds}}"
 
-    data = extract(table, logical_date)
+    data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD ,table, logical_date)
 
     if data.shape[0] == 0:
-        save_minio(table, logical_date, data)
+        save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY,table, logical_date, data)
     else:
         raise RuntimeError(f"No data for {logical_date}")
 

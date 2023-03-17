@@ -9,13 +9,13 @@ import psycopg2
 
 # Get BD settings
 
-db_file = Path(__file__).parents[3] / "config/database.yaml"
+#db_file = Path(__file__).parents[3] / "config/database.yaml"
 config_file = Path(__file__).parents[3] / "config/configs.yaml"
-if db_file.exists():
-    with db_file.open("r",) as f:
-        settings = yaml.safe_load(f)
-else:
-    raise RuntimeError("database file don't exists")
+# if db_file.exists():
+#     with db_file.open("r",) as f:
+#         settings = yaml.safe_load(f)
+# else:
+#     raise RuntimeError("database file don't exists")
 
 if config_file.exists():
     with config_file.open("r",) as f:
@@ -61,7 +61,7 @@ else:
 #     data_of_day.write.mode("overwrite").parquet(outputpath)
 
 
-def extract(table: str, date: str) -> pd.DataFrame:
+def extract(host: str, database:str, user: str, password: str, table: str, date: str) -> pd.DataFrame:
     """
         function to get data from table and save in parquet file
            Args: 
@@ -76,10 +76,10 @@ def extract(table: str, date: str) -> pd.DataFrame:
         # connect to the PostgreSQL server
         logging.info('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(
-            host=settings['DATABASE']['HOST'],
-            database=settings['DATABASE']['DB'],
-            user=settings['DATABASE']['USERNAME'],
-            password=settings['DATABASE']['PASSWORD'])
+            host= host,
+            database= database,
+            user= user,
+            password= password)
 
         # create a cursor
         cur = conn.cursor()
@@ -114,7 +114,7 @@ def extract(table: str, date: str) -> pd.DataFrame:
     return agregate_data
 
 
-def save_minio(table: str, date: str, data: pd.DataFrame) -> None:
+def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.DataFrame) -> None:
     """
         save dataframe in minio
         Args:
@@ -125,9 +125,9 @@ def save_minio(table: str, date: str, data: pd.DataFrame) -> None:
             None
     """
     client = Minio(
-        settings['MINIO']['endpoint'],
-        access_key=settings['MINIO']['s3accessKeyAws'],
-        secret_key=settings['MINIO']['s3secretKeyAws'],
+        endpoint,
+        access_key= accesskey,
+        secret_key= secretkey,
         secure=False)
     logging.info("start to save data")
     if not client.bucket_exists(table):
