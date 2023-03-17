@@ -126,7 +126,7 @@ def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.D
     csv_bytes = data.to_csv().encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
     client.put_object(objet.get("bucket"),
-                       f"{objet.get("folder")}/{date}.csv",
+                       f"{objet.get('folder')}/{date}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
