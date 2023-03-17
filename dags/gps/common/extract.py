@@ -100,10 +100,11 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
 
         with psycopg2.connect(host= host,database= database,user= user,password= password,) as conn:
             agregate_data = pd.read_sql_query(sql, conn)
-    
+        print(agregate_data.shape)
+        
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-   
+    
     return agregate_data
 
 
