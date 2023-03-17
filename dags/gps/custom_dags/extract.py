@@ -30,7 +30,7 @@ def extract_job(**kwargs):
         extract
     """
 
-    logical_date = '{{ds_add(ds, -2)}}'
+    logical_date = "{{ds_add(ds, -2)}}"
     print(kwargs["thetable"])
 
     data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , logical_date)
