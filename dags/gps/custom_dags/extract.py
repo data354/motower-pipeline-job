@@ -40,7 +40,7 @@ def extract_job(**kwargs):
     if data.shape[0] == 0:
         save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["thetable"], kwargs["ingest_date"], data)
     else:
-        raise RuntimeError(f"No data for {kwargs["ingest_date"]}")
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
 
 with DAG(
