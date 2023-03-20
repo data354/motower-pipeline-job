@@ -80,6 +80,9 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
     if table == "hourly_datas_radio_prod":
         sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
+    elif table == "hourly_datas_radio_prod_archive":
+        sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
+                    {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
     elif table == "Taux_succes_2g":
         sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
                 MAX(CAST(cssr_cs AS DECIMAL)) AS max_cssr_cs, AVG(CAST(cssr_cs AS DECIMAL)) AS avg_cssr_cs,
