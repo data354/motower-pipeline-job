@@ -81,8 +81,10 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
         sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
     elif table == "Taux_succes_2g":
-        sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, SUM(CAST(cssr_cs AS DECIMAL)) AS cssr_cs, techno 
-                    from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
+        sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
+                MAX(CAST(cssr_cs AS DECIMAL)) AS max_cssr_cs, AVG(CAST(cssr_cs AS DECIMAL)) AS avg_cssr_cs,
+                median(CAST(cssr_cs AS DECIMAL)) AS median_cssr_cs, techno 
+                from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
     elif table == "Call_drop_2g":
         sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
@@ -90,8 +92,11 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
         sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
     elif table == "Taux_succes_3g":
-        sql = f'''select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as call_setup_suceess_rate_speech_h, techno 
-            from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
+        sql = f'''select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site, MIN(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as min_cssr_cs,
+                 techno, MAX(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as max_cssr_cs, 
+                 AVG(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)), median(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) 
+                 as median_cssr_cs as avg_cssr_cs
+                 from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
     else:
         raise RuntimeError(f"No request for this table {table}")
     logging.info('Connecting to the PostgreSQL database...')
@@ -126,7 +131,7 @@ def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.D
     csv_bytes = data.to_csv().encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
     client.put_object(objet.get("bucket"),
-                       f"{objet.get('folder')}/{date}.csv",
+                       f"{objet.get('folder')}/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
