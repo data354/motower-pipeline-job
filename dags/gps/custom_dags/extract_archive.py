@@ -66,6 +66,7 @@ with DAG(
     description='ingest data from postgresql',
     schedule_interval="30 5 * * *",
     start_date=datetime(2023, 1, 3, 5, 30, 0),
+    end_date= datetime(2023, 1, 31, 5, 30, 0),
     catchup=True
 ) as dag:
 
