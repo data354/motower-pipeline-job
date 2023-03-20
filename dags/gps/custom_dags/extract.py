@@ -17,7 +17,7 @@ MINIO_ENDPOINT = Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
 MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 
-INGEST_DATE = "{{ macros.ds_add(ds, -2) }}"
+INGEST_DATE = "{{ macros.ds_add(ds, -1) }}"
 
 
 config_file = Path(__file__).parents[3] / "config/configs.json"
