@@ -93,9 +93,9 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
     elif table == "Taux_succes_3g":
         sql = f'''select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site, MIN(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as min_cssr_cs,
-                 techno, MAX(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as max_cssr_cs, 
-                 AVG(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)), median(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) 
-                 as median_cssr_cs as avg_cssr_cs
+                  MAX(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as max_cssr_cs, 
+                 AVG(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as avg_cssr_cs, median(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) 
+                 as median_cssr_cs , techno
                  from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
     else:
         raise RuntimeError(f"No request for this table {table}")
