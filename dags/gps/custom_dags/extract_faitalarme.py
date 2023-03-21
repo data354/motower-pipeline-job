@@ -48,7 +48,7 @@ with DAG(
         'retries': 0
     },
     description='ingest data from postgresql',
-    schedule_interval= "None",
+    schedule_interval= None,
     start_date=datetime(2023, 1, 3, 5, 30, 0),
     catchup=True
 ) as dag:
