@@ -62,7 +62,7 @@ else:
 #     data_of_day.write.mode("overwrite").parquet(outputpath)
 
 
-def extract(host: str, database:str, user: str, password: str, table: str, date: str) -> pd.DataFrame:
+def extract(host: str, database:str, user: str, password: str, table: str = None,  date: str = None, request:str = None) -> pd.DataFrame:
     """
         function to get data from table and save in parquet file
            Args: 
@@ -100,6 +100,8 @@ def extract(host: str, database:str, user: str, password: str, table: str, date:
                  AVG(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as avg_cssr_cs, median(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) 
                  as median_cssr_cs , techno
                  from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
+    elif (table is None) and (date is None) and (request is not None)  :
+        sql = request
     else:
         raise RuntimeError(f"No request for this table {table}")
     logging.info('Connecting to the PostgreSQL database...')
@@ -130,7 +132,7 @@ def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.D
     logging.info("start to save data")
     objet = [t for t in config["tables"] if t["name"] == table][0]
     if not client.bucket_exists(objet.get("bucket")):
-        client.make_bucket(objet.get("buget"))
+        client.make_bucket(objet.get("bucket"))
     csv_bytes = data.to_csv().encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
     client.put_object(objet.get("bucket"),
