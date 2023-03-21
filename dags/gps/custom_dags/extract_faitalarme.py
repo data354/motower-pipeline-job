@@ -38,7 +38,7 @@ def extract_fa():
 
 
 with DAG(
-    'etl_archive',
+    'etl_fa',
     default_args={
         'depends_on_past': False,
         'email': ["yasmine.kouadio@data354.co"],
