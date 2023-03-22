@@ -20,7 +20,7 @@ MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 
 
 def extract_fa():
-    data = extract(host= PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table=None, date=None , request="select date, code_site, techno, delay , nbrecellule from faitalarme where date between '2023-01-01' and '2023-03-21' order by date;")
+    data = extract(host= PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table=None, date=None , request="select * from faitalarme where date between '2023-01-01' and '2023-03-22' order by date;")
     client = Minio(
         MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
