@@ -29,7 +29,7 @@ def extract_ftp_job(**kwargs):
     """
     """
 
-    data = extract_ftp(FTP_HOST,FTP_USER, FTP_PASSWORD )
+    data = extract_ftp(FTP_HOST,FTP_USER, FTP_PASSWORD , kwargs["ingest_date"])
     if data.shape[0] != 0:
         save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
     else:
