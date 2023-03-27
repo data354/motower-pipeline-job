@@ -2,7 +2,8 @@ from pathlib import Path
 from datetime import datetime
 import json
 from airflow import DAG
-from gps.common.extract import extract, save_minio
+from gps.common.extract import extract_pg
+from gps.common.rwminio import save_minio
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
@@ -45,10 +46,10 @@ def extract_a_job(**kwargs):
     """
    
 
-    data = extract(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+    data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
 
     if data.shape[0] != 0:
-        save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["thetable"], kwargs["ingest_date"], data)
+        save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], kwargs["folder"], kwargs["ingest_date"], data)
     else:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
@@ -75,6 +76,8 @@ with DAG(
         provide_context=True,
         python_callable=extract_a_job,
         op_kwargs={'thetable': config["tables"][1]["name"],
+                   'bucket': config["tables"][1]["bucket"],
+                   'folder': config["tables"][1]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -84,6 +87,8 @@ with DAG(
         provide_context=True,
         python_callable=extract_a_job,
         op_kwargs={'thetable': config["tables"][2]["name"],
+                   'bucket': config["tables"][2]["bucket"],
+                   'folder': config["tables"][2]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -93,6 +98,8 @@ with DAG(
         provide_context=True,
         python_callable=extract_a_job,
         op_kwargs={'thetable': config["tables"][3]["name"],
+                   'bucket': config["tables"][3]["bucket"],
+                   'folder': config["tables"][3]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -101,6 +108,8 @@ with DAG(
         provide_context=True,
         python_callable=extract_a_job,
         op_kwargs={'thetable': config["tables"][4]["name"],
+                   'bucket': config["tables"][4]["bucket"],
+                   'folder': config["tables"][4]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -109,6 +118,8 @@ with DAG(
         provide_context=True,
         python_callable=extract_a_job,
         op_kwargs={'thetable': config["tables"][5]["name"],
+                   'bucket': config["tables"][5]["bucket"],
+                   'folder': config["tables"][5]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -117,6 +128,8 @@ with DAG(
         provide_context=True,
         python_callable=extract_a_job,
         op_kwargs={'thetable': config["tables"][6]["name"],
+                   'bucket': config["tables"][6]["bucket"],
+                   'folder': config["tables"][6]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     )

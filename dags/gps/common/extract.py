@@ -2,10 +2,9 @@ from pathlib import Path
 import logging
 from datetime import datetime, timedelta
 import json
-from minio import Minio
 import pandas as pd
 import psycopg2
-from io import BytesIO
+from ftplib import FTP
 
 
 # Get BD settings
@@ -62,7 +61,7 @@ else:
 #     data_of_day.write.mode("overwrite").parquet(outputpath)
 
 
-def extract(host: str, database:str, user: str, password: str, table: str = None,  date: str = None, request:str = None) -> pd.DataFrame:
+def extract_pg(host: str, database:str, user: str, password: str, table: str = None,  date: str = None, request:str = None) -> pd.DataFrame:
     """
         function to get data from table and save in parquet file
            Args: 
@@ -117,30 +116,58 @@ def extract(host: str, database:str, user: str, password: str, table: str = None
     return agregate_data
 
 
-def save_minio(endpoint, accesskey, secretkey, table: str, date: str, data: pd.DataFrame) -> None:
+
+def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame:
     """
-        save dataframe in minio
-        Args:
-            table [str]
-            date [str]
-            df [pd.DataFrame]
-        Return
-            None
+        connect to ftp server and get file
+        ARGS:
+            hostname[str]: ftp server name
+            user[str]: ftp username
+            password[str]: ftp password
+            date[str]
+        RETURN:
+            pd.DataFrame
     """
-    client = Minio(
-        endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    logging.info("start to save data")
-    objet = [t for t in config["tables"] if t["name"] == table][0]
-    if not client.bucket_exists(objet.get("bucket")):
-        client.make_bucket(objet.get("bucket"))
-    csv_bytes = data.to_csv().encode('utf-8')
-    csv_buffer = BytesIO(csv_bytes)
-    client.put_object(objet.get("bucket"),
-                       f"{objet.get('folder')}/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}.csv",
-                        data=csv_buffer,
-                        length=len(csv_bytes),
-                        content_type='application/csv')
+  
+    server =  FTP(hostname, user, password )
+    server.encoding = "utf-8"
+    server.cwd(config["ftp_dir"])
+    filename = f'extract_vbm_{date.replace("-","")}.csv'
+    
+    # download file
+    try:
+        with open(filename, "wb") as file:
+            # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
+            server.retrbinary("filename", file.write)
+    except(Exception) as error:
+        print(error)
+    logging.info("read file")
+    data = pd.read_csv(filename, sep=";")
+    logging.info("add column")
+    data["MONTH_ID"] = data.DAY_ID.str[:4].str.cat(data.DAY_ID.str[4:6], "-" )
+
+    return data
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

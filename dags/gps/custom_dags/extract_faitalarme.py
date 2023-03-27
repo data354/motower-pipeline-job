@@ -3,7 +3,8 @@ from datetime import datetime
 import json
 from airflow import DAG
 from minio import Minio
-from gps.common.extract import extract, save_minio
+from gps.common.extract import extract_pg
+from gps.common.rwminio import save_minio
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from io import BytesIO
