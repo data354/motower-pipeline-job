@@ -7,6 +7,9 @@ import psycopg2
 from ftplib import FTP
 
 
+# first = True     # to identify the header line
+# data = []
+# columns = None
 # Get BD settings
 
 #db_file = Path(__file__).parents[3] / "config/database.yaml"
@@ -71,7 +74,7 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
              pandas DataFrame
     """
         # connect to the PostgreSQL server
-              
+
 
         # execute a statement
     logging.info("Getting data of the table %s ", table)
@@ -116,7 +119,16 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
     return agregate_data
 
 
+# def process_row(line):
 
+#     global columns
+#     if first:
+#         columns = line.decode().strip().split(';')
+#         first = False
+#     else:
+#         data.append(line.decode().strip().split(','))
+
+        
 def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame:
     """
         connect to ftp server and get file
@@ -128,7 +140,6 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         RETURN:
             pd.DataFrame
     """
-  
     server =  FTP(hostname, user, password )
     server.encoding = "utf-8"
     server.cwd(config["ftp_dir"])
@@ -138,12 +149,12 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     try:
         with open(filename, "wb") as file:
             # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
-            server.retrbinary("filename", file.write)
+            server.retrbinary(f"RETR {filename}", file.write)
     except(Exception) as error:
         print(error)
     logging.info("read file")
     path = Path(__file__).parent / filename
-    logging.info(f"Read data {path}")
+    logging.info("Read data %s",str(path))
     data = pd.read_csv(str(filename), sep=";")
     logging.info("add column")
     data["MONTH_ID"] = data.DAY_ID.str[:4].str.cat(data.DAY_ID.str[4:6], "-" )
