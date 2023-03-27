@@ -61,3 +61,5 @@ with DAG(
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
+
+    ingest_ftp
