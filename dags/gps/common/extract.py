@@ -116,20 +116,8 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
         print(error)
     return agregate_data
 
-global data
-first = True     # to identify the header line
-data = []
 
-def process_row(line):
 
-    global columns 
-    
-   
-    if first:
-        columns = line.decode().strip().split(';')
-        first = False
-    else:
-        data.append(line.decode().strip().split(','))
 
         
 def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame:
@@ -143,6 +131,23 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         RETURN:
             pd.DataFrame
     """
+    first = True     # to identify the header line
+    data = []
+    columns = None
+
+    def process_row(line):
+
+        global columns 
+        
+    
+        if first:
+            columns = line.decode().strip().split(';')
+            first = False
+        else:
+            data.append(line.decode().strip().split(','))
+
+
+
     server =  FTP(hostname, user, password )
     server.encoding = "utf-8"
     server.cwd(config["ftp_dir"])
@@ -156,8 +161,7 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         server.retrlines(f'RETR {filename}', process_row)
     except(Exception) as error:
         print(error)
-    logging.info("read file")
-    #path = Path(__file__).parent / filename
+    
     logging.info("Read data")
     #data = pd.read_csv(str(filename), sep=";")
     df = pd.DataFrame(data = data, columns = columns)
