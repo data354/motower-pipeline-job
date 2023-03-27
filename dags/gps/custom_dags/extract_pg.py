@@ -58,7 +58,7 @@ def extract_ftp_job(**kwargs):
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
 with DAG(
-    'extract_pg',
+    'extract',
     default_args={
         'depends_on_past': False,
         'email': ["yasmine.kouadio@data354.co"],

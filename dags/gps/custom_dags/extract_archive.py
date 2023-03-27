@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime
 import json
 from airflow import DAG
-from gps.common.extract import extract_pg
+from gps.common.extract import extract_pg, extract_ftp
 from gps.common.rwminio import save_minio
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
