@@ -45,7 +45,7 @@ def extract_job(**kwargs):
 
 
 with DAG(
-    'etl',
+    'extract_pg',
     default_args={
         'depends_on_past': False,
         'email': ["yasmine.kouadio@data354.co"],

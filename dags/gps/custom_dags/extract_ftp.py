@@ -37,7 +37,7 @@ def extract_ftp_job(**kwargs):
 
 
 with DAG(
-    'etl',
+    'extract_ftp',
     default_args={
         'depends_on_past': False,
         'email': ["yasmine.kouadio@data354.co"],
