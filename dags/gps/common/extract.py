@@ -100,6 +100,9 @@ def extract(host: str, database:str, user: str, password: str, table: str = None
                  AVG(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as avg_cssr_cs, median(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) 
                  as median_cssr_cs , techno
                  from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
+    elif table == "faitalarme":
+        sql = f"""select * from {table} where date='{date.replace("-","")}';"""
+
     elif (table is None) and (date is None) and (request is not None)  :
         sql = request
     else:

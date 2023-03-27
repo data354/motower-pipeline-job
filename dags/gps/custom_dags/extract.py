@@ -100,9 +100,17 @@ with DAG(
         op_kwargs={'thetable': config["tables"][5]["name"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
+    ),
+    ingest_indis = PythonOperator(
+        task_id='ingest_indisponibilite',
+        provide_context=True,
+        python_callable=extract_job,
+        op_kwargs={'thetable': config["tables"][6]["name"],
+                   'ingest_date': INGEST_DATE},
+        dag=dag,
     )
 
-    [ingest_hdrp, ingest_ts2g, ingest_ts3g, ingest_cd2g, ingest_cd3g]
+    [ingest_hdrp, ingest_ts2g, ingest_ts3g, ingest_cd2g, ingest_cd3g, ingest_indis]
 
 if __name__ == "__main__":
     from airflow.utils.state import State
