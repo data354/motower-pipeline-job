@@ -7,10 +7,8 @@ import psycopg2
 from ftplib import FTP
 
 
-# first = True     # to identify the header line
-# data = []
-# columns = None
-# Get BD settings
+
+#Get BD settings
 
 #db_file = Path(__file__).parents[3] / "config/database.yaml"
 config_file = Path(__file__).parents[3] / "config/configs.json"
@@ -118,15 +116,20 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
         print(error)
     return agregate_data
 
+global data
+first = True     # to identify the header line
+data = []
 
-# def process_row(line):
+def process_row(line):
 
-#     global columns
-#     if first:
-#         columns = line.decode().strip().split(';')
-#         first = False
-#     else:
-#         data.append(line.decode().strip().split(','))
+    global columns 
+    
+   
+    if first:
+        columns = line.decode().strip().split(';')
+        first = False
+    else:
+        data.append(line.decode().strip().split(','))
 
         
 def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame:
@@ -147,17 +150,19 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     
     # download file
     try:
-        with open(filename, "wb") as file:
-            # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
-            server.retrbinary(f"RETR {filename}", file.write)
+        # with open(filename, "wb") as file:
+        #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
+        #     server.retrbinary(f"RETR {filename}", file.write)
+        server.retrlines(f'RETR {filename}', process_row)
     except(Exception) as error:
         print(error)
     logging.info("read file")
-    path = Path(__file__).parent / filename
-    logging.info("Read data %s",str(path))
-    data = pd.read_csv(str(filename), sep=";")
+    #path = Path(__file__).parent / filename
+    logging.info("Read data")
+    #data = pd.read_csv(str(filename), sep=";")
+    df = pd.Dataframe(data = data, columns = columns)
     logging.info("add column")
-    data["MONTH_ID"] = data.DAY_ID.str[:4].str.cat(data.DAY_ID.str[4:6], "-" )
+    df["MONTH_ID"] = df.DAY_ID.str[:4].str.cat(df.DAY_ID.str[4:6], "-" )
 
     return data
    
