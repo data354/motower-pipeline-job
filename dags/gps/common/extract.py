@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import psycopg2
 from ftplib import FTP
+from io import BytesIO
 
 
 
@@ -131,45 +132,28 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         RETURN:
             pd.DataFrame
     """
-    first = True     # to identify the header line
-    data = []
-    columns = None
-
-    def process_row(line):
-
-        global columns 
-        
-    
-        if first:
-            columns = line.decode().strip().split(';')
-            first = False
-        else:
-            data.append(line.decode().strip().split(','))
-
-
-
     server =  FTP(hostname, user, password )
     server.encoding = "utf-8"
     server.cwd(config["ftp_dir"])
     filename = f'extract_vbm_{date.replace("-","")}.csv'
-    
+    downloaded = BytesIO()
     # download file
     try:
         # with open(filename, "wb") as file:
         #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
         #     server.retrbinary(f"RETR {filename}", file.write)
-        server.retrlines(f'RETR {filename}', process_row)
+        server.retrlines(f'RETR {filename}', downloaded.write)
     except(Exception) as error:
         print(error)
-    
     logging.info("Read data")
+    downloaded.seek(0)
     #data = pd.read_csv(str(filename), sep=";")
-    df = pd.DataFrame(data = data, columns = columns)
+    df = pd.read_csv(downloaded, engine="python" ,sep=";")
     logging.info("add column")
-    logging.info(columns)
+    logging.info(df.columns)
     df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
 
-    return data
+    return df
    
 
 
