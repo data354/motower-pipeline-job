@@ -145,7 +145,8 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         #     logging.info("Read data")
         
     downloaded = BytesIO()
-    server.retrlines(f'RETR {filename}', downloaded.write)
+    logging.info("downloading....")  
+    server.retrbinary(f'RETR {filename}', downloaded.write)
     downloaded.seek(0)
     logging.info("Read data")
     df = pd.read_csv(downloaded, engine="python" ,sep=";")
