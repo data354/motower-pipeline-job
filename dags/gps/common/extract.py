@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 import pandas as pd
 import psycopg2
-from ftplib import FTP
+import ftplib
 from io import BytesIO
 
 
@@ -132,9 +132,14 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         RETURN:
             pd.DataFrame
     """
-    server =  FTP(hostname, user, password )
-    server.encoding = "utf-8"
-    server.cwd(config["ftp_dir"])
+    try:
+        server =  ftplib.FTP(hostname, user, password , timeout=15)
+        server.cwd(config["ftp_dir"])
+    except ftplib.error_perm:
+        raise OSError(f"{config['ftp_dir']} don\'t exist on FTP server")
+    except Exception:
+        raise ConnectionError("Connection to FTP server failed.")
+
     filename = f'extract_vbm_{date.replace("-","")}.csv'
     logging.info("Get %s", filename)
     # download file
@@ -145,11 +150,23 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         #     logging.info("Read data")
         
     downloaded = BytesIO()
-    logging.info("downloading....")  
-    server.retrbinary(f'RETR {filename}', downloaded.write)
+    try:
+        logging.info("downloading....")  
+        server.retrbinary(f'RETR {filename}', downloaded.write)
+    except ftplib.error_perm:
+        raise OSError(f"{filename} don't exists on FTP server")
+    
     downloaded.seek(0)
     logging.info("Read data")
     df = pd.read_csv(downloaded, engine="python" ,sep=";")
+    # verify if file is empty
+    if df.shape[0] == 0:
+        raise RuntimeError(f"{filename} is empty" )
+    # verify is good columns is add
+    good_columns = [ d["columns"] for d in config["tables"] if d["name"] == "ca&parc"][0]
+    missing_columns = set(good_columns).difference(set(df.columns))
+    if len(missing_columns):
+        raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("add column")
     logging.info(df.columns)
     df["DAY_ID"] = df["DAY_ID"].astype("str")
@@ -159,7 +176,6 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     #data = pd.read_csv(str(filename), sep=";")
     
    
-
 
 
 
