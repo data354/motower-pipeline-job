@@ -22,8 +22,8 @@ FTP_HOST = Variable.get('ftp_host')
 FTP_USER = Variable.get('ftp_user')
 FTP_PASSWORD = Variable.get('ftp_password')
 
-INGEST_DATE = "{{ macros.ds_add(ds, -1) }}"
-
+INGEST_PG_DATE = "{{ macros.ds_add(ds, -1) }}"
+INGEST_FTP_DATE = "{{ macros.ds_add(ds, -6) }}"
 
 config_file = Path(__file__).parents[3] / "config/configs.json"
 if config_file.exists():
@@ -40,7 +40,7 @@ def extract_job(**kwargs):
     """
 
 
-    data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+    data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["INGEST_PG_DATE"])
 
     if data.shape[0] != 0:
         save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
@@ -69,7 +69,7 @@ with DAG(
     },
     description='ingest data from postgresql',
     schedule_interval="30 5 * * *",
-    start_date=datetime(2023, 2, 2, 5, 30, 0),
+    start_date=datetime(2023, 2, 8, 6, 30, 0),
     catchup=True
 ) as dag:
 
@@ -80,7 +80,7 @@ with DAG(
         op_kwargs={'thetable': config["tables"][0]["name"],
                    'bucket': config["tables"][0]["bucket"],
                    'folder': config["tables"][0]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
 
@@ -91,7 +91,7 @@ with DAG(
         op_kwargs={'thetable': config["tables"][2]["name"],
                    'bucket': config["tables"][2]["bucket"],
                    'folder': config["tables"][0]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
 
@@ -102,7 +102,7 @@ with DAG(
         op_kwargs={'thetable': config["tables"][3]["name"],
                    'bucket': config["tables"][3]["bucket"],
                    'folder': config["tables"][3]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
     ingest_cd2g = PythonOperator(
@@ -112,7 +112,7 @@ with DAG(
         op_kwargs={'thetable': config["tables"][4]["name"],
                    'bucket': config["tables"][4]["bucket"],
                    'folder': config["tables"][4]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
     ingest_cd3g = PythonOperator(
@@ -122,7 +122,7 @@ with DAG(
         op_kwargs={'thetable': config["tables"][5]["name"],
                    'bucket': config["tables"][5]["bucket"],
                    'folder': config["tables"][5]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
     ingest_indis = PythonOperator(
@@ -132,7 +132,7 @@ with DAG(
         op_kwargs={'thetable': config["tables"][6]["name"],
                    'bucket': config["tables"][6]["bucket"],
                    'folder': config["tables"][6]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
     ingest_ftp = PythonOperator(
@@ -141,7 +141,7 @@ with DAG(
         python_callable=extract_ftp_job,
         op_kwargs={'bucket': config["tables"][7]["bucket"],
                    'folder': config["tables"][7]["folder"],
-                   'ingest_date': INGEST_DATE},
+                   'ingest_date': INGEST_FTP_DATE},
         dag=dag,
     )
 
