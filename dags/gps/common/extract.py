@@ -136,19 +136,21 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     server.encoding = "utf-8"
     server.cwd(config["ftp_dir"])
     filename = f'extract_vbm_{date.replace("-","")}.csv'
-    downloaded = BytesIO()
+    logging.info("Get %s", filename)
     # download file
     try:
-        # with open(filename, "wb") as file:
-        #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
-        #     server.retrbinary(f"RETR {filename}", file.write)
-        server.retrlines(f'RETR {filename}', downloaded.write)
+        with open(filename, "wb") as downloaded:
+            # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
+            server.retrlines(f"RETR {filename}", downloaded.write)
+        #server.retrlines(f'RETR {filename}', downloaded.write)
     except(Exception) as error:
         print(error)
+
     logging.info("Read data")
     downloaded.seek(0)
     #data = pd.read_csv(str(filename), sep=";")
-    df = pd.read_csv(downloaded, engine="python" ,sep=";")
+    df = pd.read_csv(downloaded ,sep=";")
+
     logging.info("add column")
     logging.info(df.columns)
     df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
