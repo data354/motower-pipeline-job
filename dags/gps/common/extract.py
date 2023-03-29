@@ -146,17 +146,18 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         downloaded = BytesIO()
         server.retrlines(f'RETR {filename}', downloaded.write)
         downloaded.seek(0)
+        logging.info("Read data")
         df = pd.read_csv(downloaded, engine="python" ,sep=";")
+        logging.info("add column")
+        logging.info(df.columns)
+        df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
     except(Exception) as error:
         print(error)
     
     #data = pd.read_csv(str(filename), sep=";")
     
     
-    logging.info("add column")
-    logging.info(df.columns)
-    df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
-
+    
     return df
    
 
