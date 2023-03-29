@@ -141,15 +141,15 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     try:
         with open(filename, "wb") as downloaded:
             # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
-            server.retrlines(f"RETR {filename}", downloaded.write)
+            server.retrbinary(f"RETR {filename}", downloaded.write)
         #server.retrlines(f'RETR {filename}', downloaded.write)
     except(Exception) as error:
         print(error)
 
     logging.info("Read data")
-    
     #data = pd.read_csv(str(filename), sep=";")
-    df = pd.read_csv(downloaded ,sep=";")
+    df = pd.read_csv(downloaded, engine="python" ,sep=";")
+    
     logging.info("add column")
     logging.info(df.columns)
     df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
