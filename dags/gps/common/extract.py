@@ -147,10 +147,9 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         print(error)
 
     logging.info("Read data")
-    downloaded.seek(0)
+    
     #data = pd.read_csv(str(filename), sep=";")
     df = pd.read_csv(downloaded ,sep=";")
-
     logging.info("add column")
     logging.info(df.columns)
     df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )

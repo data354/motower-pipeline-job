@@ -40,7 +40,7 @@ def extract_job(**kwargs):
     """
 
 
-    data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["INGEST_PG_DATE"])
+    data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
 
     if data.shape[0] != 0:
         save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
