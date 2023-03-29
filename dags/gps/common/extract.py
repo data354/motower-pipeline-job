@@ -138,22 +138,21 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     filename = f'extract_vbm_{date.replace("-","")}.csv'
     logging.info("Get %s", filename)
     # download file
-    try:
+    
         # with open(filename, "wb") as downloaded:
         #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
         #     server.retrbinary(f"RETR {filename}", downloaded.write)
         #     logging.info("Read data")
-        downloaded = BytesIO()
-        server.retrlines(f'RETR {filename}', downloaded.write)
-        downloaded.seek(0)
-        logging.info("Read data")
-        df = pd.read_csv(downloaded, engine="python" ,sep=";")
-        logging.info("add column")
-        logging.info(df.columns)
-        df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
-        return df
-    except(Exception) as error:
-        print(error)
+        
+    downloaded = BytesIO()
+    server.retrlines(f'RETR {filename}', downloaded.write)
+    downloaded.seek(0)
+    logging.info("Read data")
+    df = pd.read_csv(downloaded, engine="python" ,sep=";")
+    logging.info("add column")
+    logging.info(df.columns)
+    df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
+    return df
     
     #data = pd.read_csv(str(filename), sep=";")
     
