@@ -145,9 +145,8 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         #     logging.info("Read data")
         downloaded = BytesIO()
         server.retrlines(f'RETR {filename}', downloaded.write)
-        file = downloaded.open(file, "r")
         downloaded.seek(0)
-        df = pd.read_csv(file, engine="python" ,sep=";")
+        df = pd.read_csv(downloaded, engine="python" ,sep=";")
     except(Exception) as error:
         print(error)
     
