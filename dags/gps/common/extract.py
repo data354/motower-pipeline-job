@@ -120,10 +120,10 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     try:
         server =  ftplib.FTP(hostname, user, password , timeout=15)
         server.cwd(CONFIG["ftp_dir"])
-    except ftplib.error_perm:
-        raise OSError(f"{CONFIG['ftp_dir']} don\'t exist on FTP server")
-    except Exception:
-        raise ConnectionError("Connection to FTP server failed.")
+    except ftplib.error_perm as err :
+        raise OSError(f"{CONFIG['ftp_dir']} don\'t exist on FTP server") from err
+    except Exception as error:
+        raise ConnectionError("Connection to FTP server failed.") from error
 
     filename = f'extract_vbm_{date.replace("-","")}.csv'
     logging.info("Get %s", filename)
@@ -155,8 +155,8 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("add column")
     logging.info(df.columns)
-    df["DAY_ID"] = df["DAY_ID"].astype("str")
-    df["MONTH_ID"] = df["DAY_ID"].str[:4].str.cat(df["DAY_ID"].str[4:6], "-" )
+    df["day_id"] = df["day_id"].astype("str")
+    df["month_id"] = df["day_id"].str[:4].str.cat(df["day_id"].str[4:6], "-" )
     return df
     
     #data = pd.read_csv(str(filename), sep=";")
