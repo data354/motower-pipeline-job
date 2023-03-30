@@ -29,7 +29,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
         #     "host": endpoint
         #     }
          #       )
-        obj = client.get_object(objet["bucket"], f"{objet['folder']}/filename")
+        obj = client.get_object(objet["bucket"], f"{objet['folder']}/{filename}")
     except InvalidResponseError as error:
         raise OSError(f"{filename} don't exists in bucket") from error
         
