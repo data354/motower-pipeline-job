@@ -19,13 +19,13 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
     filename = f"BASE_SITES_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
-    logging.info("read %s", filename)
     try:
+        logging.info("read %s", filename)
         df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
             storage_options={
             "key": accesskey,
             "secret": secretkey,
-            "client_kwargs": {"endpoint_url": endpoint}
+            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
             }
                 )
     except Exception as error:
