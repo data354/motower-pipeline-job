@@ -22,14 +22,14 @@ with DAG(
         'max_active_run': 1,
         'retries': 0
     },
-    description='ingest data from postgresql',
+    description='clean and enrich monthly data',
     schedule_interval= "@monthly",
     start_date=datetime(2023, 1, 6, 6, 30, 0),
     catchup=True
 ) as dag:
 
     clean_base_site = PythonOperator(
-        task_id='enrich base sites',
+        task_id='enrich_base_sites',
         provide_context=True,
         python_callable=cleaning_base_site,
         op_kwargs={'endpoint': MINIO_ENDPOINT,
