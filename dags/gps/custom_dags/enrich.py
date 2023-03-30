@@ -33,8 +33,8 @@ with DAG(
         provide_context=True,
         python_callable=cleaning_base_site,
         op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'access_key': MINIO_ACCESS_KEY,
-                   'secret_key': MINIO_SECRET_KEY,
+                   'accesskey': MINIO_ACCESS_KEY,
+                   'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
         dag=dag
     )
