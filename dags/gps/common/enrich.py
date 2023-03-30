@@ -1,26 +1,48 @@
-import json
+from gps import CONFIG
 from pathlib import Path
 import pandas as pd
+from minio import Minio
+from gps.common.rwminio import save_minio 
+from minio.error import InvalidResponseError
 
-config_file = Path(__file__).parents[3] / "config/configs.json"
 
-if config_file.exists():
-    with config_file.open("r",) as f:
-        config = json.load(f)
-else:
-    raise RuntimeError("configs file don't exists")
-
-def get_base_site(date: str)-> pd.DataFrame:
+def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
     """
-        get base_site ans remove unnecessary columns
-        Args:
-            date [str]
-        Return
-            pd.DataFrame
+     function clean data from minio
     """
+
+    client = Minio(
+        endpoint,
+        access_key= accesskey,
+        secret_key= secretkey,
+        secure=False)
+    objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
+    if not client.bucket_exists(objet["bucket"]):
+        raise OSError(f"bucket {objet['bucket']} don\'t exits")
+    filename = f"BASE_SITES_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+    try:
+        df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
+            storage_options={
+            "key": accesskey,
+            "secret": secretkey,
+            "endpoint": endpoint
+            }
+                )
+    except Exception as error:
+        #raise OSError(f"{filename} don't exists in bucket") from error
+        print(error)
+    # check columns
+    df.columns = df.columns.str.lower()
+    missing_columns = set(objet["columns"]).difference(set(df.columns))
+    if len(missing_columns):
+        raise ValueError(f"missing columns {', '.join(missing_columns)}")
     
-    files = (Path(config["data"]) / "base_site").glob("*.xlsx")
-    if not len(files):
-        raise(" dir base_site is empty ")
-
-    file = [f for f in files if f.is_file()][0]
+    # strip columns
+    cols_to_trim = ["code oci", "autre code"]
+    df[objet["columns"]] = df[objet["columns"]].apply(lambda x: x.astype("str"))
+    df[cols_to_trim] = df[cols_to_trim].apply(lambda x: x.str.strip())
+    df["MOIS"] = date.split("-")[0]+date.split("-")[1]
+    # get statut == service
+    df = df.loc[df["statut"].str.lower() == "service", objet["columns"]]
+    
+    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df)

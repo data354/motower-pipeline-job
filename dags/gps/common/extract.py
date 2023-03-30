@@ -1,29 +1,13 @@
-from pathlib import Path
 import logging
-from datetime import datetime, timedelta
-import json
+from io import BytesIO
+import ftplib
+from gps import CONFIG
 import pandas as pd
 import psycopg2
-import ftplib
-from io import BytesIO
 
 
 
-#Get BD settings
 
-#db_file = Path(__file__).parents[3] / "config/database.yaml"
-config_file = Path(__file__).parents[3] / "config/configs.json"
-# if db_file.exists():
-#     with db_file.open("r",) as f:
-#         settings = yaml.safe_load(f)
-# else:
-#     raise RuntimeError("database file don't exists")
-
-if config_file.exists():
-    with config_file.open("r",) as f:
-        config = json.load(f)
-else:
-    raise RuntimeError("configs file don't exists")
 
 
 # init spark session
@@ -104,13 +88,14 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
     elif table == "faitalarme":
         sql = f"""select * from {table} where date='{date.replace("-","")}';"""
 
-    elif (table is None) and (date is None) and (request is not None)  :
+    elif (table is None) and (date is None) and (request is not None):
         sql = request
     else:
         raise RuntimeError(f"No request for this table {table}")
-    logging.info('Connecting to the PostgreSQL database...')
+        
     try:
         agregate_data = pd.DataFrame()
+        logging.info('Connecting to the PostgreSQL database...')
         with psycopg2.connect(host= host,database= database,user= user,password= password,) as conn:
             agregate_data = pd.read_sql_query(sql, conn)
     except (Exception, psycopg2.DatabaseError) as error:
@@ -134,9 +119,9 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     """
     try:
         server =  ftplib.FTP(hostname, user, password , timeout=15)
-        server.cwd(config["ftp_dir"])
+        server.cwd(CONFIG["ftp_dir"])
     except ftplib.error_perm:
-        raise OSError(f"{config['ftp_dir']} don\'t exist on FTP server")
+        raise OSError(f"{CONFIG['ftp_dir']} don\'t exist on FTP server")
     except Exception:
         raise ConnectionError("Connection to FTP server failed.")
 
@@ -153,8 +138,8 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     try:
         logging.info("downloading....")  
         server.retrbinary(f'RETR {filename}', downloaded.write)
-    except ftplib.error_perm:
-        raise OSError(f"{filename} don't exists on FTP server")
+    except ftplib.error_perm as error:
+        raise OSError(f"{filename} don't exists on FTP server") from error
     
     downloaded.seek(0)
     logging.info("Read data")
@@ -163,7 +148,8 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     if df.shape[0] == 0:
         raise RuntimeError(f"{filename} is empty" )
     # verify is good columns is add
-    good_columns = [ d["columns"] for d in config["tables"] if d["name"] == "ca&parc"][0]
+    df.columns = df.columns.str.lower()
+    good_columns = [ d["columns"] for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
     missing_columns = set(good_columns).difference(set(df.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")

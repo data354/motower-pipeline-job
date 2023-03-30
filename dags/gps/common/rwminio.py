@@ -1,22 +1,9 @@
 import logging
+from io import BytesIO
+from pathlib import Path
 from minio import Minio
 import pandas as pd
-from pathlib import Path
-import json
-from io import BytesIO
 
-config_file = Path(__file__).parents[3] / "config/configs.json"
-# if db_file.exists():
-#     with db_file.open("r",) as f:
-#         settings = yaml.safe_load(f)
-# else:
-#     raise RuntimeError("database file don't exists")
-
-if config_file.exists():
-    with config_file.open("r",) as f:
-        config = json.load(f)
-else:
-    raise RuntimeError("configs file don't exists")
 
 
 def save_minio(endpoint, accesskey, secretkey, bucket: str, folder: str, date: str, data: pd.DataFrame) -> None:
@@ -35,7 +22,7 @@ def save_minio(endpoint, accesskey, secretkey, bucket: str, folder: str, date: s
         secret_key= secretkey,
         secure=False)
     logging.info("start to save data")
-    #objet = [t for t in config["tables"] if t["name"] == table][0]
+    #objet = [t for t in CONFIG["tables"] if t["name"] == table][0]
     if not client.bucket_exists(bucket):
         client.make_bucket(bucket)
     csv_bytes = data.to_csv().encode('utf-8')
@@ -64,3 +51,24 @@ def save_file_minio(endpoint:str, accesskey:str, secretkey:str,bucket:str, file:
         client.make_bucket(bucket)
     path = Path(__file__).parent / file
     client.fput_object(bucket, file, path)
+
+
+# def read_minio(endpoint, accesskey, secretkey, bucket: str, folder:str, prefix:str, path: str, date: str)-> pd.DataFrame:
+#     """
+#         read data into minio
+#     """
+#     client = Minio(
+#         endpoint,
+#         access_key= accesskey,
+#         secret_key= secretkey,
+#         secure=False)
+    
+#     if not client.bucket_exists(bucket):
+#         raise OSError(f"bucket {bucket} don't exists")
+#     try:
+        
+#         file = client.get_object(bucket, path)
+#     except ResponseError as err:
+#         raise OSError(f"file {path} don't exists in minio") from err
+    
+#     return data

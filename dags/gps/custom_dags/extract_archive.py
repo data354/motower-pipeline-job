@@ -1,6 +1,6 @@
 from pathlib import Path
 from datetime import datetime
-import json
+from gps import CONFIG
 from airflow import DAG
 from gps.common.extract import extract_pg, extract_ftp
 from gps.common.rwminio import save_minio
@@ -21,20 +21,6 @@ FTP_HOST = Variable.get('ftp_host')
 FTP_USER = Variable.get('ftp_user')
 FTP_PASSWORD = Variable.get('ftp_password')
 # Get BD settings
-
-#db_file = Path(__file__).parents[3] / "config/database.yaml"
-config_file = Path(__file__).parents[3] / "config/configs.json"
-# if db_file.exists():
-#     with db_file.open("r",) as f:
-#         settings = yaml.safe_load(f)
-# else:
-#     raise RuntimeError("database file don't exists")
-
-if config_file.exists():
-    with config_file.open("r",) as f:
-        config = json.load(f)
-else:
-    raise RuntimeError("configs file don't exists")
 
 
 INGEST_DATE = "{{ ds }}"
@@ -87,9 +73,9 @@ with DAG(
         task_id='ingest_hourly_datas_radio_prod_archive',
         provide_context=True,
         python_callable=extract_a_job,
-        op_kwargs={'thetable': config["tables"][1]["name"],
-                   'bucket': config["tables"][1]["bucket"],
-                   'folder': config["tables"][1]["folder"],
+        op_kwargs={'thetable': CONFIG["tables"][1]["name"],
+                   'bucket': CONFIG["tables"][1]["bucket"],
+                   'folder': CONFIG["tables"][1]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -98,9 +84,9 @@ with DAG(
         task_id='ingest_Taux_succes_deuxg',
         provide_context=True,
         python_callable=extract_a_job,
-        op_kwargs={'thetable': config["tables"][2]["name"],
-                   'bucket': config["tables"][2]["bucket"],
-                   'folder': config["tables"][2]["folder"],
+        op_kwargs={'thetable': CONFIG["tables"][2]["name"],
+                   'bucket': CONFIG["tables"][2]["bucket"],
+                   'folder': CONFIG["tables"][2]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -109,9 +95,9 @@ with DAG(
         task_id='ingest_Taux_succes_troisg',
         provide_context=True,
         python_callable=extract_a_job,
-        op_kwargs={'thetable': config["tables"][3]["name"],
-                   'bucket': config["tables"][3]["bucket"],
-                   'folder': config["tables"][3]["folder"],
+        op_kwargs={'thetable': CONFIG["tables"][3]["name"],
+                   'bucket': CONFIG["tables"][3]["bucket"],
+                   'folder': CONFIG["tables"][3]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -119,9 +105,9 @@ with DAG(
         task_id='ingest_call_drop_deuxg',
         provide_context=True,
         python_callable=extract_a_job,
-        op_kwargs={'thetable': config["tables"][4]["name"],
-                   'bucket': config["tables"][4]["bucket"],
-                   'folder': config["tables"][4]["folder"],
+        op_kwargs={'thetable': CONFIG["tables"][4]["name"],
+                   'bucket': CONFIG["tables"][4]["bucket"],
+                   'folder': CONFIG["tables"][4]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -129,9 +115,9 @@ with DAG(
         task_id='ingest_call_drop_troisg',
         provide_context=True,
         python_callable=extract_a_job,
-        op_kwargs={'thetable': config["tables"][5]["name"],
-                   'bucket': config["tables"][5]["bucket"],
-                   'folder': config["tables"][5]["folder"],
+        op_kwargs={'thetable': CONFIG["tables"][5]["name"],
+                   'bucket': CONFIG["tables"][5]["bucket"],
+                   'folder': CONFIG["tables"][5]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -139,9 +125,9 @@ with DAG(
         task_id='ingest_indisponibilite',
         provide_context=True,
         python_callable=extract_a_job,
-        op_kwargs={'thetable': config["tables"][6]["name"],
-                   'bucket': config["tables"][6]["bucket"],
-                   'folder': config["tables"][6]["folder"],
+        op_kwargs={'thetable': CONFIG["tables"][6]["name"],
+                   'bucket': CONFIG["tables"][6]["bucket"],
+                   'folder': CONFIG["tables"][6]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     ),
@@ -149,8 +135,8 @@ with DAG(
         task_id='ingest_ftp',
         provide_context=True,
         python_callable=extract_a_ftp_job,
-        op_kwargs={'bucket': config["tables"][7]["bucket"],
-                   'folder': config["tables"][7]["folder"],
+        op_kwargs={'bucket': CONFIG["tables"][7]["bucket"],
+                   'folder': CONFIG["tables"][7]["folder"],
                    'ingest_date': INGEST_DATE},
         dag=dag,
     )
