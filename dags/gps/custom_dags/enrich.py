@@ -23,8 +23,8 @@ with DAG(
         'retries': 0
     },
     description='clean and enrich monthly data',
-    schedule_interval= "@monthly",
-    start_date=datetime(2023, 1, 6, 6, 30, 0),
+    schedule_interval= "0 0 6 * *",
+    start_date=datetime(2022, 12, 6, 0, 0, 0),
     catchup=True
 ) as dag:
 

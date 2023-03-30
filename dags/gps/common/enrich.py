@@ -25,7 +25,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
             storage_options={
             "key": accesskey,
             "secret": secretkey,
-            "endpoint": endpoint
+            "host": endpoint
             }
                 )
     except Exception as error:
