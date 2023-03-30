@@ -24,7 +24,7 @@ with DAG(
     },
     description='clean and enrich monthly data',
     schedule_interval= "0 0 6 * *",
-    start_date=datetime(2022, 12, 6, 0, 0, 0),
+    start_date=datetime(2023, 1, 6, 0, 0, 0),
     catchup=True
 ) as dag:
 
