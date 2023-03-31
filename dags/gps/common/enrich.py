@@ -45,7 +45,10 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     cols_to_trim = ["code oci", "autre code"]
     df[objet["columns"]] = df[objet["columns"]].apply(lambda x: x.astype("str"))
     df[cols_to_trim] = df[cols_to_trim].apply(lambda x: x.str.strip())
-    df["MOIS"] = date.split("-")[0]+date.split("-")[1]
+    df["mois"] = date.split("-")[0]+date.split("-")[1]
+    df = df.loc[~ df["code oci"].isnull(),:]
+    df = df.drop_duplicates(["code oci", "mois"], keep="first")
+    df["code oci id"] = df["code oci"].str.replace("OCI","").astype("float64")
     # get statut == service
     df = df.loc[df["statut"].str.lower() == "service", objet["columns"]]
     logging.info("save to minio")
