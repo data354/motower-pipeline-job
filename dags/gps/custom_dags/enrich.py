@@ -1,6 +1,6 @@
 from datetime import datetime
 from airflow import DAG
-from gps.common.enrich import cleaning_base_site
+from gps.common.enrich import cleaning_base_site, cleaning_esco, cleaning_ihs
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
@@ -37,5 +37,26 @@ with DAG(
                    'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
         dag=dag
+    ),
+    clean_opex_esco = PythonOperator(
+        task_id='enrich_esco',
+        provide_context=True,
+        python_callable=cleaning_esco,
+        op_kwargs={'endpoint': MINIO_ENDPOINT,
+                   'accesskey': MINIO_ACCESS_KEY,
+                   'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE},
+        dag=dag
+    ),
+    clean_opex_ihs = PythonOperator(
+        task_id='enrich_ihs',
+        provide_context=True,
+        python_callable=cleaning_ihs,
+        op_kwargs={'endpoint': MINIO_ENDPOINT,
+                   'accesskey': MINIO_ACCESS_KEY,
+                   'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE},
+        dag=dag
     )
-    clean_base_site
+    
+    [clean_base_site, clean_opex_esco,clean_opex_ihs]
