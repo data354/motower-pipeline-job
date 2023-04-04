@@ -52,7 +52,7 @@ def save_file_minio(endpoint:str, accesskey:str, secretkey:str,bucket:str, file:
     path = Path(__file__).parent / file
     client.fput_object(bucket, file, path)
 
-def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, folder:str, date: str)
+def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, folder:str, date: str):
     """
         get filename
     """
