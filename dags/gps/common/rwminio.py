@@ -62,7 +62,7 @@ def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, folder:st
         secret_key= secretkey,
         secure=False)
     
-    objects = client.list_objects(bucket, prefix=f'{folder}+"_"+{date.split("-")[0]}+"-"+{date.split("-")[1]}',
+    objects = client.list_objects(bucket, prefix=f'{folder}+"_"+{date.split("-")[0]}+{date.split("-")[1]}',
                               recursive=True)
     last = max([obj.last_modified for obj in objects ])
     filename = [obj.object_name.encode('utf-8') for obj in objects if obj.last_modified == last ][0]
