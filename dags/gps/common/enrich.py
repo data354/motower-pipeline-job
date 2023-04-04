@@ -22,7 +22,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
     #filename = f"BASE_SITES_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
-    
+
     logging.info("get filename")
 
     filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
@@ -58,6 +58,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     df["code oci id"] = df["code oci"].str.replace("OCI","").astype("float64")
     # get statut == service
     df = df.loc[df["statut"].str.lower() == "service", objet["columns"]]
+    df = df.loc[df["position site"].str.lower() == "localité", objet["columns"]]
     logging.info("save to minio")
     save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df)
 
