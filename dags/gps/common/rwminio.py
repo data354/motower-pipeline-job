@@ -52,6 +52,23 @@ def save_file_minio(endpoint:str, accesskey:str, secretkey:str,bucket:str, file:
     path = Path(__file__).parent / file
     client.fput_object(bucket, file, path)
 
+def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, folder:str, date: str)
+    """
+        get filename
+    """
+    client = Minio(
+        endpoint,
+        access_key= accesskey,
+        secret_key= secretkey,
+        secure=False)
+    
+    objects = client.list_objects(bucket, prefix=f'{folder}+"_"+{date.split("-")[0]}+"-"+{date.split("-")[1]}',
+                              recursive=True)
+    last = max([obj.last_modified for obj in objects ])
+    filename = [obj.object_name.encode('utf-8') for obj in objects if obj.last_modified == last ][0]
+    if (not filename.lower().endswith(".xlsx")) or (not filename.lower().endswith(".xls")) or (not filename.lower().endswith(".csv")):
+        raise ValueError("file with good extension not found")
+    return filename
 
 # def read_minio(endpoint, accesskey, secretkey, bucket: str, folder:str, prefix:str, path: str, date: str)-> pd.DataFrame:
 #     """

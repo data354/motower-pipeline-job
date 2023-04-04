@@ -1,10 +1,11 @@
-from gps import CONFIG
 from pathlib import Path
 import pandas as pd
 from minio import Minio
-from gps.common.rwminio import save_minio 
-from pandas.io.excel import ExcelFile
 from copy import deepcopy
+from pandas.io.excel import ExcelFile
+
+from gps import CONFIG
+from gps.common.rwminio import save_minio, getfilename
 import logging
 
 def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
@@ -20,7 +21,11 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
-    filename = f"BASE_SITES_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+    #filename = f"BASE_SITES_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+    
+    logging.info("get filename")
+
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
     try:
         logging.info("read %s", filename)
         df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
@@ -71,7 +76,10 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
-    filename = f"OPEX_ESCO_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+    #filename = f"OPEX_ESCO_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+    logging.info("get filename")
+
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
     try:
         logging.info("read %s", filename)
         df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
@@ -123,7 +131,9 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         if not client.bucket_exists(objet["bucket"]):
             raise OSError(f"bucket {objet['bucket']} don\'t exits")
 
-        filename = f"OPEX_IHS_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+        #filename = f"OPEX_IHS_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+        logging.info("get filename")
+        filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
         logging.info("read file %s",filename)
         excel = pd.ExcelFile(filename)
         sheet_f = []
