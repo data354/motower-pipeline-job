@@ -61,11 +61,10 @@ def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, folder:st
         access_key= accesskey,
         secret_key= secretkey,
         secure=False)
-    print(f'{folder}_{date.split("-")[0]}{date.split("-")[1]}')
-    objects = client.list_objects(bucket, prefix=f'{folder}_{date.split("-")[0]}{date.split("-")[1]}',
+    print(f'{folder}_{date.split("-")[0:2]}')
+    objects = client.list_objects(bucket, prefix=f'{folder}_{date.split("-")[0:2]}',
                               recursive=True)
-    #last = max([obj.last_modified for obj in objects ])
-    logging.info("%s found", str(len(objects)))
+    last = max([obj.last_modified for obj in objects ])
 
     last = max([client.stat_object(bucket, obj).last_modified for obj in objects])
     filename = [obj.object_name.encode('utf-8') for obj in objects if obj.last_modified == last ][0]
