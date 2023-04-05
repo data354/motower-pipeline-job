@@ -97,6 +97,7 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     # check columns
     logging.info("check columns")
     df.columns = df.columns.str.lower()
+    logging.info(f"columns {', '.join(df.columns)}")
     missing_columns = set(objet["columns"]).difference(set(df.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
