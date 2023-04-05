@@ -138,8 +138,9 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         logging.info("read file %s",filename)
         response = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
             # Read data from response.
-        response.close()
-        print(response.release_conn())
+        print(response.read())
+        print(response["body"].read())
+        
         # file = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
         # excel = pd.ExcelFile(file)
         # sheet_f = []
