@@ -78,7 +78,6 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
     filename = f"OPEX_ESCO_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
-    logging.info("get filename")
 
     #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
     try:
@@ -137,7 +136,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         logging.info("get filename")
         #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
         logging.info("read file %s",filename)
-        excel = pd.ExcelFile(filename)
+        excel = pd.ExcelFile(f"s3://{objet['bucket']}/{objet['folder']}/{filename}")
         sheet_f = []
         for sheet in objet["sheets"]:
             sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
