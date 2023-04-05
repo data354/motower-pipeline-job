@@ -136,11 +136,8 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         logging.info("get filename")
         #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
         logging.info("read file %s",filename)
-        excel = pd.ExcelFile(f"s3://{objet['bucket']}/{objet['folder']}/{filename}", storage_options={
-                        "key": accesskey,
-                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                })
+        file = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
+        excel = pd.ExcelFile(file)
         sheet_f = []
         for sheet in objet["sheets"]:
             sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
