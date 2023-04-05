@@ -137,7 +137,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
         logging.info("read file %s",filename)
         try:
-            response = client.get_object("my-bucket", "my-object")
+            response = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
             # Read data from response.
         finally:
             response.close()
