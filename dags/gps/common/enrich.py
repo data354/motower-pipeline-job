@@ -58,7 +58,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     df["code oci id"] = df["code oci"].str.replace("OCI","").astype("float64")
     # get statut == service
     df = df.loc[df["statut"].str.lower() == "service", objet["columns"]]
-    df = df.loc[df["position site"].str.lower() == "localité", objet["columns"]]
+    df = df.loc[(df["position site"].str.lower() == "localité") & (df["position site"].str.lower() == "localié"), objet["columns"]]
     logging.info("save to minio")
     save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df)
 
@@ -141,7 +141,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         #print(response)
         objets = client.list_objects(bucket_name=objet["bucket"], recursive=True)
         for obj in objets:
-            print(obj)
+            print(obj.object_name)
         #df = pd.read_excel(response.get("body"))
         #print(df.shape)
         # file = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
