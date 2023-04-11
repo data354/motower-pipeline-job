@@ -69,7 +69,7 @@ def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, prefix:st
     last_date = max([obj.last_modified for obj in objets])
     
     filename = [obj.object_name for obj in objets if obj.last_modified == last_date][0]
-    if (not filename.lower().endswith(".xlsx")) or (not filename.lower().endswith(".xls")) or (not filename.lower().endswith(".csv")):
+    if (not filename.lower().endswith(".xlsx")) and (not filename.lower().endswith(".xls")) and (not filename.lower().endswith(".csv")):
         raise ValueError("file with good extension not found")
     return filename
 
