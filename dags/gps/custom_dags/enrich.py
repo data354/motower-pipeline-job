@@ -16,7 +16,7 @@ with DAG(
     'enrich',
     default_args={
         'depends_on_past': False,
-        'email': ["yasmine.kouadio@data354.co"],
+        'email': ["richmond.kongo@orange.com","assane.diop@orange.com","cyrille1.danho@orange.com"],
         'email_on_failure': True,
         'email_on_retry': False,
         'max_active_run': 1,
