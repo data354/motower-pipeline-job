@@ -105,7 +105,7 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.astype("str"))
     df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
     df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    df_ = df_.loc[~ df_["code oci"].isnull(),:]
+    df_ = df_.loc[~ df_["code site oci"].isnull(),:]
     df_ = df_.drop_duplicates(["code site oci", "mois"], keep="first")
     df_ = df_.loc[~ df_["total redevances ht"].isnull()]
     logging.info("save to minio")
