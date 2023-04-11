@@ -142,6 +142,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         objets = client.list_objects(bucket_name=objet["bucket"], prefix=f"objet['folder']_{date.split('-')[0]}{date.split('-')[1]}", recursive=True)
         for obj in objets:
             print(obj.object_name)
+            print(obj.last_modified)
         #df = pd.read_excel(response.get("body"))
         #print(df.shape)
         # file = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
