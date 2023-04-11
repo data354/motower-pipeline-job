@@ -136,11 +136,14 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         logging.info("get filename")
         #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
         logging.info("read file %s",filename)
-        response = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
+        #response = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
             # Read data from response.
-        print(response.get("body"))
-        df = pd.read_excel(response.get("body"))
-        print(df.shape)
+        #print(response)
+        objets = client.list_objects(bucket_name=objet["bucket"], recursive=True)
+        for obj in objets:
+            print(obj)
+        #df = pd.read_excel(response.get("body"))
+        #print(df.shape)
         # file = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
         # excel = pd.ExcelFile(file)
         # sheet_f = []
