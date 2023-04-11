@@ -133,25 +133,21 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
 
         filename = f"OPEX_IHS_{date.split('-')[0]}{date.split('-')[1]}.XLSX"
         logging.info("get filename")
-        #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
+        filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
         logging.info("read file %s",filename)
-        #response = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
-            # Read data from response.
-        #print(response)
-        objets = client.list_objects(bucket_name=objet["bucket"], prefix=f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}", recursive=True)
-        last_date = max([obj.last_modified for obj in objets])
-        filename = [obj.object_name for obj in objets if obj.last_modified == last_date][0]
-        for obj in objets:
-            print(obj.object_name)
-            print(obj.last_modified)
-        #df = pd.read_excel(response.get("body"))
-        #print(df.shape)
-        # file = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
-        # excel = pd.ExcelFile(file)
-        # sheet_f = []
-        # for sheet in objet["sheets"]:
-        #     sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
-
+        
+        
+       
+        excel = pd.ExcelFile(f"s3://{objet['bucket']}/{filename}",
+                             storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
+                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                } )
+        sheet_f = []
+        for sheet in objet["sheets"]:
+           sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
+        print(len(sheet_f))
         # data = pd.DataFrame()
         # for s in sheet_f:
         #     header = 14 if s.find("OCI-COLOC") != -1 else 15
