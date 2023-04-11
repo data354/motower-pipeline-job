@@ -81,9 +81,10 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     try:
         logging.info("read %s", filename)
         df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-            storage_options={
-            "key": accesskey,
-            "secret": secretkey,
+                            header = 3,
+                            storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
             }
                 )
