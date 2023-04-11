@@ -148,48 +148,45 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         for sheet in objet["sheets"]:
            sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
         print(len(sheet_f))
-        # data = pd.DataFrame()
-        # for s in sheet_f:
-        #     header = 14 if s.find("OCI-COLOC") != -1 else 15
-        #     try:
-        #         logging.info("read %s", filename)
-        #         df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}", header=header ,
-        #             storage_options={
-        #                 "key": accesskey,
-        #                 "secret": secretkey,
-        #                 "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-        #                         }
-        #                 )
-        #         df.columns = df.columns.str.lower()
-        #     except Exception as error:
-        #         raise OSError(f"{filename} don't exists in bucket") from error
-            
-
-        #     missing_columns = set(objet["columns"]).difference(set(df.columns))
-        #     if len(missing_columns):
-        #         raise ValueError(f"missing columns {', '.join(missing_columns)}")
-            
-            
-        #     df = df.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if s.find("OCI-MLL BPCI 22") == -1 else df.loc[:, objet['columns']]
-        #     df["month_total"] = df['trimestre ht'] / 3 if s.find("OCI-MLL BPCI 22") == -1 else df['trimestre 1 - ht'] / 3
-            
-        #     data = pd.concat([data, df])
+        data = pd.DataFrame()
+        for sh in sheet_f:
+            header = 14 if sh.find("OCI-COLOC") != -1 else 15
+            try:
+                logging.info("read %s", filename)
+                df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                 header=header , sheet_name=sh,
+                    storage_options={
+                        "key": accesskey,
+                        "secret": secretkey,
+                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                }
+                        )
+                df_.columns = df_.columns.str.lower()
+                columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if sh.find("OCI-MLL BPCI 22") == -1 else objet["columns"]
+                missing_columns = set(columns_to_check).difference(set(df_.columns))
+                if len(missing_columns):
+                    raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh} of file {filename}")
+                df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if sh.find("OCI-MLL BPCI 22") == -1 else df_.loc[:, objet['columns']]
+                df_["month_total"] = df_['trimestre ht'] / 3 if sh.find("OCI-MLL BPCI 22") == -1 else df_['trimestre 1 - ht'] / 3
+                data = pd.concat([data, df_])
+            except Exception as error:
+                raise OSError(f"{filename} don't exists in bucket") from error
 
 
-        # logging.info("clean ans enrich")
+        logging.info("clean ans enrich")
 
-        # cols_to_trim = ['site id ihs']
-        # data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
-        # data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-        # data["month"] = date.split("-")[0]+"-"+date.split("-")[1]
-        # data = data.loc[~ data['site id ihs'].isnull(),:]
-        # data.loc[data["trimestre ht"].isna(),"trimestre ht"] = data.loc[data["trimestre 1 - ht"].notna(), "trimestre 1 - ht"]
-        # data = data.loc[~ data["trimestre ht"].isnull(),:]
-        # data1 = deepcopy(data)
-        # data1["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+1).zfill(2)
-        # data2 = deepcopy(data)
-        # data2["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+2).zfill(2)
-        # logging.info("save to minio")
-        # save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, pd.concat([data, data1, data2]))
+        cols_to_trim = ['site id ihs']
+        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
+        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
+        data["month"] = date.split("-")[0]+"-"+date.split("-")[1]
+        data = data.loc[~ data['site id ihs'].isnull(),:]
+        data.loc[data["trimestre ht"].isna(),"trimestre ht"] = data.loc[data["trimestre 1 - ht"].notna(), "trimestre 1 - ht"]
+        data = data.loc[~ data["trimestre ht"].isnull(),:]
+        data1 = deepcopy(data)
+        data1["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+1).zfill(2)
+        data2 = deepcopy(data)
+        data2["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+2).zfill(2)
+        logging.info("save to minio")
+        save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, pd.concat([data, data1, data2]))
 
 
