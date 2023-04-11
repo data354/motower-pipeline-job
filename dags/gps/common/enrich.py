@@ -139,7 +139,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         #response = client.get_object(objet["bucket"],f"{objet['folder']}/{filename}" )
             # Read data from response.
         #print(response)
-        objets = client.list_objects(bucket_name=objet["bucket"], recursive=True)
+        objets = client.list_objects(bucket_name=objet["bucket"], prefix=f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}", recursive=True)
         for obj in objets:
             print(obj.object_name)
             print(obj.last_modified)
