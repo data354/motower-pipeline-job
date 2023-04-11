@@ -21,14 +21,12 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
     objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
-    filename = f"BASE_SITES_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
-
     logging.info("get filename")
 
-    #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
     try:
         logging.info("read %s", filename)
-        df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
+        df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
             storage_options={
             "key": accesskey,
             "secret": secretkey,
@@ -41,26 +39,26 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
 
     # check columns
     logging.info("check columns")
-    df.columns = df.columns.str.lower()
-    missing_columns = set(objet["columns"]).difference(set(df.columns))
+    df_.columns = df_.columns.str.lower()
+    missing_columns = set(objet["columns"]).difference(set(df_.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("columns are ok")
    
     # strip columns
-    logging.info("clean ans enrich")
+    logging.info("clean and enrich")
     cols_to_trim = ["code oci", "autre code"]
-    df[objet["columns"]] = df[objet["columns"]].apply(lambda x: x.astype("str"))
-    df[cols_to_trim] = df[cols_to_trim].apply(lambda x: x.str.strip())
-    df["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    df = df.loc[~ df["code oci"].isnull(),:]
-    df = df.drop_duplicates(["code oci", "mois"], keep="first")
-    df["code oci id"] = df["code oci"].str.replace("OCI","").astype("float64")
+    df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
+    df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
+    df_ = df_.loc[~ df_["code oci"].isnull(),:]
+    df_ = df_.drop_duplicates(["code oci", "mois"], keep="first")
+    df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
     # get statut == service
-    df = df.loc[df["statut"].str.lower() == "service", objet["columns"]]
-    df = df.loc[(df["position site"].str.lower() == "localité") & (df["position site"].str.lower() == "localié"), objet["columns"]]
+    df_ = df_.loc[df_["statut"].str.lower() == "service", objet["columns"]]
+    df_ = df_.loc[(df_["position site"].str.lower() == "localité") & (df_["position site"].str.lower() == "localié"), objet["columns"]]
     logging.info("save to minio")
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df)
+    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
 
 
 
@@ -77,12 +75,12 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"bucket {objet['bucket']} don\'t exits")
-    filename = f"OPEX_ESCO_{date.split('-')[0]}{date.split('-')[1]}.xlsx"
+    
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
 
-    #filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], objet["folder"],date)
     try:
         logging.info("read %s", filename)
-        df = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
+        df_ = pd.read_excel(f"s3://{objet['bucket']}/{objet['folder']}/{filename}",
             storage_options={
             "key": accesskey,
             "secret": secretkey,
@@ -95,22 +93,22 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
 
     # check columns
     logging.info("check columns")
-    df.columns = df.columns.str.lower()
-    print(df.columns)
-    missing_columns = set(objet["columns"]).difference(set(df.columns))
+    df_.columns = df_.columns.str.lower()
+    print(df_.columns)
+    missing_columns = set(objet["columns"]).difference(set(df_.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("columns are ok")
     logging.info("clean ans enrich")
     cols_to_trim = ["code site oci", "code site"]
-    df[cols_to_trim] = df[cols_to_trim].apply(lambda x: x.astype("str"))
-    df[cols_to_trim] = df[cols_to_trim].apply(lambda x: x.str.strip())
-    df["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    df = df.loc[~ df["code oci"].isnull(),:]
-    df = df.drop_duplicates(["code site oci", "mois"], keep="first")
-    df = df.loc[~ df["total redevances ht"].isnull()]
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.astype("str"))
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
+    df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
+    df_ = df_.loc[~ df_["code oci"].isnull(),:]
+    df_ = df_.drop_duplicates(["code site oci", "mois"], keep="first")
+    df_ = df_.loc[~ df_["total redevances ht"].isnull()]
     logging.info("save to minio")
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df)
+    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
 
 
 
@@ -140,6 +138,8 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
             # Read data from response.
         #print(response)
         objets = client.list_objects(bucket_name=objet["bucket"], prefix=f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}", recursive=True)
+        last_date = max([obj.last_modified for obj in objets])
+        filename = [obj.object_name for obj in objets if obj.last_modified == last_date][0]
         for obj in objets:
             print(obj.object_name)
             print(obj.last_modified)
