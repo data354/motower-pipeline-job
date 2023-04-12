@@ -223,17 +223,57 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
         
         data = pd.concat([data, df_])
     
-    logging.info("check columns")
-    print(data.columns)
-    data.columns = data.columns.str.lower()
-    missing_columns = set(objet["columns"]).difference(set(data.columns))
-    if len(missing_columns):
-        raise ValueError(f"missing columns {', '.join(missing_columns)}")
-    logging.info("columns are ok")
-    logging.info("clean ans enrich")
-    print(data.index)
-    data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    print(data.head())
-    data = data.drop_duplicates(["id_site", "mois"], keep="first").loc[:,["mois",	"id_site",	"ca_voix",	"ca_data"]]
-    logging.info("save to minio")
     save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+
+
+
+def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
+    """
+        clean alarm
+    """
+    client = Minio(
+        endpoint,
+        access_key= accesskey,
+        secret_key= secretkey,
+        secure=False)
+    objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
+    if not client.bucket_exists(objet["bucket"]):
+            raise OSError(f"bucket {objet['bucket']} don\'t exits")
+    
+    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+    data = pd.DataFrame()
+    for filename in filenames:
+        try:
+                
+                df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                    storage_options={
+                        "key": accesskey,
+                        "secret": secretkey,
+                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                }
+                        )
+        except Exception as error:
+                raise OSError(f"{filename} don't exists in bucket") from error
+        
+        data = pd.concat([data, df_])
+
+    data.columns = data.columns.str.lower()
+    cols_to_trim = ["code_site"]
+    df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
+    data.date = data.date.astype("str")
+
+    mois = data.date.str.rsplit("/",n=1, expand=True).iloc[:,0].str.replace("/","-")
+    data["mois"] = mois
+    data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
+    data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule"]]
+    # temps d'indisponibilité par site
+    data = data.groupby(["code_site", "mois", "techno"]).sum(["delay", "nbrecellule"])
+    #unstack var by techno
+    data_final = data.unstack()
+    data_final.columns = ["_".join(d) for d in data_final.columns]
+    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+
+
+
+
