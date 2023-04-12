@@ -220,7 +220,7 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
                         )
         except Exception as error:
                 raise OSError(f"{filename} don't exists in bucket") from error
-        
+        df_.columns = df_.columns.str.lower()
         data = pd.concat([data, df_])
     
     save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
