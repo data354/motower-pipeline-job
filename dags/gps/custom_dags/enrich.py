@@ -30,11 +30,11 @@ def on_failure(context):
         "exception" : context.get('exception'),
 
     }
-    if params['task_id'].contains("enrich_base_sites"):
+    if "enrich_base_sites" in params['task_id'] :
         params['type_fichier'] = "BASE_SITES"
-    elif params['task_id'].contains("enrich_esco"):
+    elif "enrich_esco" in  params['task_id']:
         params['type_fichier'] = "OPEX_ESCO"
-    elif params['task_id'].contains("enrich_ihs"):
+    elif "enrich_ihs" in params['task_id']:
         params['type_fichier'] = "OPEX_IHS"
     else:
         raise RuntimeError("Can't get file type")
