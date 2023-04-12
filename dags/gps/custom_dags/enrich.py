@@ -1,6 +1,6 @@
 from datetime import datetime
 from airflow import DAG
-from gps.common.enrich import cleaning_base_site, cleaning_esco, cleaning_ihs
+from gps.common.enrich import cleaning_base_site, cleaning_esco, cleaning_ihs, cleaning_ca_parc
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from gps import CONFIG
@@ -33,12 +33,13 @@ def on_failure(context):
         "exception" : context.get('exception'),
 
     }
-    if "enrich_base_sites" in params['task_id'] :
+    if "cleaning_bdd" in params['task_id'] :
         params['type_fichier'] = "BASE_SITES"
-    elif "enrich_esco" in  params['task_id']:
+    elif "cleaning_esco" in  params['task_id']:
         params['type_fichier'] = "OPEX_ESCO"
-    elif "enrich_ihs" in params['task_id']:
+    elif "cleaning_ihs" in params['task_id']:
         params['type_fichier'] = "OPEX_IHS"
+        
     else:
         raise RuntimeError("Can't get file type")
     
@@ -61,7 +62,7 @@ with DAG(
 ) as dag:
 
     clean_base_site = PythonOperator(
-        task_id='enrich_base_sites',
+        task_id='cleaning_bdd',
         provide_context=True,
         python_callable=cleaning_base_site,
         op_kwargs={'endpoint': MINIO_ENDPOINT,
@@ -72,7 +73,7 @@ with DAG(
         dag=dag
     ),
     clean_opex_esco = PythonOperator(
-        task_id='enrich_esco',
+        task_id='cleaning_esco',
         provide_context=True,
         python_callable=cleaning_esco,
         op_kwargs={'endpoint': MINIO_ENDPOINT,
@@ -83,7 +84,7 @@ with DAG(
         dag=dag
     ),
     clean_opex_ihs = PythonOperator(
-        task_id='enrich_ihs',
+        task_id='cleaning_ihs',
         provide_context=True,
         python_callable=cleaning_ihs,
         op_kwargs={'endpoint': MINIO_ENDPOINT,
@@ -93,5 +94,15 @@ with DAG(
         on_failure_callback = on_failure,
         dag=dag
     )
+    clean_ca_parc = PythonOperator(
+        task_id='cleaning_ca_parc',
+        provide_context=True,
+        python_callable=cleaning_ca_parc,
+        op_kwargs={'endpoint': MINIO_ENDPOINT,
+                   'accesskey': MINIO_ACCESS_KEY,
+                   'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE},
+        dag=dag
+    )
     
-    [clean_base_site, clean_opex_esco,clean_opex_ihs]
+    [clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc]

@@ -5,7 +5,7 @@ from copy import deepcopy
 from pandas.io.excel import ExcelFile
 
 from gps import CONFIG
-from gps.common.rwminio import save_minio, getfilename
+from gps.common.rwminio import save_minio, getfilename, getfilesnames
 import logging
 
 def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
@@ -95,7 +95,6 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
     # check columns
     logging.info("check columns")
     df_.columns = df_.columns.str.lower()
-    print(df_.columns)
     missing_columns = set(objet["columns"]).difference(set(df_.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
@@ -131,7 +130,6 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         if not client.bucket_exists(objet["bucket"]):
             raise OSError(f"bucket {objet['bucket']} don\'t exits")
 
-        filename = f"OPEX_IHS_{date.split('-')[0]}{date.split('-')[1]}.XLSX"
         logging.info("get filename")
         filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
         logging.info("read file %s",filename)
@@ -191,3 +189,50 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, pd.concat([data, data1, data2]))
 
 
+
+########## enrich
+
+def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
+    """
+     cleaning CA & Parc
+    """
+
+    client = Minio(
+        endpoint,
+        access_key= accesskey,
+        secret_key= secretkey,
+        secure=False)
+    objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
+    if not client.bucket_exists(objet["bucket"]):
+            raise OSError(f"bucket {objet['bucket']} don\'t exits")
+    
+    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[1]}")
+    data = pd.DataFrame()
+    for filename in filenames:
+        try:
+                
+                df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                    storage_options={
+                        "key": accesskey,
+                        "secret": secretkey,
+                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                }
+                        )
+        except Exception as error:
+                raise OSError(f"{filename} don't exists in bucket") from error
+        
+        data = pd.concat([data, df_])
+    
+    logging.info("check columns")
+    data.columns = data.columns.str.lower()
+    missing_columns = set(objet["columns"]).difference(set(data.columns))
+    if len(missing_columns):
+        raise ValueError(f"missing columns {', '.join(missing_columns)}")
+    logging.info("columns are ok")
+    logging.info("clean ans enrich")
+    data["id_site"] = data['id_site'].astype("str")
+    data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
+    data = data.loc[~ data["code site oci"].isnull(),:]
+    data = data.drop_duplicates(["id_site", "mois"], keep="first").loc[:,["mois",	"id_site",	"ca_voix",	"ca_data"]]
+    logging.info("save to minio")
+    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)

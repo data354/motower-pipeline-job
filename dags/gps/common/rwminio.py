@@ -68,11 +68,29 @@ def getfilename(endpoint:str, accesskey:str, secretkey:str,bucket:str, prefix:st
     
     last_date = max([obj.last_modified for obj in objets])
     
-    filename = [obj.object_name for obj in objets if obj.last_modified == last_date][0]
+    filename = [obj.object_name for obj in objets if obj.last_modified == last_date]
     if (not filename.lower().endswith(".xlsx")) and (not filename.lower().endswith(".xls")) and (not filename.lower().endswith(".csv")):
         raise ValueError("file with good extension not found")
     return filename
 
+
+def getfilesnames(endpoint:str, accesskey:str, secretkey:str,bucket:str, prefix:str = None,
+                recursive:bool=True):
+    
+    """
+        get files names
+    """
+    client = Minio(
+        endpoint,
+        access_key= accesskey,
+        secret_key= secretkey,
+        secure=False)
+    objets = list(client.list_objects(bucket_name=bucket, prefix=prefix, recursive=recursive))
+    if len(objets) == 0:
+        raise RuntimeError(f"file {prefix} don't exists")
+        
+    filenames = [obj.object_name for obj in objets if obj.object_name.lower().endswith(".xls") or obj.object_name.endswith(".xlsx") or obj.object_name.endswith(".csv")  ]
+    return filenames
 # def read_minio(endpoint, accesskey, secretkey, bucket: str, folder:str, prefix:str, path: str, date: str)-> pd.DataFrame:
 #     """
 #         read data into minio
