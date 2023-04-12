@@ -259,8 +259,8 @@ def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
 
     data.columns = data.columns.str.lower()
     cols_to_trim = ["code_site"]
-    df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
-    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
+    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
+    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
     data.date = data.date.astype("str")
 
     mois = data.date.str.rsplit("/",n=1, expand=True).iloc[:,0].str.replace("/","-")
