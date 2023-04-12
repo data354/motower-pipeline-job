@@ -60,7 +60,7 @@ with DAG(
     'extract',
     default_args={
         'depends_on_past': False,
-        'email': ["yasmine.kouadio@data354.co"],
+        'email': CONFIG["airflow_receivers"],
         'email_on_failure': True,
         'email_on_retry': False,
         'max_active_run': 1,

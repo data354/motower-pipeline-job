@@ -3,20 +3,49 @@ from airflow import DAG
 from gps.common.enrich import cleaning_base_site, cleaning_esco, cleaning_ihs
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
+from gps import CONFIG
+from gps.common.alerting import alert_failure
+
 
 
 MINIO_ENDPOINT = Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
 MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 
+SMTP_HOST = Variable.get('smtp_host')
+SMTP_PORT = Variable.get('smtp_port')
+SMTP_USER = Variable.get('smtp_user')
+
+
 DATE = "{{data_interval_start.strftime('%Y-%m-%d')}}"
 
+def on_failure(context):
+    """
+        on failure function
+    """
+    params = {
+        "task_id" : context['task'].task_id,
+        "dag_id" : context['task'].dag_id,
+        "exec_date" : context.get('ts') ,
+        "exception" : context.get('exception'),
+
+    }
+    if params['task_id'].contains("enrich_base_sites"):
+        params['type_fichier'] = "BASE_SITES"
+    elif params['task_id'].contains("enrich_esco"):
+        params['type_fichier'] = "OPEX_ESCO"
+    elif params['task_id'].contains("enrich_ihs"):
+        params['type_fichier'] = "OPEX_IHS"
+    else:
+        raise RuntimeError("Can't get file type")
+    
+    alert_failure(**params)
 
 with DAG(
     'enrich',
     default_args={
         'depends_on_past': False,
-        'email': ["richmond.kongo@orange.com","assane.diop@orange.com","cyrille1.danho@orange.com"],
+        'email': CONFIG["airflow_receivers"],
         'email_on_failure': True,
         'email_on_retry': False,
         'max_active_run': 1,
@@ -36,6 +65,7 @@ with DAG(
                    'accesskey': MINIO_ACCESS_KEY,
                    'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
+        on_failure_callback = on_failure,
         dag=dag
     ),
     clean_opex_esco = PythonOperator(
@@ -46,6 +76,7 @@ with DAG(
                    'accesskey': MINIO_ACCESS_KEY,
                    'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
+        on_failure_callback = on_failure,
         dag=dag
     ),
     clean_opex_ihs = PythonOperator(
@@ -56,6 +87,7 @@ with DAG(
                    'accesskey': MINIO_ACCESS_KEY,
                    'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
+        on_failure_callback = on_failure,
         dag=dag
     )
     

@@ -149,10 +149,11 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
            sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
         print(len(sheet_f))
         data = pd.DataFrame()
+        logging.info("read %s", filename)
         for sh in sheet_f:
             header = 14 if sh.find("OCI-COLOC") != -1 else 15
             try:
-                logging.info("read %s", filename)
+                
                 df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
                                  header=header , sheet_name=sh,
                     storage_options={
