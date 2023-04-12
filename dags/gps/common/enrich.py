@@ -254,10 +254,10 @@ def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
                         )
         except Exception as error:
                 raise OSError(f"{filename} don't exists in bucket") from error
-        
+        df_.columns = df_.columns.str.lower()
         data = pd.concat([data, df_])
 
-    data.columns = data.columns.str.lower()
+    
     cols_to_trim = ["code_site"]
     data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
     data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
