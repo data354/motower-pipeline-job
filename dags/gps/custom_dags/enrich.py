@@ -24,6 +24,9 @@ def on_failure(context):
         on failure function
     """
     params = {
+        "host" : SMTP_HOST,
+        "port" : SMTP_PORT,
+        "user": SMTP_USER,
         "task_id" : context['task'].task_id,
         "dag_id" : context['task'].dag_id,
         "exec_date" : context.get('ts') ,
