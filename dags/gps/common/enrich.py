@@ -206,7 +206,7 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
     if not client.bucket_exists(objet["bucket"]):
             raise OSError(f"bucket {objet['bucket']} don\'t exits")
     
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[1]}/{date.split('-')[1]}")
+    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
     data = pd.DataFrame()
     for filename in filenames:
         try:
