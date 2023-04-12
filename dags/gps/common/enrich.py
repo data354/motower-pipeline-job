@@ -232,7 +232,7 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
     logging.info("clean ans enrich")
     data["id_site"] = data['id_site'].astype("str")
     data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    data = data.loc[~ data["code site oci"].isnull(),:]
+    data = data.loc[~ data["id_site"].isnull(),:]
     data = data.drop_duplicates(["id_site", "mois"], keep="first").loc[:,["mois",	"id_site",	"ca_voix",	"ca_data"]]
     logging.info("save to minio")
     save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
