@@ -177,7 +177,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
         cols_to_trim = ['site id ihs']
         data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
         data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-        data["month"] = date.split("-")[0]+"-"+date.split("-")[1]
+        data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
         data = data.loc[~ data['site id ihs'].isnull(),:]
         data.loc[data["trimestre ht"].isna(),"trimestre ht"] = data.loc[data["trimestre 1 - ht"].notna(), "trimestre 1 - ht"]
         data = data.loc[~ data["trimestre ht"].isnull(),:]
@@ -263,8 +263,8 @@ def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
     data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
     data.date = data.date.astype("str")
 
-    mois = data.date.str.rsplit("/",n=1, expand=True).iloc[:,0].str.replace("/","-")
-    data["mois"] = mois
+    data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
+
     data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
     data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule"]]
     # temps d'indisponibilité par site
