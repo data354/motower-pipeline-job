@@ -225,14 +225,14 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
     
     logging.info("check columns")
     data.columns = data.columns.str.lower()
+    print(data.head())
     missing_columns = set(objet["columns"]).difference(set(data.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("columns are ok")
     logging.info("clean ans enrich")
-    print(data.index)
     data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    print(data.head())
-    data = data.drop_duplicates(["id_site", "mois"], keep="first").loc[:,["mois",	"id_site",	"ca_voix",	"ca_data"]]
+    
+    data = data.drop_duplicates(["id_site", "mois"], keep="first")
     logging.info("save to minio")
     save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
