@@ -230,6 +230,7 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("columns are ok")
     logging.info("clean ans enrich")
+    print(data.index)
     data["id_site"] = data['id_site'].astype("str")
     data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
     data = data.loc[~ data["id_site"].isnull(),:]
