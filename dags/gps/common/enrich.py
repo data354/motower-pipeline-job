@@ -306,6 +306,10 @@ def cleaning_trafic(endpoint:str, accesskey:str, secretkey:str,  date: str):
         df_.columns = df_.columns.str.lower()
         data = pd.concat([data, df_])
 
+    cols_to_trim = ["code_site"]
+    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
+    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
+    data.date_jour = data.date_jour.astype("str")
     data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
    
     data = data.groupby(["mois","code_site", "techno"]).sum(["trafic_voix","trafic_data"])
@@ -329,7 +333,7 @@ def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
     
     filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
     filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
-
+    data = pd.DataFrame()
     for filename in filenames:
         try:
                 
@@ -344,6 +348,10 @@ def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
                 raise OSError(f"{filename} don't exists in bucket") from error
         df_.columns = df_.columns.str.lower()
         data = pd.concat([data, df_])
+        cols_to_trim = ["code_site"]
+        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
+        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
+        data.date_jour = data.date_jour.astype("str")
         data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
         save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["folder"]}-cleaned', date, data)
 
