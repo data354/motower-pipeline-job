@@ -353,8 +353,10 @@ def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
     data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
     data.loc[data["drop_after_tch_assign"].isna(),"drop_after_tch_assign"] = data.loc[data["number_of_call_drop_3g"].notna(), "number_of_call_drop_3g"]
     data.date_jour = data.date_jour.astype("str")
+    data = data.loc[:, ["mois","code_site", "techno", "drop_after_tch_assign"]]
     data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
     data = data.groupby(["mois","code_site", "techno"]).sum(["drop_after_tch_assign"])
+    
     data = data.unstack()
     data.columns = ["_".join(d) for d in data.columns]
     save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, data)
