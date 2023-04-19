@@ -35,7 +35,7 @@ def extract_job(**kwargs):
     """
 
     print(kwargs["ingest_date"])
-    if( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") <= datetime(2023,2,28) ):
+    if datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") < datetime(2022,12,30) :
         if kwargs["thetable"] in ["faitalarme"]:
             data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
 
