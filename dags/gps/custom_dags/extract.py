@@ -26,7 +26,7 @@ FTP_PASSWORD = Variable.get('ftp_password')
 PG_SAVE_HOST = Variable.get('pg_save_host')
 PG_SAVE_DB = Variable.get('pg_save_db')
 PG_SAVE_USER = Variable.get('pg_save_user')
-PG_SAVE_PASSWORD = Variable.get('pg_save_password') 
+PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
 INGEST_PG_DATE = "{{ macros.ds_add(ds, -1) }}"
 INGEST_FTP_DATE = "{{ macros.ds_add(ds, -6) }}"

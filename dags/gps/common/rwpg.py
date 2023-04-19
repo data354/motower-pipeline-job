@@ -1,10 +1,9 @@
 import pandas as pd
-import psycopg2
+from sqlalchemy import create_engine
 
-
-def write_pg(host: str, database:str, user: str, password: str, data, table: str = None):
+def write_pg(host: str, database:str, user: str, password: str, data, table: str = None, port:str=5432):
     """"
      write data in pg
     """
-    with psycopg2.connect(host= host,database= database,user= user,password= password) as conn:
-            data.to_sql(table, conn, if_exists="append")
+    engine = create_engine(f'postgresql://{user}:{password}@:{host}:{port}/{database}')
+    data.to_sql(table, engine, if_exists="append")
