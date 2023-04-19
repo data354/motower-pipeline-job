@@ -5,5 +5,5 @@ def write_pg(host: str, database:str, user: str, password: str, data, table: str
     """"
      write data in pg
     """
-    engine = create_engine(f"postgres://{user}:{password}@{host}:{port}/{database}")
+    engine = create_engine(f"postgresql://{user}:{password}@{host}:{port}/{database}")
     data.to_sql(table, engine, if_exists="append")
