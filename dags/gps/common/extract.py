@@ -67,7 +67,9 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
         if table == "faitalarme":
            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
-        
+        else:
+            pass
+
     elif( datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(date, "%Y-%m-%d") <= datetime(2023,2,28) ):
         if table == "faitalarme":
            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
@@ -75,13 +77,17 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
         elif table == "hourly_datas_radio_prod":
             sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     hourly_datas_radio_prod_archive where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
-    elif( datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(date, "%Y-%m-%d") < datetime(2023,3,3) ):
+        else:
+            pass
+    elif( datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(date, "%Y-%m-%d") < datetime(2023,3,3) ):  
         if table == "faitalarme":
            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
         elif table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from
+            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
+        else:
+            pass
     elif datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,3):
         if table == "hourly_datas_radio_prod":
             sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
@@ -137,50 +143,49 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
         RETURN:
             pd.DataFrame
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,9,1):
-        try:
-            server =  ftplib.FTP(hostname, user, password , timeout=15)
-            server.cwd(CONFIG["ftp_dir"])
-        except ftplib.error_perm as err :
-            raise OSError(f"{CONFIG['ftp_dir']} don\'t exist on FTP server") from err
-        except Exception as error:
-            raise ConnectionError("Connection to FTP server failed.") from error
+    try:
+        server =  ftplib.FTP(hostname, user, password , timeout=15)
+        server.cwd(CONFIG["ftp_dir"])
+    except ftplib.error_perm as err :
+        raise OSError(f"{CONFIG['ftp_dir']} don\'t exist on FTP server") from err
+    except Exception as error:
+        raise ConnectionError("Connection to FTP server failed.") from error
 
-        filename = f'extract_vbm_{date.replace("-","")}.csv'
-        logging.info("Get %s", filename)
-        # download file
+    filename = f'extract_vbm_{date.replace("-","")}.csv'
+    logging.info("Get %s", filename)
+    # download file
+    
+        # with open(filename, "wb") as downloaded:
+        #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
+        #     server.retrbinary(f"RETR {filename}", downloaded.write)
+        #     logging.info("Read data")
         
-            # with open(filename, "wb") as downloaded:
-            #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
-            #     server.retrbinary(f"RETR {filename}", downloaded.write)
-            #     logging.info("Read data")
-            
-        downloaded = BytesIO()
-        try:
-            logging.info("downloading....")  
-            server.retrbinary(f'RETR {filename}', downloaded.write)
-        except ftplib.error_perm as error:
-            raise OSError(f"{filename} don't exists on FTP server") from error
-        
-        downloaded.seek(0)
-        logging.info("Read data")
-        df = pd.read_csv(downloaded, engine="python" ,sep=";")
-        # verify if file is empty
-        if df.shape[0] == 0:
-            raise RuntimeError(f"{filename} is empty" )
-        # verify is good columns is add
-        df.columns = df.columns.str.lower()
-        good_columns = [ d["columns"] for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
-        missing_columns = set(good_columns).difference(set(df.columns))
-        if len(missing_columns):
-            raise ValueError(f"missing columns {', '.join(missing_columns)}")
-        logging.info("add column")
-        logging.info(df.columns)
-        df["day_id"] = df["day_id"].astype("str")
-        df["month_id"] = df["day_id"].str[:4].str.cat(df["day_id"].str[4:6], "-" )
-        return df
-        
-        #data = pd.read_csv(str(filename), sep=";")
+    downloaded = BytesIO()
+    try:
+        logging.info("downloading....")  
+        server.retrbinary(f'RETR {filename}', downloaded.write)
+    except ftplib.error_perm as error:
+        raise OSError(f"{filename} don't exists on FTP server") from error
+    
+    downloaded.seek(0)
+    logging.info("Read data")
+    df = pd.read_csv(downloaded, engine="python" ,sep=";")
+    # verify if file is empty
+    if df.shape[0] == 0:
+        raise RuntimeError(f"{filename} is empty" )
+    # verify is good columns is add
+    df.columns = df.columns.str.lower()
+    good_columns = [ d["columns"] for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
+    missing_columns = set(good_columns).difference(set(df.columns))
+    if len(missing_columns):
+        raise ValueError(f"missing columns {', '.join(missing_columns)}")
+    logging.info("add column")
+    logging.info(df.columns)
+    df["day_id"] = df["day_id"].astype("str")
+    df["month_id"] = df["day_id"].str[:4].str.cat(df["day_id"].str[4:6], "-" )
+    return df
+    
+    #data = pd.read_csv(str(filename), sep=";")
     
    
 
