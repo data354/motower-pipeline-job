@@ -3,6 +3,7 @@ from datetime import datetime
 from airflow import DAG
 from gps.common.extract import extract_pg, extract_ftp
 from gps.common.rwminio import save_minio
+from gps.common.rwpg import write_pg
 from gps import CONFIG
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
@@ -21,6 +22,11 @@ MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 FTP_HOST = Variable.get('ftp_host')
 FTP_USER = Variable.get('ftp_user')
 FTP_PASSWORD = Variable.get('ftp_password')
+
+PG_SAVE_HOST = Variable.get('pg_save_host')
+PG_SAVE_DB = Variable.get('pg_save_db')
+PG_SAVE_USER = Variable.get('pg_save_user')
+PG_SAVE_PASSWORD = Variable.get('pg_save_password') 
 
 INGEST_PG_DATE = "{{ macros.ds_add(ds, -1) }}"
 INGEST_FTP_DATE = "{{ macros.ds_add(ds, -6) }}"
@@ -42,6 +48,7 @@ def extract_job(**kwargs):
             if data.shape[0] != 0:
                 save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
+                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
             
@@ -54,6 +61,7 @@ def extract_job(**kwargs):
             if data.shape[0] != 0:
                 save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
+                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
             
@@ -65,6 +73,7 @@ def extract_job(**kwargs):
             if data.shape[0] != 0:
                 save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
+                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     else:
@@ -73,6 +82,7 @@ def extract_job(**kwargs):
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                 kwargs["folder"] , kwargs["ingest_date"], data)
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
         
@@ -87,6 +97,7 @@ def extract_ftp_job(**kwargs):
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], 
                     kwargs["folder"] , kwargs["ingest_date"], data)
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
