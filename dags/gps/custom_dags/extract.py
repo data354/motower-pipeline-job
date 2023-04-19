@@ -38,7 +38,7 @@ def extract_job(**kwargs):
     data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
 
     if data.shape[0] != 0:
-        save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], 
+        save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                    kwargs["folder"] , kwargs["ingest_date"], data)
     else:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
@@ -68,7 +68,7 @@ with DAG(
     },
     description='ingest data from postgresql',
     schedule_interval="30 5 * * *",
-    start_date=datetime(2023, 2, 7, 6, 30, 0),
+    start_date=datetime(2022, 9, 1, 6, 30, 0),
     catchup=True
 ) as dag:
 
