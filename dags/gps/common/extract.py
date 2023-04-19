@@ -63,58 +63,36 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
         # execute a statement
     logging.info("Getting data of the table %s ", table)
     logging.info("where date is %s", date)
-    if datetime.strptime(date, "%Y-%m-%d") < datetime(2022,12,30):
-        if table == "faitalarme":
-           sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
-                    from {table} where date='{date.replace("-","")}';"""
-        
-
-    if( datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(date, "%Y-%m-%d") <= datetime(2023,2,28) ):
-        if table == "faitalarme":
-           sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
-                    from {table} where date='{date.replace("-","")}';"""
-        elif table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
-                    hourly_datas_radio_prod_archive where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        
-    if( datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(date, "%Y-%m-%d") < datetime(2023,3,3) ):  
-        if table == "faitalarme":
-           sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
-                    from {table} where date='{date.replace("-","")}';"""
-        elif table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
-                    {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,3):
-        if table == "hourly_datas_radio_prod":
-            sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
+    
+    if table == "hourly_datas_radio_prod":
+        sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
    
-        elif table == "Taux_succes_2g":
-            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
+    elif table == "Taux_succes_2g":
+        sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site, MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
                 MAX(CAST(cssr_cs AS DECIMAL)) AS max_cssr_cs, AVG(CAST(cssr_cs AS DECIMAL)) AS avg_cssr_cs,
                 median(CAST(cssr_cs AS DECIMAL)) AS median_cssr_cs, techno 
                 from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Call_drop_2g":
-            sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
+    elif table == "Call_drop_2g":
+        sql = f"""select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,SUM(CAST(drop_after_tch_assign AS INTEGER)) as drop_after_tch_assign, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Call_drop_3g":
-            sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno 
+    elif table == "Call_drop_3g":
+        sql = f"""select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site,SUM(CAST(number_of_call_drop_3g AS INTEGER)) as number_of_call_drop_3g, techno 
             from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        elif table == "Taux_succes_3g":
-            sql = f'''select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site, MIN(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as min_cssr_cs,
+    elif table == "Taux_succes_3g":
+        sql = f'''select date_jour, SPLIT_PART(wbts_name,'_',1) AS code_site, MIN(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as min_cssr_cs,
                   MAX(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as max_cssr_cs, 
                  AVG(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) as avg_cssr_cs, median(CAST("3g_call_setup_suceess_rate_speech_h" AS DECIMAL)) 
                  as median_cssr_cs , techno
                  from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
-        elif table == "faitalarme":
-            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
+    elif table == "faitalarme":
+        sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
 
-        elif (table is None) and (date is None) and (request is not None):
-            sql = request
-        else:
-            raise RuntimeError(f"No request for this table {table}")
+    elif (table is None) and (date is None) and (request is not None):
+        sql = request
+    else:
+        raise RuntimeError(f"No request for this table {table}")
         
     try:
         agregate_data = pd.DataFrame()

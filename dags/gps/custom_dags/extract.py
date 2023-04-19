@@ -35,13 +35,47 @@ def extract_job(**kwargs):
     """
 
     print(kwargs["ingest_date"])
-    data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+    if( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") <= datetime(2023,2,28) ):
+        if kwargs["thetable"] in ["faitalarme"]:
+            data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
 
-    if data.shape[0] != 0:
-        save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
-                   kwargs["folder"] , kwargs["ingest_date"], data)
+            if data.shape[0] != 0:
+                save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
+                        kwargs["folder"] , kwargs["ingest_date"], data)
+            else:
+                raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+            
+    elif ( datetime.strptime(kwargs['ingest_date'], "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(kwargs['ingest_date'], "%Y-%m-%d") <= datetime(2023,2,28) ):
+        if kwargs["thetable"] in ["faitalarme", "hourly_datas_radio_prod"]:
+            if kwargs["thetable"] == "hourly_datas_radio_prod":
+                kwargs["thetable"] = "hourly_datas_radio_prod_archive"
+            data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+
+            if data.shape[0] != 0:
+                save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
+                        kwargs["folder"] , kwargs["ingest_date"], data)
+            else:
+                raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+            
+    elif ( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") < datetime(2023,3,3) ):
+        if kwargs["thetable"] in ["faitalarme", "hourly_datas_radio_prod"]:
+           
+            data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+
+            if data.shape[0] != 0:
+                save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
+                        kwargs["folder"] , kwargs["ingest_date"], data)
+            else:
+                raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     else:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+        data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+
+        if data.shape[0] != 0:
+            save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
+                kwargs["folder"] , kwargs["ingest_date"], data)
+        else:
+            raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+        
 
 def extract_ftp_job(**kwargs):
     """
