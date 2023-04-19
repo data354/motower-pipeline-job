@@ -67,28 +67,25 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
         if table == "faitalarme":
            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
-        else:
-            pass
+        
 
-    elif( datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(date, "%Y-%m-%d") <= datetime(2023,2,28) ):
+    if( datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(date, "%Y-%m-%d") <= datetime(2023,2,28) ):
         if table == "faitalarme":
            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
         elif table == "hourly_datas_radio_prod":
             sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     hourly_datas_radio_prod_archive where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        else:
-            pass
-    elif( datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(date, "%Y-%m-%d") < datetime(2023,3,3) ):  
+        
+    if( datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(date, "%Y-%m-%d") < datetime(2023,3,3) ):  
         if table == "faitalarme":
            sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
         elif table == "hourly_datas_radio_prod":
             sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
-        else:
-            pass
-    elif datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,3):
+        
+    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,3):
         if table == "hourly_datas_radio_prod":
             sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
