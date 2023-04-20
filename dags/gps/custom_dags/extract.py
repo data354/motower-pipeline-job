@@ -48,7 +48,7 @@ def extract_job(**kwargs):
             if data.shape[0] != 0:
                 save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
-                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
+                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
             
@@ -61,7 +61,7 @@ def extract_job(**kwargs):
             if data.shape[0] != 0:
                 save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
-                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
+                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
             
@@ -73,7 +73,7 @@ def extract_job(**kwargs):
             if data.shape[0] != 0:
                 save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
-                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
+                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     else:
@@ -82,7 +82,7 @@ def extract_job(**kwargs):
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
                 kwargs["folder"] , kwargs["ingest_date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
         
@@ -97,7 +97,7 @@ def extract_ftp_job(**kwargs):
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], 
                     kwargs["folder"] , kwargs["ingest_date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["bucket"])
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
@@ -124,6 +124,7 @@ with DAG(
         op_kwargs={'thetable': CONFIG["tables"][0]["name"],
                    'bucket': CONFIG["tables"][0]["bucket"],
                    'folder': CONFIG["tables"][0]["folder"],
+                   'table': CONFIG["tables"][0]["table"],
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
@@ -134,7 +135,8 @@ with DAG(
         python_callable=extract_job,
         op_kwargs={'thetable': CONFIG["tables"][2]["name"],
                    'bucket': CONFIG["tables"][2]["bucket"],
-                   'folder': CONFIG["tables"][0]["folder"],
+                   'folder': CONFIG["tables"][2]["folder"],
+                   'table': CONFIG["tables"][2]["table"],
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
@@ -146,6 +148,7 @@ with DAG(
         op_kwargs={'thetable': CONFIG["tables"][3]["name"],
                    'bucket': CONFIG["tables"][3]["bucket"],
                    'folder': CONFIG["tables"][3]["folder"],
+                   'table': CONFIG["tables"][3]["table"],
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
@@ -156,6 +159,7 @@ with DAG(
         op_kwargs={'thetable': CONFIG["tables"][4]["name"],
                    'bucket': CONFIG["tables"][4]["bucket"],
                    'folder': CONFIG["tables"][4]["folder"],
+                   'table': CONFIG["tables"][4]["table"],
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
@@ -166,6 +170,7 @@ with DAG(
         op_kwargs={'thetable': CONFIG["tables"][5]["name"],
                    'bucket': CONFIG["tables"][5]["bucket"],
                    'folder': CONFIG["tables"][5]["folder"],
+                   'table': CONFIG["tables"][5]["table"],
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
@@ -176,6 +181,7 @@ with DAG(
         op_kwargs={'thetable': CONFIG["tables"][6]["name"],
                    'bucket': CONFIG["tables"][6]["bucket"],
                    'folder': CONFIG["tables"][6]["folder"],
+                   'table': CONFIG["tables"][6]["table"],
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
@@ -185,6 +191,7 @@ with DAG(
         python_callable=extract_ftp_job,
         op_kwargs={'bucket': CONFIG["tables"][7]["bucket"],
                    'folder': CONFIG["tables"][7]["folder"],
+                   'table': CONFIG["tables"][7]["table"],
                    'ingest_date': INGEST_FTP_DATE},
         dag=dag,
     )
