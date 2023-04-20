@@ -105,6 +105,7 @@ with DAG(
     'extract',
     default_args={
         'depends_on_past': True,
+        'wait_for_downstream':True,
         'email': CONFIG["airflow_receivers"],
         'email_on_failure': True,
         'email_on_retry': False,
