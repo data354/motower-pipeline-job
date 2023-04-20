@@ -64,7 +64,7 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
     logging.info("Getting data of the table %s ", table)
     logging.info("where date is %s", date)
     
-    if table == "hourly_datas_radio_prod" or table == "hourly_datas_radio_prod":
+    if table == "hourly_datas_radio_prod" or table == "hourly_datas_radio_prod_archive":
         sql = f"""select  date_jour, code_site, sum(trafic_voix) as trafic_voix, sum(trafic_data) as trafic_data, techno from 
                     {table} where date_jour = '{date.replace("-","")}' group by date_jour, code_site, techno;"""
     
