@@ -57,7 +57,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
         df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
         # get statut == service
         df_ = df_.loc[df_["statut"].str.lower() == "service", objet["columns"]]
-        df_ = df_.loc[(df_["position site"].str.lower() == "localité") & (df_["position site"].str.lower() == "localié"), objet["columns"]]
+        df_ = df_.loc[(df_["position site"].str.lower() == "localité") | (df_["position site"].str.lower() == "localié"), objet["columns"]]
         logging.info("save to minio")
         save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
 
