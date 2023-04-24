@@ -104,8 +104,8 @@ def extract_ftp_job(**kwargs):
 with DAG(
     'extract',
     default_args={
-        'depends_on_past': True,
-        'wait_for_downstream':True,
+        'depends_on_past': False,
+        'wait_for_downstream':False,
         'email': CONFIG["airflow_receivers"],
         'email_on_failure': True,
         'email_on_retry': False,
@@ -114,7 +114,8 @@ with DAG(
     },
     description='ingest data from postgresql',
     schedule_interval="30 5 * * *",
-    start_date=datetime(2022, 9, 1, 6, 30, 0),
+    #start_date=datetime(2022, 9, 1, 6, 30, 0),
+    start_date=datetime(2023, 3, 5, 6, 30, 0),
     catchup=True
 ) as dag:
 
