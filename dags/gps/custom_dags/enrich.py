@@ -124,15 +124,15 @@ with DAG(
                    'date': DATE},
         dag=dag
     )
-    clean_call_drop = PythonOperator(
-        task_id='cleaning_call_drop',
-        provide_context=True,
-        python_callable=cleaning_call_drop,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
-                   'date': DATE},
-        dag=dag
-    )
+    # clean_call_drop = PythonOperator(
+    #     task_id='cleaning_call_drop',
+    #     provide_context=True,
+    #     python_callable=cleaning_call_drop,
+    #     op_kwargs={'endpoint': MINIO_ENDPOINT,
+    #                'accesskey': MINIO_ACCESS_KEY,
+    #                'secretkey': MINIO_SECRET_KEY,
+    #                'date': DATE},
+    #     dag=dag
+    # )
     
-    [clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_call_drop]
+    [clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic]
