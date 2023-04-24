@@ -146,32 +146,32 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                                     } )
             sheet_f = []
             for sheet in objet["sheets"]:
-            sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
-            print(len(sheet_f))
-            data = pd.DataFrame()
-            logging.info("read %s", filename)
-            for sh in sheet_f:
-                header = 14 if sh.find("OCI-COLOC") != -1 else 15
-                try:
-                    
-                    df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-                                    header=header , sheet_name=sh,
-                        storage_options={
-                            "key": accesskey,
-                            "secret": secretkey,
-                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                    }
-                            )
-                    df_.columns = df_.columns.str.lower()
-                    columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if sh.find("OCI-MLL BPCI 22") == -1 else objet["columns"]
-                    missing_columns = set(columns_to_check).difference(set(df_.columns))
-                    if len(missing_columns):
-                        raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh} of file {filename}")
-                    df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if sh.find("OCI-MLL BPCI 22") == -1 else df_.loc[:, objet['columns']]
-                    df_["month_total"] = df_['trimestre ht'] / 3 if sh.find("OCI-MLL BPCI 22") == -1 else df_['trimestre 1 - ht'] / 3
-                    data = pd.concat([data, df_])
-                except Exception as error:
-                    raise OSError(f"{filename} don't exists in bucket") from error
+                sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
+                print(len(sheet_f))
+                data = pd.DataFrame()
+                logging.info("read %s", filename)
+                for sh in sheet_f:
+                    header = 14 if sh.find("OCI-COLOC") != -1 else 15
+                    try:
+                        
+                        df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                        header=header , sheet_name=sh,
+                            storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                        }
+                                )
+                        df_.columns = df_.columns.str.lower()
+                        columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if sh.find("OCI-MLL BPCI 22") == -1 else objet["columns"]
+                        missing_columns = set(columns_to_check).difference(set(df_.columns))
+                        if len(missing_columns):
+                            raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh} of file {filename}")
+                        df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if sh.find("OCI-MLL BPCI 22") == -1 else df_.loc[:, objet['columns']]
+                        df_["month_total"] = df_['trimestre ht'] / 3 if sh.find("OCI-MLL BPCI 22") == -1 else df_['trimestre 1 - ht'] / 3
+                        data = pd.concat([data, df_])
+                    except Exception as error:
+                        raise OSError(f"{filename} don't exists in bucket") from error
 
 
             logging.info("clean ans enrich")
