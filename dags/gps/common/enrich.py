@@ -167,6 +167,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                         missing_columns = set(columns_to_check).difference(set(df_.columns))
                         if len(missing_columns):
                             raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh} of file {filename}")
+                        
                         df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if sh.find("OCI-MLL BPCI 22") == -1 else df_.loc[:, objet['columns']]
                         df_["month_total"] = df_['trimestre ht'] / 3 if sh.find("OCI-MLL BPCI 22") == -1 else df_['trimestre 1 - ht'] / 3
                         data = pd.concat([data, df_])
@@ -181,6 +182,8 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
             data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
             data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
             data = data.loc[~ data['site id ihs'].isnull(),:]
+            data = data.drop_duplicates(["site id ihs", "mois"], keep="first")
+            
             data.loc[data["trimestre ht"].isna(),"trimestre ht"] = data.loc[data["trimestre 1 - ht"].notna(), "trimestre 1 - ht"]
             data = data.loc[~ data["trimestre ht"].isnull(),:]
             data1 = deepcopy(data)
@@ -364,3 +367,120 @@ def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
     data.columns = ["_".join(d) for d in data.columns]
     save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, data)
 
+
+
+################################## joindre les tables
+
+def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
+    """
+       merge all data and generate oneforall
+    """
+    #get bdd site
+    client = Minio(
+            endpoint,
+            access_key= accesskey,
+            secret_key= secretkey,
+            secure=False)
+    objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    try:
+        logging.info("read %s", filename)
+        bdd = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                storage_options={
+                "key": accesskey,
+                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    
+    #get CA
+    objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
+    
+        
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+       
+    try:        
+        caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
+                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                    }
+                            )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    
+    # get opex esco
+
+    objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
+        
+        
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+
+    try:
+        logging.info("read %s", filename)
+        esco = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                header = 3, sheet_name="Fichier_de_calcul",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+
+    # get opex ihs
+    objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+
+    try:
+        logging.info("read %s", filename)
+        ihs = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                header = 3, sheet_name="Fichier_de_calcul",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    
+    # get opex indisponibilité
+
+    objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+
+    try:
+        logging.info("read %s", filename)
+        indisponibilite = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                header = 3, sheet_name="Fichier_de_calcul",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+
+    # get opex indisponibilité
+
+    objet = [d for d in CONFIG["tables"] if d["name"] == "hourly_datas_radio_prod"][0]
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+
+    try:
+        logging.info("read %s", filename)
+        trafic = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                header = 3, sheet_name="Fichier_de_calcul",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
