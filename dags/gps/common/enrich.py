@@ -68,7 +68,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     try:
         logging.info("read %s", filename)
         esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                header = 3, sheet_name="Fichier_de_calcul",
+                                
                                 storage_options={
                                 "key": accesskey,
                                 "secret": secretkey,
@@ -85,7 +85,6 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     try:
         logging.info("read %s", filename)
         ihs = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
                                 "secret": secretkey,
@@ -103,7 +102,6 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     try:
         logging.info("read %s", filename)
         indisponibilite = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
                                 "secret": secretkey,
@@ -121,7 +119,6 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     try:
         logging.info("read %s", filename)
         trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
                                 "secret": secretkey,
