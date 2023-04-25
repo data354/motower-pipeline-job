@@ -138,19 +138,19 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
         raise OSError(f"{filename} don't exists in bucket") from error
 
     logging.info("merge bdd and CA")
-    bdd_CA = bdd.merge(caparc, left_on=["mois", "code oci id"], right_on = ["month_id", "id_site" ], how="left")
+    bdd_CA = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     logging.info("add opex")
-    ihs = ihs.loc[:,["month","site id ihs","month_total"]]
-    bdd_CA_ihs = bdd_CA.merge(ihs, left_on=["mois", "autre code"], right_on=["month", "site id ihs"], how="left")
-    esco = esco.loc[:,["mois","code site", "tital redevances ht"]]
-    bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["mois", "autre code"], right_on=["mois","code site"], how="left")
+    ihs = ihs.loc[:,["site id ihs","month_total"]]
+    bdd_CA_ihs = bdd_CA.merge(ihs, left_on=[ "autre code"], right_on=[ "site id ihs"], how="left")
+    esco = esco.loc[:,["code site", "tital redevances ht"]]
+    bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
     bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_CA_ihs_esco["total redevances ht"]
 
     logging.info("add indisponibilite")
-    bdd_CA_ihs_esco_ind = bdd_CA_ihs_esco.merge(indisponibilite, left_on =["code oci", "mois"], right_on = ["code_site","mois"], how="left" )
+    bdd_CA_ihs_esco_ind = bdd_CA_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add trafic")
-    bdd_CA_ihs_esco_ind_trafic = bdd_CA_ihs_esco_ind.merge(trafic, left_on =["code oci", "mois"], right_on = ["code_site","mois"], how="left" )
+    bdd_CA_ihs_esco_ind_trafic = bdd_CA_ihs_esco_ind.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     df_final = bdd_CA_ihs_esco_ind_trafic.loc[:,[ 'mois','code oci','site','autre code','longitude', 'latitude', 'type du site',
        'statut','localisation', 'commune', 'departement', 'region', 'partenaires','proprietaire', 'gestionnaire','type geolocalite', 'projet',
