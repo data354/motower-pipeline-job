@@ -28,7 +28,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
     #get bdd site
     objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet["folder"]}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
     try:
         logging.info("read %s", filename)
         bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
