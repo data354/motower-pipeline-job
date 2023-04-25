@@ -205,8 +205,8 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
 
 
-    last = (datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)).month
-    last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.split('-')[0]}/{last.split('-')[1]}")
+    last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
+    last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{last.month}")
     lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
                                 storage_options={
                                 "key": accesskey,
