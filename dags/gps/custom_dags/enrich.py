@@ -1,5 +1,7 @@
 from datetime import datetime
 from airflow import DAG
+from airflow.models.baseoperator import chain
+
 from gps.common.enrich import cleaning_base_site, cleaning_esco, cleaning_ihs, cleaning_ca_parc, cleaning_alarm, cleaning_trafic, cleaning_call_drop, oneforall
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
@@ -166,4 +168,4 @@ with DAG(
     #     dag=dag
     # )
     
-    [clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic] >> merge_data
+    chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
