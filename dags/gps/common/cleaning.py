@@ -49,6 +49,8 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
         # strip columns
         logging.info("clean and enrich")
         cols_to_trim = ["code oci", "autre code"]
+        objet["columns"].append("mois")
+
         df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
         df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
         df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
@@ -57,7 +59,6 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
         df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
         # get statut == service
         df_ = df_.loc[df_["statut"].str.lower() == "service", objet["columns"]]
-        objet["columns"].append("mois")
         df_ = df_.loc[(df_["position site"].str.lower() == "localité") | (df_["position site"].str.lower() == "localié"), objet["columns"]]
         logging.info("save to minio")
         save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
