@@ -33,7 +33,7 @@ def gen_oneforall(**kwargs):
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, "oneforall", None,
                      kwargs["date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "oneforall")
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "OneForall")
         else:
                 raise RuntimeError(f"No data for {kwargs['date']}")
 
@@ -47,9 +47,9 @@ with DAG(
         'max_active_run': 1,
         'retries': 0
     },
-    description='clean and enrich monthly data',
+    description=' enrich monthly data',
     schedule_interval= "0 0 6 * *",
-    start_date=datetime(2022, 11, 6, 0, 0, 0),
+    start_date=datetime(2023, 1, 6, 0, 0, 0),
     catchup=True
 ) as dag:
     merge_data   = PythonOperator(

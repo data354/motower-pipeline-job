@@ -1,7 +1,7 @@
 """ enrich data"""
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from minio import Minio
 from copy import deepcopy
 from gps import CONFIG
@@ -21,6 +21,19 @@ def pareto(df):
   df.loc[df.sommecum>total*0.8 ,"PARETO"] = 0
   return df.drop(columns = ["sommecum"])
 
+def prev_segment(df):
+    past_site = None
+    past_segment = None
+    df["PREVIOUS_SEGMENT"] = None
+    for idx, row in df.iterrows():
+        if past_site == row["CODE OCI"]:
+            df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
+            past_segment = row["SEGMENT"]
+        else: 
+            past_site = row["CODE OCI"]
+            past_segment = row["SEGMENT"]
+            df.loc[idx,"PREVIOUS_SEGMENT"] = None
+    return df
 
 def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
@@ -190,4 +203,19 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     oneforall["NIVEAU_RENTABILITE"] = "NEGATIF"
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0, "NIVEAU_RENTABILITE"] = "0-80%"
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
-    return oneforall
+
+
+    last = (datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)).month
+    last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.split('-')[0]}/{last.split('-')[1]}")
+    lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    
+    big = pd.concat([lastoneforall, oneforall])
+    big = big.sort_values(["CODE OCI", "MOIS"])
+    final = prev_segment(big)
+    return final
