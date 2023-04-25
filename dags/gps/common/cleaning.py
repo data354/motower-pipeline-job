@@ -56,6 +56,7 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
         df_ = df_.loc[~ df_["code oci"].isnull(),:]
         df_ = df_.drop_duplicates(["code oci", "mois"], keep="first")
         df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
+        objet["columns"].append("code oci id")
         # get statut == service
         df_ = df_.loc[df_["statut"].str.lower() == "service", objet["columns"]]
         df_ = df_.loc[(df_["position site"].str.lower() == "localité") | (df_["position site"].str.lower() == "localié"), objet["columns"]]
