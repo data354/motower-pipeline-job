@@ -79,8 +79,17 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
         raise OSError(f"{filename} don't exists in bucket") from error
 
     # get opex ihs
+    if date.split('-')[1] in ["1","2", "3"]:
+        pre = "1"
+    elif date.split('-')[1] in ["4","5", "6"]:
+        pre = "4"
+    elif date.split('-')[1] in ["7","8", "9"]:
+        pre = "7"
+    else:
+        pre = "10"
+    
     objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{pre}")
 
     try:
         logging.info("read %s", filename)
