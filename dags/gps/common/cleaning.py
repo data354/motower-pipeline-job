@@ -50,10 +50,9 @@ def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)->
         logging.info("clean and enrich")
         cols_to_trim = ["code oci", "autre code"]
         objet["columns"].append("mois")
-
+        df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
         df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
         df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
-        df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
         df_ = df_.loc[~ df_["code oci"].isnull(),:]
         df_ = df_.drop_duplicates(["code oci", "mois"], keep="first")
         df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
