@@ -6,7 +6,7 @@ import pandas as pd
 
 
 
-def save_minio(endpoint, accesskey, secretkey, bucket: str, folder: str, date: str, data: pd.DataFrame) -> None:
+def save_minio(endpoint, accesskey, secretkey, bucket: str, folder: str , date: str, data: pd.DataFrame) -> None:
     """
         save dataframe in minio
         Args:
@@ -27,12 +27,20 @@ def save_minio(endpoint, accesskey, secretkey, bucket: str, folder: str, date: s
         client.make_bucket(bucket)
     csv_bytes = data.to_csv().encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
-    client.put_object(bucket,
+    if folder is not None:
+        client.put_object(bucket,
                        f"{folder}/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
-    logging.info("data in minio ok")
+        logging.info("data in minio ok")
+    else:
+        client.put_object(bucket,
+                       f"{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}.csv",
+                        data=csv_buffer,
+                        length=len(csv_bytes),
+                        content_type='application/csv')
+        logging.info("data in minio ok")
 
 #def read_minio(endpoint:str, accesskey, secretkey, buckect, folder)
 
