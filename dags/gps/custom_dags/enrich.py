@@ -168,4 +168,5 @@ with DAG(
     #     dag=dag
     # )
     
-    chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
+    #chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
+    merge_data.set_upstream([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic])
