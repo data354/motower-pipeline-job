@@ -27,16 +27,11 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
        merge all data and generate oneforall
     """
     #get bdd site
-    client = Minio(
-            endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
     objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet["folder"]}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
     try:
         logging.info("read %s", filename)
-        bdd = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+        bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                 storage_options={
                 "key": accesskey,
                 "secret": secretkey,
@@ -72,7 +67,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
 
     try:
         logging.info("read %s", filename)
-        esco = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+        esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                                 header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
@@ -89,7 +84,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
 
     try:
         logging.info("read %s", filename)
-        ihs = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+        ihs = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                                 header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
@@ -107,7 +102,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
 
     try:
         logging.info("read %s", filename)
-        indisponibilite = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+        indisponibilite = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                                 header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
@@ -125,7 +120,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
 
     try:
         logging.info("read %s", filename)
-        trafic = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+        trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                                 header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
                                 "key": accesskey,
