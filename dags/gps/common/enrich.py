@@ -182,7 +182,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     oneforall["INTERCO"] = oneforall["CA_VOIX"]*interco
     oneforall["IMPOT"] = oneforall["CA_TOTAL"]*impot
     oneforall["FRAIS_DIST"] = oneforall["CA_TOTAL"]*frais_dist
-    oneforall["OPEX TOTAL"] = oneforall['OPEX_ITN'] + oneforall["INTERCO"] + oneforall["IMPOT"] + oneforall["FRAIS_DIST"]
+    oneforall["OPEX TOTAL"] = oneforall['OPEX'] + oneforall["INTERCO"] + oneforall["IMPOT"] + oneforall["FRAIS_DIST"]
 
     oneforall["EBITDA"] = oneforall["CA_TOTAL"] - oneforall["OPEX"]
 
