@@ -21,21 +21,23 @@ def pareto(df):
   df.loc[df.sommecum>total*0.8 ,"PARETO"] = 0
   return df.drop(columns = ["sommecum"])
 
-def prev_segment(df):
-    past_site = None
-    past_segment = None
+def prev_segment(df, start_date):
+    
     df["PREVIOUS_SEGMENT"] = None
-    for idx, row in df.iterrows():
-        if past_site == row["CODE OCI"]:
-            df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
-            past_segment = row["SEGMENT"]
-        else: 
-            past_site = row["CODE OCI"]
-            past_segment = row["SEGMENT"]
-            df.loc[idx,"PREVIOUS_SEGMENT"] = None
+    if datetime.strptime(start_date, "%Y-%m-%d") > start_date:
+        past_site = None
+        past_segment = None
+        for idx, row in df.iterrows():
+            if past_site == row["CODE OCI"]:
+                df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
+                past_segment = row["SEGMENT"]
+            else: 
+                past_site = row["CODE OCI"]
+                past_segment = row["SEGMENT"]
+                df.loc[idx,"PREVIOUS_SEGMENT"] = None
     return df
 
-def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
+def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
     """
        merge all data and generate oneforall
     """
@@ -217,5 +219,5 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     
     big = pd.concat([lastoneforall, oneforall])
     big = big.sort_values(["CODE OCI", "MOIS"])
-    final = prev_segment(big)
+    final = prev_segment(big, start_date)
     return final

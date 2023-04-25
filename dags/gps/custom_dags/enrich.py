@@ -29,7 +29,7 @@ DATE = "{{data_interval_start.strftime('%Y-%m-%d')}}"
 def gen_oneforall(**kwargs):
 
     if datetime.strptime(kwargs["date"], "%Y-%m-%d") >= datetime(2022,11,6) :
-        data = oneforall(kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"], kwargs["date"])
+        data = oneforall(kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"], kwargs["date"], kwargs["start_date"])
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, "oneforall", None,
                      kwargs["date"], data)
@@ -59,7 +59,8 @@ with DAG(
         op_kwargs={'endpoint': MINIO_ENDPOINT,
                    'accesskey': MINIO_ACCESS_KEY,
                    'secretkey': MINIO_SECRET_KEY,
-                   'date': DATE},
+                   'date': DATE,
+                   'start_date' : "2023-01-06"},
         dag=dag
     )
 
