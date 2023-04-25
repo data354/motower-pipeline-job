@@ -142,7 +142,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
     logging.info("add opex")
     ihs = ihs.loc[:,["site id ihs","month_total"]]
     bdd_CA_ihs = bdd_CA.merge(ihs, left_on=[ "autre code"], right_on=[ "site id ihs"], how="left")
-    esco = esco.loc[:,["code site", "tital redevances ht"]]
+    esco = esco.loc[:,["code site", "total redevances ht"]]
     bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
     bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_CA_ihs_esco["total redevances ht"]
 
