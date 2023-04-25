@@ -79,12 +79,12 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str):
         raise OSError(f"{filename} don't exists in bucket") from error
 
     # get opex ihs
-    if date.split('-')[1] in ["1","2", "3"]:
-        pre = "1"
-    elif date.split('-')[1] in ["4","5", "6"]:
-        pre = "4"
-    elif date.split('-')[1] in ["7","8", "9"]:
-        pre = "7"
+    if date.split('-')[1] in ["01","02", "03"]:
+        pre = "01"
+    elif date.split('-')[1] in ["04","05", "06"]:
+        pre = "04"
+    elif date.split('-')[1] in ["07","08", "09"]:
+        pre = "07"
     else:
         pre = "10"
     
