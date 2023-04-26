@@ -205,7 +205,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
 
     oneforall["PREVIOUS_SEGMENT"] = None
-    if datetime.strptime(start_date, "%Y-%m-%d") > start_date:
+    if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
         last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{last.month}")
         lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
