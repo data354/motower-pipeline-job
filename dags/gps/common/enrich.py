@@ -207,7 +207,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall["PREVIOUS_SEGMENT"] = None
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
-        last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{last.month}")
+        last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
         lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
                                 storage_options={
                                 "key": accesskey,
