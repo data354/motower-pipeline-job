@@ -33,7 +33,7 @@ def gen_oneforall(**kwargs):
         if data.shape[0] != 0:
             save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, "oneforall", None,
                      kwargs["date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "OneForall")
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "one_for_all")
         else:
                 raise RuntimeError(f"No data for {kwargs['date']}")
 
