@@ -21,20 +21,18 @@ def pareto(df):
   df.loc[df.sommecum>total*0.8 ,"PARETO"] = 0
   return df.drop(columns = ["sommecum"])
 
-def prev_segment(df, start_date):
+def prev_segment(df):
     
-    df["PREVIOUS_SEGMENT"] = None
-    if datetime.strptime(start_date, "%Y-%m-%d") > start_date:
-        past_site = None
-        past_segment = None
-        for idx, row in df.iterrows():
-            if past_site == row["CODE OCI"]:
-                df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
-                past_segment = row["SEGMENT"]
-            else: 
-                past_site = row["CODE OCI"]
-                past_segment = row["SEGMENT"]
-                df.loc[idx,"PREVIOUS_SEGMENT"] = None
+    past_site = None
+    past_segment = None
+    for idx, row in df.iterrows():
+        if past_site == row["CODE OCI"]:
+            df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
+            past_segment = row["SEGMENT"]
+        else: 
+            past_site = row["CODE OCI"]
+            past_segment = row["SEGMENT"]
+            df.loc[idx,"PREVIOUS_SEGMENT"] = None
     return df
 
 def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
@@ -206,10 +204,11 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0, "NIVEAU_RENTABILITE"] = "0-80%"
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
 
-
-    last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
-    last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{last.month}")
-    lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
+    oneforall["PREVIOUS_SEGMENT"] = None
+    if datetime.strptime(start_date, "%Y-%m-%d") > start_date:
+        last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
+        last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{last.month}")
+        lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
                                 storage_options={
                                 "key": accesskey,
                                 "secret": secretkey,
@@ -217,7 +216,8 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
                 }
                     )
     
-    big = pd.concat([lastoneforall, oneforall])
-    big = big.sort_values(["CODE OCI", "MOIS"])
-    final = prev_segment(big, start_date)
+        big = pd.concat([lastoneforall, oneforall])
+        big = big.sort_values(["CODE OCI", "MOIS"])
+        final = prev_segment(big, start_date)
+        final = final.loc[final.MOIS == oneforall.MOIS.unique(), :]
     return final
