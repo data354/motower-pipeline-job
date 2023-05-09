@@ -200,7 +200,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
 
             #download esco to make ratio
             esco_objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
-            filename = getfilename(endpoint, accesskey, secretkey, esco_objet["bucket"], prefix = f"{esco_objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+            filename = getfilename(endpoint, accesskey, secretkey, esco_objet["bucket"], prefix = f"{esco_objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
             try:
                 logging.info("read %s", filename)
                 esco = pd.read_csv(f"s3://{esco_objet['bucket']}/{filename}",
