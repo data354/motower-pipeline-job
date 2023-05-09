@@ -217,7 +217,8 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                     raise OSError(f"{filename} don't exists in bucket") from error
                 
                 
-                
+                esco.loc[esco.Discount.isnull(), "Discount"] = 0
+                esco.loc[esco["Volume discount"].isnull(), "Volume discount" ]= 0
                 esco["opex_without_discount"] = esco["total redevances ht"] + esco["discount"] + esco["volume discount"]
                 esco = esco.groupby("mois").sum()
                 
