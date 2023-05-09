@@ -196,6 +196,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
             data2 = deepcopy(data)
             data2["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+2).zfill(2)
             data_final = pd.concat([data, data1, data2])
+            data_final = data_final.reset_index(drop=True)
 
             if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,10,6):
                 logging.info("Add breakout data")
@@ -227,6 +228,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 ratio = esco.loc[: ,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount"]]/esco["opex_without_discount"].values[0]
                 #ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values[0])
                 print(ratio.sum(axis=1))
+
 
                 data_final["discount"] = 0
                 data_final["volume discount"] = 0    
