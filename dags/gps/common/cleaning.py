@@ -234,7 +234,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 data_final["discount"] = 0
                 data_final["volume discount"] = 0    
                 
-                data_final["o&m"] = 0 #ratio["o&m"] * data_final["month_total"]
+                data_final["o&m"] = ratio["o&m"] #* data_final["month_total"]
                 data_final["energy"] = ratio["energy"] * data_final["month_total"]
                 data_final["infra"] = ratio["infra"] * data_final["month_total"]
                 data_final["maintenance passive préventive"] = ratio["maintenance passive préventive"] * data_final["month_total"]
