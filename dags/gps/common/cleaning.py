@@ -231,6 +231,14 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 data_final.loc[:, "Infra"] = ratio["Infra"] * data_final.loc[:,"month_total"]
                 data_final.loc[:, "Maintenance Passive préventive"] = ratio["Maintenance Passive préventive"] * data_final.loc[:,"month_total"]
                 data_final.loc[:, "Gardes de sécurité"] = ratio["Gardes de sécurité"] * data_final.loc[:,"month_total"]
+            else:
+                data_final["Discount"] = 0
+                data_final["Volume discount"] = 0  
+                data_final["O&M"] = 0
+                data_final["Energy"] = 0  
+                data_final["Infra"] = 0
+                data_final["Maintenance Passive préventive"] = 0
+                data_final["Gardes de sécurité"] = 0
             logging.info("save to minio")
             save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
