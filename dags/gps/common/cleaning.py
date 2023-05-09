@@ -196,39 +196,41 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
             data2 = deepcopy(data)
             data2["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+2).zfill(2)
             data_final = pd.concat([data, data1, data2])
-            logging.info("Add breakout data")
 
-            #download esco to make ratio
-            esco_objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
-            filename = getfilename(endpoint, accesskey, secretkey, esco_objet["bucket"], prefix = f"{esco_objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
-            try:
-                logging.info("read %s", filename)
-                esco = pd.read_csv(f"s3://{esco_objet['bucket']}/{filename}",
-                                
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-            except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
-            
+            if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,10,6):
+                logging.info("Add breakout data")
 
-            esco["opex_without_discount"] = esco["total redevances ht"] + esco["discount"] + esco["volume discount"]
-            esco = esco.groupby("mois").sum()
-            ratio = esco.loc[: ,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount"]].divide(esco["opex_without_discount"].values)
-            ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values)
+                #download esco to make ratio
+                esco_objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
+                filename = getfilename(endpoint, accesskey, secretkey, esco_objet["bucket"], prefix = f"{esco_objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+                try:
+                    logging.info("read %s", filename)
+                    esco = pd.read_csv(f"s3://{esco_objet['bucket']}/{filename}",
+                                    
+                                    storage_options={
+                                    "key": accesskey,
+                                    "secret": secretkey,
+                    "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                    }
+                        )
+                except Exception as error:
+                    raise OSError(f"{filename} don't exists in bucket") from error
+                
 
-            data_final["Discount"] = 0
-            data_final["Volume discount"] = 0    
-            
-            
-            data_final.loc[:, "O&M"] = ratio["O&M"] * data_final.loc[:,"month_total"]
-            data_final.loc[:, "Energy"] = ratio["Energy"] * data_final.loc[:,"month_total"]
-            data_final.loc[:, "Infra"] = ratio["Infra"] * data_final.loc[:,"month_total"]
-            data_final.loc[:, "Maintenance Passive préventive"] = ratio["Maintenance Passive préventive"] * data_final.loc[:,"month_total"]
-            data_final.loc[:, "Gardes de sécurité"] = ratio["Gardes de sécurité"] * data_final.loc[:,"month_total"]
+                esco["opex_without_discount"] = esco["total redevances ht"] + esco["discount"] + esco["volume discount"]
+                esco = esco.groupby("mois").sum()
+                ratio = esco.loc[: ,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount"]].divide(esco["opex_without_discount"].values)
+                ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values)
+
+                data_final["Discount"] = 0
+                data_final["Volume discount"] = 0    
+                
+                
+                data_final.loc[:, "O&M"] = ratio["O&M"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "Energy"] = ratio["Energy"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "Infra"] = ratio["Infra"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "Maintenance Passive préventive"] = ratio["Maintenance Passive préventive"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "Gardes de sécurité"] = ratio["Gardes de sécurité"] * data_final.loc[:,"month_total"]
             logging.info("save to minio")
             save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
