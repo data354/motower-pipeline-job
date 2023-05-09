@@ -228,6 +228,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 ratio = esco.loc[: ,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount"]]/esco["opex_without_discount"].values[0]
                 #ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values[0])
                 print(ratio.sum(axis=1))
+                print(ratio)
 
 
                 data_final["discount"] = 0
@@ -285,6 +286,7 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
             df_.columns = df_.columns.str.lower()
             data = pd.concat([data, df_])
             data = data.sort_values("day_id")
+            print(data.head())
             data = data.groupby(["id_site", "month_id"]).aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc_voix': 'last', 'parc_data': 'last'})
         save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
 
