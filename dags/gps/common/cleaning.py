@@ -226,7 +226,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 print(esco)
                 ratio = esco.loc[: ,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount"]]/esco["opex_without_discount"].values[0]
                 #ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values[0])
-                print(ratio)
+                print(ratio.sum(axis=1))
 
                 data_final["discount"] = 0
                 data_final["volume discount"] = 0    
