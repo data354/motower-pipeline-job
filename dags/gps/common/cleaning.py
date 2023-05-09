@@ -228,23 +228,23 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 #ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values[0])
                 print(ratio)
 
-                data_final["Discount"] = 0
-                data_final["Volume discount"] = 0    
+                data_final["discount"] = 0
+                data_final["volume discount"] = 0    
                 
                 
-                data_final.loc[:, "O&M"] = ratio["O&M"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "Energy"] = ratio["Energy"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "Infra"] = ratio["Infra"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "Maintenance Passive préventive"] = ratio["Maintenance Passive préventive"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "Gardes de sécurité"] = ratio["Gardes de sécurité"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "o&m"] = ratio["o&m"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "energy"] = ratio["energy"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "infra"] = ratio["infra"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "maintenance passive préventive"] = ratio["maintenance passive préventive"] * data_final.loc[:,"month_total"]
+                data_final.loc[:, "gardes de sécurité"] = ratio["gardes de sécurité"] * data_final.loc[:,"month_total"]
             else:
-                data_final["Discount"] = 0
-                data_final["Volume discount"] = 0  
-                data_final["O&M"] = 0
-                data_final["Energy"] = 0  
-                data_final["Infra"] = 0
-                data_final["Maintenance Passive préventive"] = 0
-                data_final["Gardes de sécurité"] = 0
+                data_final["discount"] = 0
+                data_final["volume discount"] = 0  
+                data_final["o&m"] = 0
+                data_final["energy"] = 0  
+                data_final["infra"] = 0
+                data_final["maintenance passive préventive"] = 0
+                data_final["gardes de sécurité"] = 0
             logging.info("save to minio")
             save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
