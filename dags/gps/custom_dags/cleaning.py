@@ -62,7 +62,7 @@ with DAG(
         'max_active_run': 1,
         'retries': 0
     },
-    description='clean and enrich monthly data',
+    description='clean monthly data',
     schedule_interval= "0 0 6 * *",
     start_date=datetime(2022, 7, 6, 0, 0, 0),
     catchup=True
