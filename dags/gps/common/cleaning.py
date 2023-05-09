@@ -235,11 +235,11 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 data_final["volume discount"] = 0    
                 
                 
-                data_final.loc[:, "o&m"] = ratio["o&m"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "energy"] = ratio["energy"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "infra"] = ratio["infra"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "maintenance passive préventive"] = ratio["maintenance passive préventive"] * data_final.loc[:,"month_total"]
-                data_final.loc[:, "gardes de sécurité"] = ratio["gardes de sécurité"] * data_final.loc[:,"month_total"]
+                data_final["o&m"] = ratio["o&m"] * data_final["month_total"]
+                data_final["energy"] = ratio["energy"] * data_final["month_total"]
+                data_final["infra"] = ratio["infra"] * data_final["month_total"]
+                data_final["maintenance passive préventive"] = ratio["maintenance passive préventive"] * data_final["month_total"]
+                data_final["gardes de sécurité"] = ratio["gardes de sécurité"] * data_final.loc["month_total"]
             else:
                 data_final["discount"] = 0
                 data_final["volume discount"] = 0  
