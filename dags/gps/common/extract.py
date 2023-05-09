@@ -6,7 +6,18 @@ from gps import CONFIG
 import pandas as pd
 import psycopg2
 
+"""
+    CA and PARC QOD FOR EXTRACTION
 
+
+    1- Complétude au niveau des colonnes
+      les colonnes ["day_id", "id_site", "ca_voix", "ca_data", "parc_voix", "parc_data"] sont obligatoires
+
+        
+
+
+
+"""
 
 
 
