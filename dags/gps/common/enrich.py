@@ -153,11 +153,21 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     logging.info("merge bdd and CA")
     bdd_CA = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     logging.info("add opex")
-    ihs = ihs.loc[:,["site id ihs","month_total"]]
+    
     bdd_CA_ihs = bdd_CA.merge(ihs, left_on=[ "autre code"], right_on=[ "site id ihs"], how="left")
-    esco = esco.loc[:,["code site", "total redevances ht"]]
     bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
+
+    # join esco and ihs colonnes
+    
     bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_CA_ihs_esco["total redevances ht"]
+
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["o&m_x"].isnull(), "o&m_x"] = bdd_CA_ihs_esco["o&m_y"]
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["energy_x"].isnull(), "energy_x"] = bdd_CA_ihs_esco["energy_y"]
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["infra_x"].isnull(), "infra_x"] = bdd_CA_ihs_esco["infra_y"]
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["maintenance passive préventive_x"].isnull(), "maintenance passive préventive_x"] = bdd_CA_ihs_esco["maintenance passive préventive_y"]
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["gardes de sécurité_x"].isnull(), "gardes de sécurité_x"] = bdd_CA_ihs_esco["gardes de sécurité_y"]
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_CA_ihs_esco["discount_y"]
+    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_CA_ihs_esco["volume discount_y"]
 
     logging.info("add indisponibilite")
     bdd_CA_ihs_esco_ind = bdd_CA_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
@@ -180,7 +190,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
     df_final["trafic_data_total"] = df_final["trafic_data_2G"]+df_final["trafic_data_3G"] + df_final["trafic_data_4G"]
-    
+
     df_final["CA_TOTAL"] = df_final["CA_DATA"] + df_final["CA_VOIX"]
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL>=20000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL>=10000000)),["SEGMENT"]] = "PREMIUM"
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & ((df_final.CA_TOTAL>=10000000) & (df_final.CA_TOTAL<20000000) )) | ((df_final.LOCALISATION.str.lower()=="intérieur") & ((df_final.CA_TOTAL>=4000000) & (df_final.CA_TOTAL<10000000))),["SEGMENT"]] = "NORMAL"
