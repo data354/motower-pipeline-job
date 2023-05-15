@@ -246,7 +246,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     cellule_total_2G = 13485.0
     cellule_total_3G = 26156.0
     cellule_total_4G = 17862.0
-    print(oneforall["MOIS"])
+    print(oneforall.loc[oneforall.MOIS.isnull(),:])
     oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
 
     oneforall["NUR_2G"] = (100000 * oneforall['nbrecellule_2G'] * oneforall['delay_2G'] )/ (3600*24*oneforall["days"]  * cellule_total_2G )
