@@ -1,6 +1,7 @@
 """ enrich data"""
 
 import pandas as pd
+import calendar
 from datetime import datetime, timedelta
 from minio import Minio
 from copy import deepcopy
@@ -9,6 +10,8 @@ from gps.common.rwminio import getfilename
 import logging
 
 ################################## joindre les tables
+def get_number_days(mois: str):
+  return calendar.monthrange(int(mois.split("-")[0]), int(mois.split("-")[1]))[1]
 
 def pareto(df):
   """
@@ -149,6 +152,21 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
                     )
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
+    
+    # get CSSR
+    objet = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    try:
+        logging.info("read %s", filename)
+        cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
 
     logging.info("merge bdd and CA")
     bdd_CA = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
@@ -156,6 +174,8 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     bdd_CA_ihs = bdd_CA.merge(ihs, left_on=[ "autre code"], right_on=[ "site id ihs"], how="left")
     bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
+    
+    
 
     # join esco and ihs colonnes
     
@@ -174,19 +194,22 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
 
     logging.info("add trafic")
     bdd_CA_ihs_esco_ind_trafic = bdd_CA_ihs_esco_ind.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    logging.info("add cssr")
+    bdd_CA_ihs_esco_ind_trafic_cssr = bdd_CA_ihs_esco_ind_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
-    df_final = bdd_CA_ihs_esco_ind_trafic.loc[:,[ 'mois','code oci','site','autre code','longitude', 'latitude', 'type du site',
+    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois','code oci','site','autre code','longitude', 'latitude', 'type du site',
        'statut','localisation', 'commune', 'departement', 'region', 'partenaires','proprietaire', 'gestionnaire','type geolocalite', 'projet',
         'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data','o&m_x', 'energy_x', 'infra_x', 'maintenance passive préventive_x',
        'gardes de sécurité_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G'
-        ,"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G"
+        ,"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"
        ]]
     df_final.columns = ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
        'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
        'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
-       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G"]
+       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",
+           	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
     
     df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
     df_final["trafic_data_total"] = df_final["trafic_data_2G"]+df_final["trafic_data_3G"] + df_final["trafic_data_4G"]
@@ -219,6 +242,17 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0, "NIVEAU_RENTABILITE"] = "0-80%"
     oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
 
+    logging.info("add NUR") # a modifier
+    cellule_total_2G = 13485.0
+    cellule_total_3G = 26156.0
+    cellule_total_4G = 17862.0
+
+    oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
+
+    oneforall["NUR_2G"] = (100000 * oneforall['nbrecellule_2G'] * oneforall['delay_2G'] )/ (3600*24*oneforall["days"]  * cellule_total_2G )
+    oneforall["NUR_3G"] = (100000 * oneforall['nbrecellule_3G'] * oneforall['delay_3G'] )/ (3600*24*oneforall["days"]  * cellule_total_3G )
+    oneforall["NUR_4G"] = (100000 * oneforall['nbrecellule_4G'] * oneforall['delay_4G'] )/ (3600*24*oneforall["days"]  * cellule_total_4G )
+    
     oneforall["PREVIOUS_SEGMENT"] = None
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
@@ -230,7 +264,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
                 "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
                 }
                     )
-    
+
         big = pd.concat([lastoneforall, oneforall])
         big = big.sort_values(["CODE OCI", "MOIS"])
         final = prev_segment(big)
