@@ -228,6 +228,9 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & ((df_final.CA_TOTAL>=10000000) & (df_final.CA_TOTAL<20000000) )) | ((df_final.LOCALISATION.str.lower()=="intérieur") & ((df_final.CA_TOTAL>=4000000) & (df_final.CA_TOTAL<10000000))),["SEGMENT"]] = "NORMAL"
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL<10000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL<4000000)),["SEGMENT"]] = "A DEVELOPPER"
 
+    print(df_final.SEGMENT.unique())
+
+
     df_final = df_final.loc[:, ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
