@@ -175,7 +175,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     bdd_CA_ihs = bdd_CA.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
     bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
-    
+    print(bdd_CA_ihs_esco.columns)
     
 
     # join esco and ihs colonnes
@@ -189,7 +189,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["gardes de sécurité_x"].isnull(), "gardes de sécurité_x"] = bdd_CA_ihs_esco["gardes de sécurité_y"]
     bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_CA_ihs_esco["discount_y"]
     bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_CA_ihs_esco["volume discount_y"]
-
+    
     logging.info("add indisponibilite")
     bdd_CA_ihs_esco_ind = bdd_CA_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
@@ -197,7 +197,8 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     bdd_CA_ihs_esco_ind_trafic = bdd_CA_ihs_esco_ind.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
     logging.info("add cssr")
     bdd_CA_ihs_esco_ind_trafic_cssr = bdd_CA_ihs_esco_ind_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
-
+    print(bdd_CA_ihs_esco_ind_trafic_cssr.columns)
+    
     df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois','code oci','site','autre code','longitude', 'latitude', 'type du site',
        'statut','localisation', 'commune', 'departement', 'region', 'partenaires','proprietaire', 'gestionnaire','type geolocalite', 'projet',
         'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data','o&m_x', 'energy_x', 'infra_x', 'maintenance passive préventive_x',
