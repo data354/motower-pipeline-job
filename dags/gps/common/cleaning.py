@@ -447,6 +447,7 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
         cssr = pd.DataFrame()
         for f in filenames:
             cssr = pd.concat([cssr, pd.read_csv(f)])
+        logging.info("start to clean data")
         cssr.date_jour = cssr.date_jour.astype("str")
         cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
         cssr = cssr.loc[cssr.avg_cssr_cs.notnull(), :]
@@ -457,4 +458,5 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
         cssr = cssr.reset_index()
         cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
         cssr = cssr.groupby(["MOIS", "code_site"]).mean()
+        logging.info("start to save data")
         save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr.loc[:, ["code_site",	"avg_cssr_cs_2G",	"avg_cssr_cs_3G",	"MOIS"]])
