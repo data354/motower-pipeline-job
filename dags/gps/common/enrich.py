@@ -198,8 +198,8 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     logging.info("add cssr")
     bdd_CA_ihs_esco_ind_trafic_cssr = bdd_CA_ihs_esco_ind_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
     print(bdd_CA_ihs_esco_ind_trafic_cssr.columns)
-    
-    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois','code oci','site','autre code','longitude', 'latitude', 'type du site',
+
+    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude', 'type du site',
        'statut','localisation', 'commune', 'departement', 'region', 'partenaires','proprietaire', 'gestionnaire','type geolocalite', 'projet',
         'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data','o&m_x', 'energy_x', 'infra_x', 'maintenance passive préventive_x',
        'gardes de sécurité_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G'
