@@ -154,28 +154,28 @@ with DAG(
                    'ingest_date': INGEST_PG_DATE},
         dag=dag,
     ),
-    ingest_cd2g = PythonOperator(
-        task_id='ingest_call_drop_deuxg',
-        provide_context=True,
-        python_callable=extract_job,
-        op_kwargs={'thetable': CONFIG["tables"][4]["name"],
-                   'bucket': CONFIG["tables"][4]["bucket"],
-                   'folder': CONFIG["tables"][4]["folder"],
-                   'table': CONFIG["tables"][4]["table"],
-                   'ingest_date': INGEST_PG_DATE},
-        dag=dag,
-    ),
-    ingest_cd3g = PythonOperator(
-        task_id='ingest_call_drop_troisg',
-        provide_context=True,
-        python_callable=extract_job,
-        op_kwargs={'thetable': CONFIG["tables"][5]["name"],
-                   'bucket': CONFIG["tables"][5]["bucket"],
-                   'folder': CONFIG["tables"][5]["folder"],
-                   'table': CONFIG["tables"][5]["table"],
-                   'ingest_date': INGEST_PG_DATE},
-        dag=dag,
-    ),
+    # ingest_cd2g = PythonOperator(
+    #     task_id='ingest_call_drop_deuxg',
+    #     provide_context=True,
+    #     python_callable=extract_job,
+    #     op_kwargs={'thetable': CONFIG["tables"][4]["name"],
+    #                'bucket': CONFIG["tables"][4]["bucket"],
+    #                'folder': CONFIG["tables"][4]["folder"],
+    #                'table': CONFIG["tables"][4]["table"],
+    #                'ingest_date': INGEST_PG_DATE},
+    #     dag=dag,
+    # ),
+    # ingest_cd3g = PythonOperator(
+    #     task_id='ingest_call_drop_troisg',
+    #     provide_context=True,
+    #     python_callable=extract_job,
+    #     op_kwargs={'thetable': CONFIG["tables"][5]["name"],
+    #                'bucket': CONFIG["tables"][5]["bucket"],
+    #                'folder': CONFIG["tables"][5]["folder"],
+    #                'table': CONFIG["tables"][5]["table"],
+    #                'ingest_date': INGEST_PG_DATE},
+    #     dag=dag,
+    # ),
     ingest_indis = PythonOperator(
         task_id='ingest_indisponibilite',
         provide_context=True,
@@ -198,7 +198,7 @@ with DAG(
         dag=dag,
     )
 
-    [ingest_hdrp, ingest_ts2g, ingest_ts3g, ingest_cd2g, ingest_cd3g, ingest_indis, ingest_ftp]
+    [ingest_hdrp, ingest_ts2g, ingest_ts3g, ingest_indis, ingest_ftp]
 
 if __name__ == "__main__":
     from airflow.utils.state import State
