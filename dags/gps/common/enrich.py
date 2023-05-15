@@ -228,7 +228,13 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & ((df_final.CA_TOTAL>=10000000) & (df_final.CA_TOTAL<20000000) )) | ((df_final.LOCALISATION.str.lower()=="intérieur") & ((df_final.CA_TOTAL>=4000000) & (df_final.CA_TOTAL<10000000))),["SEGMENT"]] = "NORMAL"
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL<10000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL<4000000)),["SEGMENT"]] = "A DEVELOPPER"
 
-
+    df_final = df_final.loc[:, ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
+       'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
+       'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
+       'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
+       'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
+       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT"]]
     # pareto
     oneforall = pareto(df_final)
 
