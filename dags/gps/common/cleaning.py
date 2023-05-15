@@ -432,28 +432,29 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
      
     """
-    client = Minio( endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet_2g = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
-    objet_3g = [d for d in CONFIG["tables"] if "Taux_succes_3" in d["name"] ][0]
-    if not client.bucket_exists(objet_2g["bucket"]):
-        raise OSError(f"bucket {objet_2g['bucket']} don\'t exits")
-    
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-    filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
-    cssr = pd.DataFrame()
-    for f in filenames:
-        cssr = pd.concat([cssr, pd.read_csv(f)])
-    cssr.date_jour = cssr.date_jour.astype("str")
-    cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
-    cssr = cssr.loc[cssr.avg_cssr_cs.notnull(), :]
-    cssr = cssr.loc[:,["date_jour",	"code_site", "avg_cssr_cs"	,	"techno"] ]
-    cssr = cssr.groupby(["date_jour",	"code_site","techno"	]).sum()
-    cssr = cssr.unstack()
-    cssr.columns = ["_".join(d) for d in cssr.columns]
-    cssr = cssr.reset_index()
-    cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
-    cssr = cssr.groupby(["MOIS", "code_site"]).mean()
-    save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr.loc[:, ["code_site",	"avg_cssr_cs_2G",	"avg_cssr_cs_3G",	"MOIS"]])
+    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,3) :
+        client = Minio( endpoint,
+            access_key= accesskey,
+            secret_key= secretkey,
+            secure=False)
+        objet_2g = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
+        objet_3g = [d for d in CONFIG["tables"] if "Taux_succes_3" in d["name"] ][0]
+        if not client.bucket_exists(objet_2g["bucket"]):
+            raise OSError(f"bucket {objet_2g['bucket']} don\'t exits")
+        
+        filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+        filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
+        cssr = pd.DataFrame()
+        for f in filenames:
+            cssr = pd.concat([cssr, pd.read_csv(f)])
+        cssr.date_jour = cssr.date_jour.astype("str")
+        cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
+        cssr = cssr.loc[cssr.avg_cssr_cs.notnull(), :]
+        cssr = cssr.loc[:,["date_jour",	"code_site", "avg_cssr_cs"	,	"techno"] ]
+        cssr = cssr.groupby(["date_jour",	"code_site","techno"	]).sum()
+        cssr = cssr.unstack()
+        cssr.columns = ["_".join(d) for d in cssr.columns]
+        cssr = cssr.reset_index()
+        cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
+        cssr = cssr.groupby(["MOIS", "code_site"]).mean()
+        save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr.loc[:, ["code_site",	"avg_cssr_cs_2G",	"avg_cssr_cs_3G",	"MOIS"]])
