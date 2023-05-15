@@ -470,4 +470,4 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
         cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
         cssr = cssr.groupby(["MOIS", "code_site"]).mean()
         logging.info("start to save data")
-        save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr.loc[:, ["code_site",	"avg_cssr_cs_2G",	"avg_cssr_cs_3G",	"MOIS"]])
+        save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr)
