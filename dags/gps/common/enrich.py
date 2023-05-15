@@ -201,7 +201,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
 
     logging.info("final columns")    
 
-    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,['code oci','site','autre code','longitude', 'latitude',
+    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
                                                            'projet', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
@@ -212,7 +212,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     logging.info("final columns renamed")  
     
-    df_final.columns = ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
+    df_final.columns = ['MOIS1','MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
        'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
