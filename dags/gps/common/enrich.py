@@ -285,6 +285,6 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
         big = pd.concat([lastoneforall, oneforall])
         big = big.sort_values(["CODE OCI", "MOIS"])
         final = prev_segment(big)
-        final = final.loc[final.MOIS == oneforall.MOIS.unique(), :]
+        final = final.loc[final.MOIS.isin(oneforall.MOIS.unique()), :]
         return final
     return oneforall
