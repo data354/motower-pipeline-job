@@ -212,7 +212,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     logging.info("final columns renamed")  
     
-    df_final.columns = ['MOIS1','MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
+    df_final.columns = ['MOIS','MOIS1', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
        'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
