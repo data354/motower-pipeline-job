@@ -286,5 +286,9 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
         big = big.sort_values(["CODE OCI", "MOIS"])
         final = prev_segment(big)
         final = final.loc[final.MOIS.isin(oneforall.MOIS.unique()), :]
-        return final
+        return final.loc[:,["MOIS",	"CODE OCI",	"SITE",	"AUTRE CODE",	"LONGITUDE",	"LATITUDE",	"TYPE DU SITE",	"STATUT",	"LOCALISATION",	"COMMUNE",	"DEPARTEMENT",	"REGION",	"PARTENAIRES",	"PROPRIETAIRE",	"GESTIONNAIRE",	"TYPE GEOLOCALITE",
+                            	"PROJET",	"POSITION SITE",	"CA_VOIX",	"CA_DATA",	"PARC_GLOBAL",	"PARC DATA",	"O&M",	"Energy",	"Infra",	"Maintenance Passive préventive",
+                                    	"Gardes de sécurité",	"Discount",	"Volume discount",	"TVA : 18%",	"OPEX",	"delay_2G",	"delay_3G",	"delay_4G",	"nbrecellule_2G",	"nbrecellule_3G",	"nbrecellule_4G",
+                                            	"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G",	"avg_cssr_cs_2G",	"avg_cssr_cs_3G",	"trafic_voix_total",	"trafic_data_total",
+                                                    	"CA_TOTAL",	"SEGMENT",	"PARETO",	"INTERCO",	"IMPOT",	"FRAIS_DIST",	"OPEX TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
     return oneforall
