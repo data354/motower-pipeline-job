@@ -197,7 +197,9 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     bdd_CA_ihs_esco_ind_trafic = bdd_CA_ihs_esco_ind.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
     logging.info("add cssr")
     bdd_CA_ihs_esco_ind_trafic_cssr = bdd_CA_ihs_esco_ind_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
-    print(bdd_CA_ihs_esco_ind_trafic_cssr.columns)
+
+
+    logging.info("final columns")    
 
     df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
@@ -214,7 +216,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
        'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
        'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', 'Cellules_2G_congestionnées', 'Cellules_2G',
        'Cellules_3G_congestionnées', 'Cellules_3G',
-       'Cellules_4G_congestionnées', 'Cellules_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
+       'Cellules_4G_congestionnées', 'Cellules_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
     
     df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
     df_final["trafic_data_total"] = df_final["trafic_data_2G"]+df_final["trafic_data_3G"] + df_final["trafic_data_4G"]
