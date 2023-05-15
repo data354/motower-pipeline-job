@@ -199,19 +199,22 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     bdd_CA_ihs_esco_ind_trafic_cssr = bdd_CA_ihs_esco_ind_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
     print(bdd_CA_ihs_esco_ind_trafic_cssr.columns)
 
-    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude', 'type du site',
-       'statut','localisation', 'commune', 'departement', 'region', 'partenaires','proprietaire', 'gestionnaire','type geolocalite', 'projet',
-        'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data','o&m_x', 'energy_x', 'infra_x', 'maintenance passive préventive_x',
+    df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
+                                                       'type du site', 'statut','localisation', 'commune', 'departement', 'region',
+                                                         'partenaires','proprietaire', 'gestionnaire','type geolocalite',
+                                                           'projet', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
+                                                           'o&m_x', 'energy_x', 'infra_x', 'maintenance passive préventive_x',
        'gardes de sécurité_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G'
-        ,"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"
-       ]]
+        ,"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
+    
     df_final.columns = ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
        'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
        'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
-       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",
-           	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
+       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', 'Cellules_2G_congestionnées', 'Cellules_2G',
+       'Cellules_3G_congestionnées', 'Cellules_3G',
+       'Cellules_4G_congestionnées', 'Cellules_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
     
     df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
     df_final["trafic_data_total"] = df_final["trafic_data_2G"]+df_final["trafic_data_3G"] + df_final["trafic_data_4G"]
