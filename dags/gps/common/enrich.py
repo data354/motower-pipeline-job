@@ -155,7 +155,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     # get CSSR
     objet = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
     try:
         logging.info("read %s", filename)
         cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -252,7 +252,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall["NUR_2G"] = (100000 * oneforall['nbrecellule_2G'] * oneforall['delay_2G'] )/ (3600*24*oneforall["days"]  * cellule_total_2G )
     oneforall["NUR_3G"] = (100000 * oneforall['nbrecellule_3G'] * oneforall['delay_3G'] )/ (3600*24*oneforall["days"]  * cellule_total_3G )
     oneforall["NUR_4G"] = (100000 * oneforall['nbrecellule_4G'] * oneforall['delay_4G'] )/ (3600*24*oneforall["days"]  * cellule_total_4G )
-    
+
     oneforall["PREVIOUS_SEGMENT"] = None
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
