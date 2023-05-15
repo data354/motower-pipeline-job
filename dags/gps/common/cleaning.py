@@ -410,7 +410,7 @@ def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
                                 }
                         )
         except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
+            raise OSError(f"{filename} don't exists in bucket") from error
         df_.columns = df_.columns.str.lower()
         data = pd.concat([data, df_])
     cols_to_trim = ["code_site"]
@@ -445,8 +445,19 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
         filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
         filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
         cssr = pd.DataFrame()
-        for f in filenames:
-            cssr = pd.concat([cssr, pd.read_csv(f)])
+        for filename in filenames:
+            try:
+                    
+                    df_ = pd.read_csv(f"s3://{objet_2g['bucket']}/{filename}",
+                        storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
+                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                    }
+                            )
+            except Exception as error:
+                    raise OSError(f"{filename} don't exists in bucket") from error
+            cssr = pd.concat([cssr, df_])
         logging.info("start to clean data")
         cssr.date_jour = cssr.date_jour.astype("str")
         cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
