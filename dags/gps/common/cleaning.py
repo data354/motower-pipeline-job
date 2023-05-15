@@ -432,7 +432,7 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
      
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,3,3) :
+    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,1,6) :
         client = Minio( endpoint,
             access_key= accesskey,
             secret_key= secretkey,
