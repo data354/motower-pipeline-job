@@ -209,14 +209,15 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
        'gardes de sécurité_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G'
         ,"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
+    logging.info("final columns renamed")  
+    
     df_final.columns = ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
        'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
        'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
-       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', 'Cellules_2G_congestionnées', 'Cellules_2G',
-       'Cellules_3G_congestionnées', 'Cellules_3G',
-       'Cellules_4G_congestionnées', 'Cellules_4G', "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
+       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
     
     df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
     df_final["trafic_data_total"] = df_final["trafic_data_2G"]+df_final["trafic_data_3G"] + df_final["trafic_data_4G"]
@@ -256,10 +257,12 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     print(oneforall.loc[oneforall.MOIS.isnull(),:])
     oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
 
-    oneforall["NUR_2G"] = (100000 * oneforall['nbrecellule_2G'] * oneforall['delay_2G'] )/ (3600*24*oneforall["days"]  * cellule_total_2G )
-    oneforall["NUR_3G"] = (100000 * oneforall['nbrecellule_3G'] * oneforall['delay_3G'] )/ (3600*24*oneforall["days"]  * cellule_total_3G )
-    oneforall["NUR_4G"] = (100000 * oneforall['nbrecellule_4G'] * oneforall['delay_4G'] )/ (3600*24*oneforall["days"]  * cellule_total_4G )
-
+    # oneforall["NUR_2G"] = (100000 * oneforall['nbrecellule_2G'] * oneforall['delay_2G'] )/ (3600*24*oneforall["days"]  * cellule_total_2G )
+    # oneforall["NUR_3G"] = (100000 * oneforall['nbrecellule_3G'] * oneforall['delay_3G'] )/ (3600*24*oneforall["days"]  * cellule_total_3G )
+    # oneforall["NUR_4G"] = (100000 * oneforall['nbrecellule_4G'] * oneforall['delay_4G'] )/ (3600*24*oneforall["days"]  * cellule_total_4G )
+    oneforall["NUR_2G"] = 100
+    oneforall["NUR_3G"] = 199
+    oneforall["NUR_4G"] = 300
     oneforall["PREVIOUS_SEGMENT"] = None
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
