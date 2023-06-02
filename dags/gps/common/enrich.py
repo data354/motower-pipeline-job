@@ -168,6 +168,10 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
 
+
+    # merging
+
+    
     logging.info("merge bdd and CA")
     bdd_CA = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     print(bdd_CA.columns)
@@ -204,7 +208,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     df_final = bdd_CA_ihs_esco_ind_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
-                                                           'projet', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
+                                                           'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
                                                            'o&m_x', 'energy_x', 'infra_x', 'maintenance passive préventive_x',
        'gardes de sécurité_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G'
         ,"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
@@ -212,12 +216,12 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     logging.info("final columns renamed")  
     
-    df_final.columns = ['MOIS','MOIS1', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
-       'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
-       'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
-       'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
-       'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
-       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+    df_final.columns = ['MOIS','MOIS1', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
+       'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
+       'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
+       'PROJET', 'CLUTTER', 'POSITION_SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
+       'PARC_DATA', 'O_M', 'Energy', 'Infra', 'Maintenance_Passive_preventive',
+       'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]
     
     df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
@@ -231,13 +235,18 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     print(df_final.SEGMENT.unique())
 
 
-    df_final = df_final.loc[:, ['MOIS', 'CODE OCI','SITE', 'AUTRE CODE', 'LONGITUDE', 'LATITUDE',
-       'TYPE DU SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
-       'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE GEOLOCALITE',
-       'PROJET', 'POSITION SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
-       'PARC DATA', 'O&M', 'Energy', 'Infra', 'Maintenance Passive préventive',
-       'Gardes de sécurité', 'Discount', 'Volume discount' ,'TVA : 18%', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+    df_final = df_final.loc[:, ['MOIS', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
+       'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
+       'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
+       'PROJET', 'CLUTTER', 'POSITION_SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
+       'PARC_DATA', 'O_M', 'Energy', 'Infra', 'Maintenance_Passive_preventive',
+       'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT"]]
+    
+    
+    
+    
+    
     # pareto
     oneforall = pareto(df_final)
 
@@ -264,6 +273,10 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     cellule_total_2G = 13485.0
     cellule_total_3G = 26156.0
     cellule_total_4G = 17862.0
+
+    oneforall["Cellules_2G_congestionnees"] = 0
+    oneforall["Cellules_3G_congestionnees"] = 0
+    oneforall["Cellules_4G_congestionnees"] = 0
     print(oneforall.loc[oneforall.MOIS.isnull(),:])
     oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
 
@@ -289,9 +302,11 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
         big = big.sort_values(["CODE OCI", "MOIS"])
         final = prev_segment(big)
         final = final.loc[final.MOIS.isin(oneforall.MOIS.unique()), :]
-        return final.loc[:,["MOIS",	"CODE OCI",	"SITE",	"AUTRE CODE",	"LONGITUDE",	"LATITUDE",	"TYPE DU SITE",	"STATUT",	"LOCALISATION",	"COMMUNE",	"DEPARTEMENT",	"REGION",	"PARTENAIRES",	"PROPRIETAIRE",	"GESTIONNAIRE",	"TYPE GEOLOCALITE",
-                            	"PROJET",	"POSITION SITE",	"CA_VOIX",	"CA_DATA",	"PARC_GLOBAL",	"PARC DATA",	"O&M",	"Energy",	"Infra",	"Maintenance Passive préventive",
-                                    	"Gardes de sécurité",	"Discount",	"Volume discount",	"TVA : 18%",	"OPEX",	"delay_2G",	"delay_3G",	"delay_4G",	"nbrecellule_2G",	"nbrecellule_3G",	"nbrecellule_4G",
-                                            	"trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G",	"avg_cssr_cs_2G",	"avg_cssr_cs_3G",	"trafic_voix_total",	"trafic_data_total",
-                                                    	"CA_TOTAL",	"SEGMENT",	"PARETO",	"INTERCO",	"IMPOT",	"FRAIS_DIST",	"OPEX TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
+        return final.loc[:,['MOIS', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
+       'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
+       'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
+       'PROJET', 'CLUTTER', 'POSITION_SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
+       'PARC_DATA', 'O_M', 'Energy', 'Infra', 'Maintenance_Passive_preventive',
+       'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "Cellules_2G_congestionnees", "Cellules_3G_congestionnees", "Cellules_4G_congestionnees"
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT",	"PARETO",	"INTERCO",	"IMPOT",	"FRAIS_DIST",	"OPEX TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
     return oneforall
