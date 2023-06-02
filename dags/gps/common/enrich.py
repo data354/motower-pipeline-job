@@ -29,11 +29,11 @@ def prev_segment(df):
     past_site = None
     past_segment = None
     for idx, row in df.iterrows():
-        if past_site == row["CODE OCI"]:
+        if past_site == row["CODE_OCI"]:
             df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
             past_segment = row["SEGMENT"]
         else: 
-            past_site = row["CODE OCI"]
+            past_site = row["CODE_OCI"]
             past_segment = row["SEGMENT"]
             df.loc[idx,"PREVIOUS_SEGMENT"] = None
     return df
