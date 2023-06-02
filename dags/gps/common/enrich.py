@@ -307,6 +307,6 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
        'PROJET', 'CLUTTER', 'POSITION_SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
        'PARC_DATA', 'O_M', 'Energy', 'Infra', 'Maintenance_Passive_preventive',
-       'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "Cellules_2G_congestionnees", "Cellules_3G_congestionnees", "Cellules_4G_congestionnees"
+       'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "Cellules_2G_congestionnees", "Cellules_3G_congestionnees", "Cellules_4G_congestionnees",
         "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT",	"PARETO",	"INTERCO",	"IMPOT",	"FRAIS_DIST",	"OPEX TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
     return oneforall
