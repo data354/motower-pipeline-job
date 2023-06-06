@@ -1,13 +1,16 @@
-from pathlib import Path
+"""  EXTRACT DAG"""
+
 from datetime import datetime
+
+from minio import Minio
+from airflow.operators.python import PythonOperator
+from airflow.models import Variable
 from airflow import DAG
+from gps import CONFIG
+
 from gps.common.extract import extract_pg, extract_ftp
 from gps.common.rwminio import save_minio
 from gps.common.rwpg import write_pg
-from gps import CONFIG
-from airflow.operators.python import PythonOperator
-from airflow.models import Variable
-from airflow.macros import ds_add
 
 
 PG_HOST = Variable.get('pg_host')
@@ -33,55 +36,52 @@ INGEST_FTP_DATE = "{{ macros.ds_add(ds, -6) }}"
 
 
 
-
+CLIENT = Minio( MINIO_ENDPOINT,
+        access_key= MINIO_ACCESS_KEY,
+        secret_key= MINIO_SECRET_KEY,
+        secure=False)
 
 def extract_job(**kwargs):
     """
         extract
     """
 
-    print(kwargs["ingest_date"])
-    if datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") < datetime(2022,12,30) :
+    if datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) < datetime(2022,12,30) :
         if kwargs["thetable"] in ["faitalarme"]:
-            data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
-
+            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
             if data.shape[0] != 0:
-                save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
+                save_minio(CLIENT, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
                 write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
             
-    elif ( datetime.strptime(kwargs['ingest_date'], "%Y-%m-%d") >= datetime(2022,12,30) ) and ( datetime.strptime(kwargs['ingest_date'], "%Y-%m-%d") <= datetime(2023,2,28) ):
+    elif ( datetime.strptime(kwargs['ingest_date'], CONFIG["date_format"]) >= datetime(2022,12,30) ) and ( datetime.strptime(kwargs['ingest_date'], CONFIG["date_format"]) <= datetime(2023,2,28) ):
         if kwargs["thetable"] in ["faitalarme", "hourly_datas_radio_prod"]:
             if kwargs["thetable"] == "hourly_datas_radio_prod":
                 kwargs["thetable"] = "hourly_datas_radio_prod_archive"
-            data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
 
             if data.shape[0] != 0:
-                save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
-                        kwargs["folder"] , kwargs["ingest_date"], data)
+                save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
                 write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
             
-    elif ( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") >= datetime(2023,3,1) ) and ( datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") < datetime(2023,3,3) ):
+    elif ( datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) >= datetime(2023,3,1) ) and ( datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) < datetime(2023,3,3) ):
         if kwargs["thetable"] in ["faitalarme", "hourly_datas_radio_prod"]:
            
-            data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
+            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
 
             if data.shape[0] != 0:
-                save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
-                        kwargs["folder"] , kwargs["ingest_date"], data)
+                save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
                 write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     else:
-        data = extract_pg(PG_HOST, PG_DB, PG_USER, PG_PASSWORD , kwargs["thetable"] , kwargs["ingest_date"])
-
+        data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
         if data.shape[0] != 0:
-            save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"],
-                kwargs["folder"] , kwargs["ingest_date"], data)
+            save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
             write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
@@ -92,11 +92,10 @@ def extract_ftp_job(**kwargs):
     extract ftp files
  
     """
-    if datetime.strptime(kwargs["ingest_date"], "%Y-%m-%d") >= datetime(2022,9,1):
+    if datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) >= datetime(2022,9,1):
         data = extract_ftp(FTP_HOST,FTP_USER, FTP_PASSWORD , kwargs["ingest_date"])
         if data.shape[0] != 0:
-            save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["bucket"], 
-                    kwargs["folder"] , kwargs["ingest_date"], data)
+            save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
             write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")

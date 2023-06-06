@@ -1,10 +1,12 @@
+""" EXTRACTION COMMONS"""
+
 import logging
 from io import BytesIO
 import ftplib
-from datetime import datetime
-from gps import CONFIG
+from unidecode import unidecode
 import pandas as pd
 import psycopg2
+from gps import CONFIG
 
 """
     CA and PARC QOD FOR EXTRACTION
@@ -12,11 +14,6 @@ import psycopg2
 
     1- Complétude au niveau des colonnes
       les colonnes ["day_id", "id_site", "ca_voix", "ca_data", "parc_voix", "parc_data"] sont obligatoires
-
-        
-
-
-
 """
 
 
@@ -36,11 +33,11 @@ import psycopg2
 #     """
 #     # get table
 #     try:
-#         df = spark.read.format("jdbc")\
+#         df_ = spark.read.format("jdbc")\
 #             .option("url", f"jdbc:postgresql://{settings['DATABASE']['HOST']}:{settings['DATABASE']['PORT']}/{settings['DATABASE']['DB']}") \
 #             .option("driver", "org.postgresql.Driver").option("dbtable", table) \
 #             .option("user", f"{settings['DATABASE']['USERNAME']}").option("password", f"{settings['DATABASE']['PASSWORD']}").load()
-#         df.createOrReplaceTempView("data")
+#         df_.createOrReplaceTempView("data")
 #     except Exception as ex:
 #         print(ex)
 
@@ -97,7 +94,7 @@ def extract_pg(host: str, database:str, user: str, password: str, table: str = N
                  as median_cssr_cs , techno
                  from {table} where date_jour='{date.replace("-","")}' group by date_jour, code_site, techno;'''
     elif table == "faitalarme":
-        sql = f"""select  date, occurence, code_site, techno, delay, nbrecellule, nbrecellule * delay as delayCellule
+        sql = f"""select  *, nbrecellule * delay as delayCellule
                     from {table} where date='{date.replace("-","")}';"""
 
     elif (table is None) and (date is None) and (request is not None):
@@ -139,12 +136,6 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
 
     filename = f'extract_vbm_{date.replace("-","")}.csv'
     logging.info("Get %s", filename)
-    # download file
-    
-        # with open(filename, "wb") as downloaded:
-        #     # Command for Downloading the file "RETR "extract_vbm_20230322.csv""
-        #     server.retrbinary(f"RETR {filename}", downloaded.write)
-        #     logging.info("Read data")
         
     downloaded = BytesIO()
     try:
@@ -155,21 +146,22 @@ def extract_ftp(hostname: str, user: str, password: str, date:str)->pd.DataFrame
     
     downloaded.seek(0)
     logging.info("Read data")
-    df = pd.read_csv(downloaded, engine="python" ,sep=";")
+    df_ = pd.read_csv(downloaded, engine="python" ,sep=";")
     # verify if file is empty
-    if df.shape[0] == 0:
+    if df_.shape[0] == 0:
         raise RuntimeError(f"{filename} is empty" )
     # verify is good columns is add
-    df.columns = df.columns.str.lower()
+    df_.columns = df_.columns.str.lower()
+    df_.columns = [unidecode(col) for col in df_.columns]
     good_columns = [ d["columns"] for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
-    missing_columns = set(good_columns).difference(set(df.columns))
+    missing_columns = set(good_columns).difference(set(df_.columns))
     if len(missing_columns):
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("add column")
-    logging.info(df.columns)
-    df["day_id"] = df["day_id"].astype("str")
-    df["month_id"] = df["day_id"].str[:4].str.cat(df["day_id"].str[4:6], "-" )
-    return df
+    logging.info(df_.columns)
+    df_["day_id"] = df_["day_id"].astype("str")
+    df_["month_id"] = df_["day_id"].str[:4].str.cat(df_["day_id"].str[4:6], "-" )
+    return df_
     
     #data = pd.read_csv(str(filename), sep=";")
     
