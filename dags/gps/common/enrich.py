@@ -300,7 +300,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                     )
         
         for idx, row in oneforall.iterrows():
-            previos_segment = lastoneforall.loc[lastoneforall.CODE_OCI==row["CODE_OCI"], "SEGMENT"]
+            previos_segment = lastoneforall.loc[lastoneforall.CODE_OCI==row["CODE_OCI"], "SEGMENT"].values[0]
             print(previos_segment)
             oneforall.loc[idx, "PREVIOUS_SEGMENT"] = previos_segment
             print(oneforall.loc[idx, ["CODE_OCI","PREVIOUS_SEGMENT"]])
