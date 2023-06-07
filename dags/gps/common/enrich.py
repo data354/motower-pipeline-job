@@ -286,7 +286,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["NUR_3G"] = 199
     oneforall["NUR_4G"] = 300
     oneforall["PREVIOUS_SEGMENT"] = None
-    oneforall = oneforall.reset_index(drop=True)
+    oneforall.reset_index(drop=True,inplace=True)
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
         last_filename = getfilename(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
