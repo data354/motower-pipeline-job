@@ -303,7 +303,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         past_site = None
         past_segment = None
         big["PREVIOUS_SEGMENT"] = None
-        for idx, row in oneforall.iterrows():
+        for idx, row in big.iterrows():
             if past_site == row["CODE_OCI"]:
                 big.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
                 past_segment = row["SEGMENT"]
