@@ -300,8 +300,19 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
         big = pd.concat([lastoneforall, oneforall])
         big = big.sort_values(["CODE_OCI", "MOIS"])
-        final = prev_segment(big)
-        final = final.loc[final.MOIS.isin(oneforall.MOIS.unique()), :]
+        past_site = None
+        past_segment = None
+        big["PREVIOUS_SEGMENT"] = None
+        for idx, row in oneforall.iterrows():
+            if past_site == row["CODE_OCI"]:
+                big.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
+                past_segment = row["SEGMENT"]
+            else: 
+                past_site = row["CODE_OCI"]
+                past_segment = row["SEGMENT"]
+                big.loc[idx,"PREVIOUS_SEGMENT"] = None
+        #final = prev_segment(big)
+        final = big.loc[final.MOIS.isin(oneforall.MOIS.unique()), :]
         return final.loc[:,['MOIS', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
        'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
        'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
