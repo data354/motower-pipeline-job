@@ -38,13 +38,13 @@ def prev_segment(df):
             df.loc[idx,"PREVIOUS_SEGMENT"] = None
     return df
 
-def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
+def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
     """
        merge all data and generate oneforall
     """
     #get bdd site
     objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
     try:
         logging.info("read %s", filename)
         bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -61,7 +61,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
     
         
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
        
     try:        
         caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -79,7 +79,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
         
         
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
 
     try:
         logging.info("read %s", filename)
@@ -105,7 +105,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
         pre = "10"
     
     objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{pre}")
+    filename = getfilename(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{pre}")
 
     try:
         logging.info("read %s", filename)
@@ -122,7 +122,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     # get opex indisponibilité
 
     objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
 
     try:
         logging.info("read %s", filename)
@@ -139,7 +139,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     # get opex indisponibilité
 
     objet = [d for d in CONFIG["tables"] if d["name"] == "hourly_datas_radio_prod"][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
 
     try:
         logging.info("read %s", filename)
@@ -155,7 +155,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     
     # get CSSR
     objet = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = getfilename(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
     try:
         logging.info("read %s", filename)
         cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -262,12 +262,12 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall["FRAIS_DIST"] = oneforall["CA_TOTAL"]*frais_dist
     oneforall["OPEX TOTAL"] = oneforall['OPEX'] + oneforall["INTERCO"] + oneforall["IMPOT"] + oneforall["FRAIS_DIST"]
 
-    oneforall["EBITDA"] = oneforall["CA_TOTAL"] - oneforall["OPEX"]
+    oneforall["EBITDA"] = oneforall["CA_TOTAL"] - oneforall["OPEX_TOTAL"]
 
-    oneforall["RENTABLE"] = (oneforall["EBITDA"]/oneforall["OPEX"])>seuil_renta
+    oneforall["RENTABLE"] = (oneforall["EBITDA"]/oneforall["OPEX_TOTAL"])>seuil_renta
     oneforall["NIVEAU_RENTABILITE"] = "NEGATIF"
-    oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0, "NIVEAU_RENTABILITE"] = "0-80%"
-    oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
+    oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX_TOTAL"])>0, "NIVEAU_RENTABILITE"] = "0-80%"
+    oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX_TOTAL"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
 
     logging.info("add NUR") # a modifier
     cellule_total_2G = 13485.0
@@ -289,7 +289,7 @@ def oneforall(endpoint:str, accesskey:str, secretkey:str,  date: str, start_date
     oneforall["PREVIOUS_SEGMENT"] = None
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
-        last_filename = getfilename(endpoint, accesskey, secretkey, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
+        last_filename = getfilename(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
         lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
                                 storage_options={
                                 "key": accesskey,
