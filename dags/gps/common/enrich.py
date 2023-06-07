@@ -286,6 +286,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["NUR_3G"] = 199
     oneforall["NUR_4G"] = 300
     oneforall["PREVIOUS_SEGMENT"] = None
+    oneforall = oneforall.reset_index(drop=True)
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
         last_filename = getfilename(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
@@ -301,8 +302,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         for idx, row in oneforall.iterrows():
             previos_segment = lastoneforall.loc[lastoneforall.CODE_OCI==row["CODE_OCI"], "SEGMENT"]
             print(previos_segment)
-            oneforall.loc[oneforall.CODE_OCI==row["CODE_OCI"], "PREVIOUS_SEGMENT"] = previos_segment
-            print(oneforall.loc[oneforall.CODE_OCI==row["CODE_OCI"], ["CODE_OCI","PREVIOUS_SEGMENT"]])
+            oneforall.loc[idx, "PREVIOUS_SEGMENT"] = previos_segment
+            print(oneforall.loc[idx, ["CODE_OCI","PREVIOUS_SEGMENT"]])
         # big = pd.concat([lastoneforall, oneforall])
         # big = big.sort_values(["CODE_OCI", "MOIS"])
         # past_site = None
