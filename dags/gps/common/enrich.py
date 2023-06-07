@@ -299,7 +299,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                     )
         
         for idx, row in oneforall.iterrows():
-            oneforall.loc[oneforall.CODE_OCI==row["CODE_OCI"], "PREVIOUS_SEGMENT"] = lastoneforall.loc[lastoneforall.CODE_OCI==row["CODE_OCI"], "SEGMENT"]
+            previos_segment = lastoneforall.loc[lastoneforall.CODE_OCI==row["CODE_OCI"], "SEGMENT"]
+            print(previos_segment)
+            oneforall.loc[oneforall.CODE_OCI==row["CODE_OCI"], "PREVIOUS_SEGMENT"] = previos_segment
         # big = pd.concat([lastoneforall, oneforall])
         # big = big.sort_values(["CODE_OCI", "MOIS"])
         # past_site = None
