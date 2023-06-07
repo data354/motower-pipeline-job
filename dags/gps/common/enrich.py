@@ -312,7 +312,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                 past_segment = row["SEGMENT"]
                 big.loc[idx,"PREVIOUS_SEGMENT"] = None
         #final = prev_segment(big)
-        big = big.loc[big.MOIS.isin(oneforall.MOIS.unique()), :]
+        #big = big.loc[big.MOIS.isin(oneforall.MOIS.unique()), :]
+        big = big.loc[big.PREVIOUS_SEGMENT.notnull()]
     #     return final.loc[:,['MOIS', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
     #    'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
     #    'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
