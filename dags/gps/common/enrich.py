@@ -277,6 +277,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["Cellules_2G_congestionnees"] = 0
     oneforall["Cellules_3G_congestionnees"] = 0
     oneforall["Cellules_4G_congestionnees"] = 0
+    oneforall["Cellules_2G"] = 0
+    oneforall["Cellules_3G"] = 0
+    oneforall["Cellules_4G"] = 0
     oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
 
     # oneforall["NUR_2G"] = (100000 * oneforall['nbrecellule_2G'] * oneforall['delay_2G'] )/ (3600*24*oneforall["days"]  * cellule_total_2G )
