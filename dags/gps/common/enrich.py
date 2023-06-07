@@ -289,6 +289,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
         last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
         last_filename = getfilename(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
+        logging.info(f"read {last_filename}")
         lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
                                 storage_options={
                                 "key": accesskey,
