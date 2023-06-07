@@ -5,6 +5,9 @@ from airflow.models.baseoperator import chain
 from gps.common.enrich import oneforall
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
+from minio import Minio
+
+
 from gps import CONFIG
 from gps.common.alerting import alert_failure
 from gps.common.rwminio import save_minio
@@ -26,12 +29,19 @@ PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
 DATE = "{{data_interval_start.strftime('%Y-%m-%d')}}"
 
+
+
+CLIENT = Minio( MINIO_ENDPOINT,
+        access_key= MINIO_ACCESS_KEY,
+        secret_key= MINIO_SECRET_KEY,
+        secure=False)
+
 def gen_oneforall(**kwargs):
 
     if datetime.strptime(kwargs["date"], "%Y-%m-%d") >= datetime(2022,11,6) :
-        data = oneforall(kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"], kwargs["date"], kwargs["start_date"])
+        data = oneforall(CLIENT, kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"], kwargs["date"], kwargs["start_date"])
         if data.shape[0] != 0:
-            save_minio(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, "oneforall", None,
+            save_minio(CLIENT, "oneforall", None,
                      kwargs["date"], data)
             write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "one_for_all")
         else:
