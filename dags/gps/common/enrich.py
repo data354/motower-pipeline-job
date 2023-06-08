@@ -274,9 +274,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     cellule_total_3G = 26156.0
     cellule_total_4G = 17862.0
 
-    oneforall["Cellules_2G_congestionnees"] = 0
-    oneforall["Cellules_3G_congestionnees"] = 0
-    oneforall["Cellules_4G_congestionnees"] = 0
+    oneforall["Cellules_2G_congestionnees"] = 10
+    oneforall["Cellules_3G_congestionnees"] = 10
+    oneforall["Cellules_4G_congestionnees"] = 10
     oneforall["Cellules_2G"] = 0
     oneforall["Cellules_3G"] = 0
     oneforall["Cellules_4G"] = 0
