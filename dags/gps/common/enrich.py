@@ -277,7 +277,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["Cellules_2G_congestionnees"] = 10
     oneforall["Cellules_3G_congestionnees"] = 10
     oneforall["Cellules_4G_congestionnees"] = 10
-    oneforall["Cellules_2G"] = 100
+    oneforall["Cellules_2G"] = 104
     oneforall["Cellules_3G"] = 100
     oneforall["Cellules_4G"] = 100
     oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
