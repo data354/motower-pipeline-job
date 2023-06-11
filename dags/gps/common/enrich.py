@@ -249,7 +249,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall = pareto(df_final)
 
     oneforall["date"] = oneforall["MOIS"]+"-01"
-    oneforall["date"] = pd.to_datetime(oneforall["date"])
+    # oneforall["date"] = pd.to_datetime(oneforall["date"])
 
     interco = 0.139 #CA-voix 
     impot = 0.116 #CA
