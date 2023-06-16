@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from minio import Minio
 from copy import deepcopy
 from gps import CONFIG
-from gps.common.rwminio import getfilename
+from gps.common.rwminio import getfilename, getfilesnames
 import logging
 
 ################################## joindre les tables
@@ -332,3 +332,27 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     #     "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT",	"PARETO",	"INTERCO",	"IMPOT",	"FRAIS_DIST",	"OPEX_TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
         #return big.drop(big.columns[0], axis=1)
     return oneforall
+
+
+def concatenate(client, endpoint:str, accesskey:str, secretkey:str):
+    """ """
+    # get files
+    bucket = "oneforall"
+    filenames = getfilesnames(client, bucket=bucket)
+
+    data = pd.DataFrame()
+    for filename in filenames:
+        try:
+                    
+            df_ = pd.read_csv(f"s3://{bucket}/{filename}",
+                        storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
+                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                    }
+                            )
+        except Exception as error:
+            raise OSError(f"{filename} don't exists in bucket") from error
+        data = pd.concat([data, df_])
+
+    return data

@@ -2,7 +2,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.models.baseoperator import chain
 
-from gps.common.enrich import oneforall
+from gps.common.enrich import oneforall, concatenate
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from minio import Minio
@@ -43,7 +43,8 @@ def gen_oneforall(**kwargs):
         if data.shape[0] != 0:
             save_minio(CLIENT, "oneforall", None,
                      kwargs["date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "one_for_all")
+            all_data = concatenate(CLIENT,kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"])
+            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= all_data, table = "oneforall")
         else:
                 raise RuntimeError(f"No data for {kwargs['date']}")
 
