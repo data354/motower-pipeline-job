@@ -44,7 +44,7 @@ SQL_QUERIES = {
     group by date_jour, code_site, techno;''',
 
     "faitalarme": """select  *, nbrecellule * delay as delayCellule
-    from faitalarmewhere date=%s;"""
+    from faitalarme where date=%s;"""
 }
 
 
