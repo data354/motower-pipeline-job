@@ -146,7 +146,7 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     df_.columns = df_.columns.str.lower()
     df_.columns = [unidecode(col) for col in df_.columns]
     good_columns = [d["columns"]
-                    for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
+                    for d in CONFIG["tables"] if d["name"] == "caparc"][0]
     missing_columns = set(good_columns).difference(set(df_.columns))
     if missing_columns:
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
