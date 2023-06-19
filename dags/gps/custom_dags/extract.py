@@ -116,22 +116,23 @@ with DAG(
 
     tasks = []
     for table_config in CONFIG["tables"]:
-        task_id = f'ingest_{table_config["name"]}'
-        callable_fn = extract_job if table_config["name"] != "caparc" else extract_ftp_job
-        INGEST_DATE = INGEST_PG_DATE if table_config["name"] != "caparc" else INGEST_FTP_DATE
-        task = PythonOperator(
-            task_id=task_id,
-            provide_context=True,
-            python_callable=callable_fn,
-            op_kwargs={
-                'thetable': table_config["name"],
-                'bucket': table_config["bucket"],
-                'folder': table_config["folder"],
-                'table': table_config["table"],
-                'ingest_date': INGEST_DATE
-            },
-            dag=dag,
-        )
+        if table_config.key in ["hourly_datas_radio_prod_archive", "faitalarme", "hourly_datas_radio_prod", "caparc", "Taux_succes_2g", "Taux_succes_3g"]:
+            task_id = f'ingest_{table_config["name"]}'
+            callable_fn = extract_job if table_config["name"] != "caparc" else extract_ftp_job
+            INGEST_DATE = INGEST_PG_DATE if table_config["name"] != "caparc" else INGEST_FTP_DATE
+            task = PythonOperator(
+                task_id=task_id,
+                provide_context=True,
+                python_callable=callable_fn,
+                op_kwargs={
+                    'thetable': table_config["name"],
+                    'bucket': table_config["bucket"],
+                    'folder': table_config["folder"],
+                    'table': table_config["table"],
+                    'ingest_date': INGEST_DATE
+                },
+                dag=dag,
+            )
         tasks.append(task)
     tasks
 
