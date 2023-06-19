@@ -1,6 +1,7 @@
 """  EXTRACT DAG"""
 
 from datetime import datetime
+import sqlalchemy
 
 from minio import Minio
 from airflow.operators.python import PythonOperator
@@ -88,6 +89,7 @@ def extract_ftp_job(**kwargs):
     extract ftp files callable
  
     """
+    print(sqlalchemy.__version__)
     ingest_date = datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"])
     if ingest_date >= datetime(2022, 9, 1):
         data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
