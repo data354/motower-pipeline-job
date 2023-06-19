@@ -10,7 +10,6 @@ from gps import CONFIG
 
 from gps.common.extract import extract_pg, extract_ftp
 from gps.common.rwminio import save_minio
-from gps.common.rwpg import write_pg
 
 
 PG_HOST = Variable.get('pg_host')
@@ -43,161 +42,96 @@ CLIENT = Minio( MINIO_ENDPOINT,
 
 def extract_job(**kwargs):
     """
-        extract
+        extract callable
     """
-
-    if datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) < datetime(2022,12,30) :
-        if kwargs["thetable"] in ["faitalarme"]:
-            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
-            if data.shape[0] != 0:
+    ingest_date = datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"])
+    thetable = kwargs["thetable"]
+    if ingest_date < datetime(2022,12,30) :
+        if thetable in ["faitalarme"]:
+            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
+                   password= PG_PASSWORD , table= thetable , date= kwargs["ingest_date"])
+            if not data.empty:
                 save_minio(CLIENT, kwargs["bucket"],
                         kwargs["folder"] , kwargs["ingest_date"], data)
-                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-            
-    elif ( datetime.strptime(kwargs['ingest_date'], CONFIG["date_format"]) >= datetime(2022,12,30) ) and ( datetime.strptime(kwargs['ingest_date'], CONFIG["date_format"]) <= datetime(2023,2,28) ):
-        if kwargs["thetable"] in ["faitalarme", "hourly_datas_radio_prod"]:
-            if kwargs["thetable"] == "hourly_datas_radio_prod":
-                kwargs["thetable"] = "hourly_datas_radio_prod_archive"
-            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
+    elif ( ingest_date > datetime(2022,12,29) ) and ( ingest_date <= datetime(2023,2,28) ):
+        if thetable in ["faitalarme", "hourly_datas_radio_prod"]:
+            if thetable == "hourly_datas_radio_prod":
+                thetable = "hourly_datas_radio_prod_archive"
+            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
+                    password= PG_PASSWORD , table= thetable , date= kwargs["ingest_date"])
 
-            if data.shape[0] != 0:
+            if not data.empty:
                 save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
-                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-            
-    elif ( datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) >= datetime(2023,3,1) ) and ( datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) < datetime(2023,3,3) ):
-        if kwargs["thetable"] in ["faitalarme", "hourly_datas_radio_prod"]:
-           
-            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
+    elif ( ingest_date >= datetime(2023,3,1) ) and ( ingest_date < datetime(2023,3,3) ):
+        if thetable in ["faitalarme", "hourly_datas_radio_prod"]:
+            data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
+                    password= PG_PASSWORD , table= thetable , date= kwargs["ingest_date"])
 
-            if data.shape[0] != 0:
+            if not data.empty:
                 save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
-                write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
             else:
                 raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     else:
-        data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER, password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
-        if data.shape[0] != 0:
+        data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
+            password= PG_PASSWORD , table= thetable , date= kwargs["ingest_date"])
+        if not data.empty:
             save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-        
 
 def extract_ftp_job(**kwargs):
     """
-    extract ftp files
+    extract ftp files callable
  
     """
-    if datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"]) >= datetime(2022,9,1):
-        data = extract_ftp(FTP_HOST,FTP_USER, FTP_PASSWORD , kwargs["ingest_date"])
-        if data.shape[0] != 0:
-            save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
-            write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = kwargs["table"])
+    ingest_date = datetime.strptime(kwargs["ingest_date"], CONFIG["date_format"])
+    if ingest_date >= datetime(2022, 9, 1):
+        data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
+        if not data.empty:
+            save_minio(CLIENT, kwargs["bucket"], kwargs["folder"], kwargs["ingest_date"], data)
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-
 with DAG(
-    'extract',
-    default_args={
-        'depends_on_past': False,
-        'wait_for_downstream':False,
-        'email': CONFIG["airflow_receivers"],
-        'email_on_failure': True,
-        'email_on_retry': False,
-        'max_active_run': 1,
-        'retries': 0
-    },
-    description='ingest data from postgresql',
-    schedule_interval="30 5 * * *",
-    start_date=datetime(2022, 9, 1, 6, 30, 0),
-    #start_date=datetime(2023, 3, 5, 6, 30, 0),
-    catchup=True
+        'extract',
+        default_args={
+            'depends_on_past': False,
+            'wait_for_downstream': False,
+            'email': CONFIG["airflow_receivers"],
+            'email_on_failure': True,
+            'email_on_retry': False,
+            'max_active_run': 1,
+            'retries': 0
+        },
+        description='ingest data',
+        schedule_interval="30 5 * * *",
+        start_date=datetime(2022, 9, 1, 6, 30, 0),
+        catchup=True
 ) as dag:
 
-    ingest_hdrp = PythonOperator(
-        task_id='ingest_hourly_datas_radio_prod',
-        provide_context=True,
-        python_callable=extract_job,
-        op_kwargs={'thetable': CONFIG["tables"][0]["name"],
-                   'bucket': CONFIG["tables"][0]["bucket"],
-                   'folder': CONFIG["tables"][0]["folder"],
-                   'table': CONFIG["tables"][0]["table"],
-                   'ingest_date': INGEST_PG_DATE},
-        dag=dag,
-    ),
-
-    ingest_ts2g = PythonOperator(
-        task_id='ingest_Taux_succes_deuxg',
-        provide_context=True,
-        python_callable=extract_job,
-        op_kwargs={'thetable': CONFIG["tables"][2]["name"],
-                   'bucket': CONFIG["tables"][2]["bucket"],
-                   'folder': CONFIG["tables"][2]["folder"],
-                   'table': CONFIG["tables"][2]["table"],
-                   'ingest_date': INGEST_PG_DATE},
-        dag=dag,
-    ),
-
-    ingest_ts3g = PythonOperator(
-        task_id='ingest_Taux_succes_troisg',
-        provide_context=True,
-        python_callable=extract_job,
-        op_kwargs={'thetable': CONFIG["tables"][3]["name"],
-                   'bucket': CONFIG["tables"][3]["bucket"],
-                   'folder': CONFIG["tables"][3]["folder"],
-                   'table': CONFIG["tables"][3]["table"],
-                   'ingest_date': INGEST_PG_DATE},
-        dag=dag,
-    ),
-    # ingest_cd2g = PythonOperator(
-    #     task_id='ingest_call_drop_deuxg',
-    #     provide_context=True,
-    #     python_callable=extract_job,
-    #     op_kwargs={'thetable': CONFIG["tables"][4]["name"],
-    #                'bucket': CONFIG["tables"][4]["bucket"],
-    #                'folder': CONFIG["tables"][4]["folder"],
-    #                'table': CONFIG["tables"][4]["table"],
-    #                'ingest_date': INGEST_PG_DATE},
-    #     dag=dag,
-    # ),
-    # ingest_cd3g = PythonOperator(
-    #     task_id='ingest_call_drop_troisg',
-    #     provide_context=True,
-    #     python_callable=extract_job,
-    #     op_kwargs={'thetable': CONFIG["tables"][5]["name"],
-    #                'bucket': CONFIG["tables"][5]["bucket"],
-    #                'folder': CONFIG["tables"][5]["folder"],
-    #                'table': CONFIG["tables"][5]["table"],
-    #                'ingest_date': INGEST_PG_DATE},
-    #     dag=dag,
-    # ),
-    ingest_indis = PythonOperator(
-        task_id='ingest_indisponibilite',
-        provide_context=True,
-        python_callable=extract_job,
-        op_kwargs={'thetable': CONFIG["tables"][6]["name"],
-                   'bucket': CONFIG["tables"][6]["bucket"],
-                   'folder': CONFIG["tables"][6]["folder"],
-                   'table': CONFIG["tables"][6]["table"],
-                   'ingest_date': INGEST_PG_DATE},
-        dag=dag,
-    ),
-    ingest_ftp = PythonOperator(
-        task_id='ingest_ftp',
-        provide_context=True,
-        python_callable=extract_ftp_job,
-        op_kwargs={'bucket': CONFIG["tables"][7]["bucket"],
-                   'folder': CONFIG["tables"][7]["folder"],
-                   'table': CONFIG["tables"][7]["table"],
-                   'ingest_date': INGEST_FTP_DATE},
-        dag=dag,
-    )
-
-    [ingest_hdrp, ingest_ts2g, ingest_ts3g, ingest_indis, ingest_ftp]
+    tasks = []
+    for table_config in CONFIG["tables"]:
+        task_id = f'ingest_{table_config["name"]}'
+        callable_fn = extract_job if table_config["name"] != "ca&parc" else extract_ftp_job
+        INGEST_DATE = INGEST_PG_DATE if table_config["name"] != "ca&parc" else INGEST_FTP_DATE
+        task = PythonOperator(
+            task_id=task_id,
+            provide_context=True,
+            python_callable=callable_fn,
+            op_kwargs={
+                'thetable': table_config["name"],
+                'bucket': table_config["bucket"],
+                'folder': table_config["folder"],
+                'table': table_config["table"],
+                'ingest_date': INGEST_DATE
+            },
+            dag=dag,
+        )
+        tasks.append(task)
+    tasks
 
 if __name__ == "__main__":
     from airflow.utils.state import State
