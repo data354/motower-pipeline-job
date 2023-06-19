@@ -117,8 +117,8 @@ with DAG(
     tasks = []
     for table_config in CONFIG["tables"]:
         task_id = f'ingest_{table_config["name"]}'
-        callable_fn = extract_job if table_config["name"] != "ca&parc" else extract_ftp_job
-        INGEST_DATE = INGEST_PG_DATE if table_config["name"] != "ca&parc" else INGEST_FTP_DATE
+        callable_fn = extract_job if table_config["name"] != "caparc" else extract_ftp_job
+        INGEST_DATE = INGEST_PG_DATE if table_config["name"] != "caparc" else INGEST_FTP_DATE
         task = PythonOperator(
             task_id=task_id,
             provide_context=True,
