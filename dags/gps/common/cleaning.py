@@ -131,8 +131,8 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                 logging.info("read %s", filename)
                 header = 14 if sh.find("OCI-COLOC") != -1 else 15
                 df_ = excel[sh]
-                df_.columns = df_.iloc[header]
-                df_ = df_.iloc[header:]
+                df_.columns = df_.iloc[header-1]
+                df_ = df_.iloc[header-1:]
                 #df_ = df_.iloc[header:,] 
                 print(df_.head(20))
                 df_.columns = df_.columns.str.lower()
