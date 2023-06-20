@@ -128,13 +128,12 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
         for sheet in objet["sheets"]:
             matching_sheets = [s for s in excel.keys() if s.find(sheet) != -1]
             for sh in matching_sheets:
-                logging.info("read %s", filename)
+                logging.info("read %s sheet %s", filename, sh)
                 header = 14 if sh.find("OCI-COLOC") != -1 else 15
                 df_ = excel[sh]
                 df_.columns = df_.iloc[header-1]
                 df_ = df_.iloc[header:]
                 #df_ = df_.iloc[header:,] 
-                print(df_.head(20))
                 df_.columns = df_.columns.str.lower()
                 is_bpci_22 = sh.find("OCI-MLL BPCI 22") == -1
                 columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if is_bpci_22 else objet["columns"]
