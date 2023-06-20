@@ -66,7 +66,7 @@ def get_files(client, bucket: str, prefix: str = '', extensions: List[str] = Non
         List of names of all files that match the given criteria
     """
     extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
-    objects = client.list_objects(bucket_name=bucket, Prefix=prefix, recursive = True)
+    objects = client.list_objects(bucket_name=bucket, prefix=prefix, recursive = True)
     if not objects:
         raise RuntimeError(f"No files found with prefix {prefix}")
     good_objects = [obj.object_name for obj in objects if obj.object_name.lower().endswith(tuple(extensions))]
