@@ -160,7 +160,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
         logging.info("Add breakout data")
         #download esco to make ratio
         esco_objet =  next((d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"), None)
-        prefix = f"{esco_objet['folder']}/{esco_objet['folder']}_{date_parts[0]}{date_parts[1]}"
+        prefix = f"{esco_objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}"
         filename = get_latest_file(client, esco_objet["bucket"], prefix=prefix)
         try:
             logging.info("read %s", filename)
@@ -168,7 +168,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                                  storage_options={
                                 "key": accesskey,
                                 "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
                 }
                     )
         except Exception as error:
