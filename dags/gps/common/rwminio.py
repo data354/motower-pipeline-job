@@ -45,13 +45,13 @@ def get_latest_file(client, bucket: str, prefix: str = '', extensions: list = No
     """
     extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
     objects = client.list_objects_v2(Bucket=bucket, Prefix=prefix)
-    if not objects.get('Contents'):
+    if not objects:
         raise ValueError(f"No files found with prefix {prefix}")
-    good_objects = [objet for objet in objects.get('Contents') if objet['Key'].endswith(tuple(extensions))]
+    good_objects = [obj for obj in objects if obj.object_name.endswith(tuple(extensions))]
     if not good_objects:
         raise ValueError(f"No files found with good extensions {extensions}")
-    latest_file = max(good_objects, key=lambda x: x["LastModified"])
-    return latest_file['Key']
+    latest_file = max(good_objects, key=lambda x: x.last_modified)
+    return latest_file.object_name
 
 
 def get_files(client, bucket: str, prefix: str = '', extensions: List[str] = None) -> List[str]:
@@ -66,10 +66,10 @@ def get_files(client, bucket: str, prefix: str = '', extensions: List[str] = Non
         List of names of all files that match the given criteria
     """
     extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
-    objects = client.list_objects_v2(Bucket=bucket, Prefix=prefix, recursive = True)
-    if not objects.get('Contents'):
+    objects = client.list_objects(Bucket=bucket, Prefix=prefix, recursive = True)
+    if not objects:
         raise RuntimeError(f"No files found with prefix {prefix}")
-    good_objects = [objet['Key'] for objet in objects.get('Contents') if objet['Key'].endswith(tuple(extensions))]
+    good_objects = [obj.object_name for obj in objects if obj.object_name.endswith(tuple(extensions))]
     if not good_objects:
         raise ValueError(f"No files found with good extensions {extensions}")
     return good_objects
