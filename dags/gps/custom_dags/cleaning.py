@@ -86,15 +86,18 @@ with DAG(
         on_failure_callback = on_failure,
         dag=dag
     ),
-    # clean_opex_esco = PythonOperator(
-    #     task_id='cleaning_esco',
-    #     provide_context=True,
-    #     python_callable=cleaning_esco,
-    #     op_kwargs={'client': CLIENT,
-    #                'date': DATE},
-    #     on_failure_callback = on_failure,
-    #     dag=dag
-    # ),
+    clean_opex_esco = PythonOperator(
+        task_id='cleaning_esco',
+        provide_context=True,
+        python_callable=cleaning_esco,
+        op_kwargs={'client': CLIENT,
+                   'endpoint': MINIO_ENDPOINT,
+                    'accesskey': MINIO_ACCESS_KEY, 
+                    'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE},
+        on_failure_callback = on_failure,
+        dag=dag
+    ),
     # clean_opex_ihs = PythonOperator(
     #     task_id='cleaning_ihs',
     #     provide_context=True,
@@ -149,4 +152,4 @@ with DAG(
     # )
     
     #chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
-    [clean_base_site]  #, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
+    [clean_base_site, clean_opex_esco]  #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
