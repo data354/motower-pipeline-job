@@ -135,8 +135,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                 df_ = df_.iloc[header:]
                 #df_ = df_.iloc[header:,] 
                 print(df_.head(20))
-                df_.columns = df_.columns.str.lower()
-                df_.columns = [unidecode(col) for col in df_.columns]
+                df_.columns = df_.columns.str.lower().map(unidecode)
                 is_bpci_22 = sh.find("OCI-MLL BPCI 22") == -1
                 columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if is_bpci_22 else objet["columns"]
                 missing_columns = set(columns_to_check) - (set(df_.columns))
