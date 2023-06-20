@@ -11,7 +11,7 @@ from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
 
-def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date: str) -> None:
+def clean_base_site(client, endpoint: str, accesskey: str, secretkey: str, date: str) -> None:
     """
     Clean data from Minio bucket.
     """
