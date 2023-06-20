@@ -142,6 +142,11 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                 if missing_columns:
                     raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh} of file {filename}")
                 df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if is_bpci_22 else df_.loc[:, objet['columns']]
+                if is_bpci_22:
+                    df_['trimestre ht'] = df_['trimestre ht'].astype("float")
+                else:
+                    df_['trimestre 1 - ht'] = df_['trimestrsse 1 - ht'].astype("float")
+
                 df_["month_total"] = df_['trimestre ht'] / 3 if is_bpci_22 else df_['trimestre 1 - ht'] / 3
                 data = pd.concat([data, df_])
         logging.info("clean columns")
@@ -181,8 +186,8 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
         data_final["o&m"] = ratio["o&m"].values * data_final["month_total"]
         data_final["energy"] = ratio["energy"].values * data_final["month_total"]
         data_final["infra"] = ratio["infra"].values * data_final["month_total"]
-        data_final["maintenance passive préventive"] = ratio["maintenance passive préventive"].values * data_final["month_total"]
-        data_final["gardes de sécurité"] = ratio["gardes de sécurité"].values * data_final["month_total"]
+        data_final["maintenance passive preventive"] = ratio["maintenance passive preventive"].values * data_final["month_total"]
+        data_final["gardes de securite"] = ratio["gardes de securite"].values * data_final["month_total"]
         logging.info("save to minio")
         save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
