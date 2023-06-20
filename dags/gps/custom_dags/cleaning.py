@@ -79,60 +79,63 @@ with DAG(
         provide_context=True,
         python_callable=clean_base_sites,
         op_kwargs={'client': CLIENT,
+                   'endpoint': MINIO_ENDPOINT,
+                    'accesskey': MINIO_ACCESS_KEY, 
+                    'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
         on_failure_callback = on_failure,
         dag=dag
     ),
-    clean_opex_esco = PythonOperator(
-        task_id='cleaning_esco',
-        provide_context=True,
-        python_callable=cleaning_esco,
-        op_kwargs={'client': CLIENT,
-                   'date': DATE},
-        on_failure_callback = on_failure,
-        dag=dag
-    ),
-    clean_opex_ihs = PythonOperator(
-        task_id='cleaning_ihs',
-        provide_context=True,
-        python_callable=cleaning_ihs,
-        op_kwargs={'client': CLIENT,
-                   'date': DATE},
-        on_failure_callback = on_failure,
-        dag=dag
-    )
-    clean_ca_parc = PythonOperator(
-        task_id='cleaning_ca_parc',
-        provide_context=True,
-        python_callable=cleaning_ca_parc,
-        op_kwargs={'client': CLIENT,
-                   'date': DATE},
-        dag=dag
-    )
-    clean_alarm = PythonOperator(
-        task_id='cleaning_alarm',
-        provide_context=True,
-        python_callable=cleaning_alarm,
-        op_kwargs={'client': CLIENT,
-                   'date': DATE},
-        dag=dag
-    )
-    clean_trafic = PythonOperator(
-        task_id='cleaning_trafic',
-        provide_context=True,
-        python_callable=cleaning_trafic,
-        op_kwargs={'client': CLIENT,
-                   'date': DATE},
-        dag=dag
-    )
-    clean_cssr = PythonOperator(
-        task_id='cleaning_cssr',
-        provide_context=True,
-        python_callable=cleaning_cssr,
-        op_kwargs={'client': CLIENT,
-                   'date': DATE},
-        dag=dag
-    )
+    # clean_opex_esco = PythonOperator(
+    #     task_id='cleaning_esco',
+    #     provide_context=True,
+    #     python_callable=cleaning_esco,
+    #     op_kwargs={'client': CLIENT,
+    #                'date': DATE},
+    #     on_failure_callback = on_failure,
+    #     dag=dag
+    # ),
+    # clean_opex_ihs = PythonOperator(
+    #     task_id='cleaning_ihs',
+    #     provide_context=True,
+    #     python_callable=cleaning_ihs,
+    #     op_kwargs={'client': CLIENT,
+    #                'date': DATE},
+    #     on_failure_callback = on_failure,
+    #     dag=dag
+    # )
+    # clean_ca_parc = PythonOperator(
+    #     task_id='cleaning_ca_parc',
+    #     provide_context=True,
+    #     python_callable=cleaning_ca_parc,
+    #     op_kwargs={'client': CLIENT,
+    #                'date': DATE},
+    #     dag=dag
+    # )
+    # clean_alarm = PythonOperator(
+    #     task_id='cleaning_alarm',
+    #     provide_context=True,
+    #     python_callable=cleaning_alarm,
+    #     op_kwargs={'client': CLIENT,
+    #                'date': DATE},
+    #     dag=dag
+    # )
+    # clean_trafic = PythonOperator(
+    #     task_id='cleaning_trafic',
+    #     provide_context=True,
+    #     python_callable=cleaning_trafic,
+    #     op_kwargs={'client': CLIENT,
+    #                'date': DATE},
+    #     dag=dag
+    # )
+    # clean_cssr = PythonOperator(
+    #     task_id='cleaning_cssr',
+    #     provide_context=True,
+    #     python_callable=cleaning_cssr,
+    #     op_kwargs={'client': CLIENT,
+    #                'date': DATE},
+    #     dag=dag
+    # )
     
     # clean_call_drop = PythonOperator(
     #     task_id='cleaning_call_drop',
