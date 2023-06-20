@@ -230,45 +230,46 @@ def cleaning_alarm(client, endpoint:str, accesskey:str, secretkey:str,  date: st
     """
         clean alarm
     """
-    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,12,6):
-        
-        objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
-        if not client.bucket_exists(objet["bucket"]):
-                raise OSError(f"bucket {objet['bucket']} don\'t exits")
-        
-        filenames = get_files(client, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-        data = pd.DataFrame()
-        for filename in filenames:
-            try:
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
+    if not objet:
+        raise ValueError("Table faitalarme not found.")
+     # Check if bucket exists
+    if not client.bucket_exists(objet["bucket"]):
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
+    
+    date_parts = date.split("-")
+    filenames = get_files(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}")
+    data = pd.DataFrame()
+    for filename in filenames:
+        try:
                     
-                    df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+            df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                         storage_options={
                             "key": accesskey,
                             "secret": secretkey,
                             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
                                     }
                             )
-            except Exception as error:
-                    raise OSError(f"{filename} don't exists in bucket") from error
-            df_.columns = df_.columns.str.lower()
-            data = pd.concat([data, df_])
+        except Exception as error:
+            raise OSError(f"{filename} don't exists in bucket") from error
+        df_.columns = df_.columns.str.lower()
+        data = pd.concat([data, df_])
 
         
-        cols_to_trim = ["code_site"]
-        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
-        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-        data.date = data.date.astype("str")
+    cols_to_trim = ["code_site"]
+    data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
+    data.date = data.date.astype("str")
 
-        data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-        data = data.loc[(data["alarm_end"].notnull()) | ((data["alarm_end"].isnull()) & data["delay"] / 3600 < 72)]
+    data["mois"] = date_parts("str")[0]+"-"+date_parts("str")[1]
+    data = data.loc[(data["alarm_end"].notnull()) | ((data["alarm_end"].isnull()) & data["delay"] / 3600 < 72)]
         #data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
-        data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule", "delaycellule"]]
+    data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule", "delaycellule"]]
         # temps d'indisponibilité par site
-        data = data.groupby(["code_site", "mois", "techno"]).sum(["delay", "nbrecellule", "delaycellule"])
+    data = data.groupby(["code_site", "mois", "techno"]).sum(["delay", "nbrecellule", "delaycellule"])
         #unstack var by techno
-        data_final = data.unstack()
-        data_final.columns = ["_".join(d) for d in data_final.columns]
-        save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
+    data_final = data.unstack()
+    data_final.columns = ["_".join(d) for d in data_final.columns]
+    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
 
 
