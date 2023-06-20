@@ -2,7 +2,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.models.baseoperator import chain
 
-from gps.common.cleaning import cleaning_base_site, cleaning_esco, cleaning_ihs, cleaning_ca_parc, cleaning_alarm, cleaning_trafic, cleaning_cssr
+from gps.common.cleaning import clean_base_sites, cleaning_esco, cleaning_ihs, cleaning_ca_parc, cleaning_alarm, cleaning_trafic, cleaning_cssr
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from gps import CONFIG
@@ -71,7 +71,7 @@ with DAG(
     clean_base_site = PythonOperator(
         task_id='cleaning_bdd',
         provide_context=True,
-        python_callable=cleaning_base_site,
+        python_callable=clean_base_sites,
         op_kwargs={'endpoint': MINIO_ENDPOINT,
                    'accesskey': MINIO_ACCESS_KEY,
                    'secretkey': MINIO_SECRET_KEY,
