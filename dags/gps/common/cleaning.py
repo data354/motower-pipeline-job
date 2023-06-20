@@ -132,6 +132,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                 header = 14 if sh.find("OCI-COLOC") != -1 else 15
                 df_ = excel[sh]
                 df_ = df_.iloc[header:,] 
+                print(df_.head())
                 df_.columns = df_.columns.str.lower()
                 df_.columns = [unidecode(col) for col in df_.columns]
                 is_bpci_22 = sh.find("OCI-MLL BPCI 22") == -1
