@@ -68,7 +68,7 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         raise OSError(f"Bucket {objet['bucket']} does not exist.")
     date_parts = date.split("-")
     prefix = f"{objet['folder']}/{objet['folder']}_{date_parts[0]}{date_parts[1]}"
-    filename = client.get_latest_file(objet["bucket"], prefix=prefix)
+    filename = get_latest_file(client, objet["bucket"], prefix=prefix)
     try:
         logging.info("Reading %s", filename)
         df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
