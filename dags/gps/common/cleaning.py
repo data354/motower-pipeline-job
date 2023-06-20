@@ -260,7 +260,7 @@ def cleaning_alarm(client, endpoint:str, accesskey:str, secretkey:str,  date: st
     data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
     data.date = data.date.astype("str")
 
-    data["mois"] = date_parts("str")[0]+"-"+date_parts("str")[1]
+    data["mois"] = date_parts[0]+"-"+date_parts[1]
     data = data.loc[(data["alarm_end"].notnull()) | ((data["alarm_end"].isnull()) & data["delay"] / 3600 < 72)]
         #data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
     data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule", "delaycellule"]]
