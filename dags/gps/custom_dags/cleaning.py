@@ -9,6 +9,7 @@ from gps import CONFIG
 from gps.common.alerting import alert_failure
 from gps.common.rwminio import save_minio
 from gps.common.rwpg import write_pg
+from minio import Minio
 
 
 MINIO_ENDPOINT = Variable.get('minio_host')
@@ -25,6 +26,11 @@ PG_SAVE_USER = Variable.get('pg_save_user')
 PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
 DATE = "{{data_interval_start.strftime('%Y-%m-%d')}}"
+CLIENT = Minio( MINIO_ENDPOINT,
+        access_key= MINIO_ACCESS_KEY,
+        secret_key= MINIO_SECRET_KEY,
+        secure=False)
+
 
 def on_failure(context):
     """
@@ -72,9 +78,7 @@ with DAG(
         task_id='cleaning_bdd',
         provide_context=True,
         python_callable=clean_base_sites,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         on_failure_callback = on_failure,
         dag=dag
@@ -83,9 +87,7 @@ with DAG(
         task_id='cleaning_esco',
         provide_context=True,
         python_callable=cleaning_esco,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         on_failure_callback = on_failure,
         dag=dag
@@ -94,9 +96,7 @@ with DAG(
         task_id='cleaning_ihs',
         provide_context=True,
         python_callable=cleaning_ihs,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         on_failure_callback = on_failure,
         dag=dag
@@ -105,9 +105,7 @@ with DAG(
         task_id='cleaning_ca_parc',
         provide_context=True,
         python_callable=cleaning_ca_parc,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         dag=dag
     )
@@ -115,9 +113,7 @@ with DAG(
         task_id='cleaning_alarm',
         provide_context=True,
         python_callable=cleaning_alarm,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         dag=dag
     )
@@ -125,9 +121,7 @@ with DAG(
         task_id='cleaning_trafic',
         provide_context=True,
         python_callable=cleaning_trafic,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         dag=dag
     )
@@ -135,9 +129,7 @@ with DAG(
         task_id='cleaning_cssr',
         provide_context=True,
         python_callable=cleaning_cssr,
-        op_kwargs={'endpoint': MINIO_ENDPOINT,
-                   'accesskey': MINIO_ACCESS_KEY,
-                   'secretkey': MINIO_SECRET_KEY,
+        op_kwargs={'client': CLIENT,
                    'date': DATE},
         dag=dag
     )
@@ -154,4 +146,4 @@ with DAG(
     # )
     
     #chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
-    [clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, cleaning_cssr]
+    [clean_base_site]  #, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
