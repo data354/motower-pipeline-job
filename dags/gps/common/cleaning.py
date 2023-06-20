@@ -51,7 +51,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
     df_.dropna(subset=["code oci"], inplace=True)
     df_.drop_duplicates(subset=["code oci"], keep="first", inplace=True)
     df_["code oci id"] = df_["code oci"].str.replace("OCI", "").astype("float64")
-    df_ = df_.loc[(df_["statut"].str.lower() == "service") & (df_["position site"].str.lower().isin(["localité", "localié"])), table_obj["columns"] + ["code oci id"]]
+    df_ = df_.loc[(df_["statut"].str.lower() == "service") & (df_["position site"].str.lower().isin(["localité", "localié"])), table_obj["columns"] + ["code oci id", "mois"]]
      # Save cleaned data to minio
     logging.info("Saving data to minio")
     save_minio(client, table_obj["bucket"], f"{table_obj['folder']}-cleaned", date, df_)
