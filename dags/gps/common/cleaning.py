@@ -1,89 +1,77 @@
-from pathlib import Path
-import pandas as pd
+""" CLEANING COMMON"""
+
 from datetime import datetime
-from minio import Minio
+import logging
 from copy import deepcopy
-from pandas.io.excel import ExcelFile
+
+import pandas as pd
+from minio import Minio
+from unidecode import unidecode
 
 from gps import CONFIG
-from gps.common.rwminio import save_minio, getfilename, getfilesnames
-import logging
+from gps.common.rwminio import save_minio, get_latest_file, get_files
 
-def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+def clean_base_sites_data(client, endpoint: str, accesskey: str, secretkey: str, date: str) -> None:
     """
-     function clean data from minio
+    Clean data from Minio bucket.
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,11,6):
-        client = Minio(
-            endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
-        objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
-        if not client.bucket_exists(objet["bucket"]):
-            raise OSError(f"bucket {objet['bucket']} don\'t exits")
-        logging.info("get filename")
-
-        filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
-        try:
-            logging.info("read %s", filename)
-            df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-                storage_options={
-                "key": accesskey,
-                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-        except Exception as error:
-            raise OSError(f"{filename} don't exists in bucket") from error
-            
-
-        # check columns
-        logging.info("check columns")
-        df_.columns = df_.columns.str.lower()
-        missing_columns = set(objet["columns"]).difference(set(df_.columns))
-        if len(missing_columns):
-            raise ValueError(f"missing columns {', '.join(missing_columns)}")
-        logging.info("columns are ok")
+    # Get the table object
+    table_obj = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
+    if not table_obj:
+        raise ValueError("Table object not found.")
+     # Check if bucket exists
+    if not client.bucket_exists(table_obj["bucket"]):
+        raise ValueError(f"Bucket {table_obj['bucket']} does not exist.")
+     # Get filename
+    date_parts = date.split("-")
+    filename = get_latest_file(client=client, bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
+    logging.info("Reading %s", filename)
+     # Read file from minio
+    try:
+        df_ = pd.read_excel(f"s3://{table_obj['bucket']}/{filename}",
+                           storage_options={
+                               "key": accesskey,
+                               "secret": secretkey,
+                               "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                           })
+    except Exception as error:
+        raise ValueError(f"{filename} does not exist in bucket.") from error
+     # Check columns
+    logging.info("Checking columns")
+    df_.columns = df_.columns.str.lower().map(unidecode)
+    missing_cols = set(table_obj["columns"]) - set(df_.columns)
+    if missing_cols:
+        raise ValueError(f"Missing columns: {', '.join(missing_cols)}")
+     # Clean data
+    logging.info("Cleaning data")
     
-        # strip columns
-        logging.info("clean and enrich")
-        cols_to_trim = ["code oci", "autre code"]
-        objet["columns"].append("mois")
-        df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-        df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
-        df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
-        df_ = df_.loc[~ df_["code oci"].isnull(),:]
-        df_ = df_.drop_duplicates(["code oci", "mois"], keep="first")
-        df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
-        objet["columns"].append("code oci id")
-        # get statut == service
-        df_ = df_.loc[df_["statut"].str.lower() == "service", objet["columns"]]
-        df_ = df_.loc[(df_["position site"].str.lower() == "localité") | (df_["position site"].str.lower() == "localié"), objet["columns"]]
-        logging.info("save to minio")
-        save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
+    df_["mois"] = f"{date_parts[0]}-{date_parts[1]}"
+    cols_to_trim = ["code oci", "autre code"]
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
+    df_.dropna(subset=["code oci"], inplace=True)
+    df_.drop_duplicates(subset=["code oci"], keep="first", inplace=True)
+    df_["code oci id"] = df_["code oci"].str.replace("OCI", "").astype("float64")
+    df_ = df_.loc[(df_["statut"].str.lower() == "service") & (df_["position site"].str.lower().isin(["localité", "localié"])), table_obj["columns"] + ["code oci id"]]
+     # Save cleaned data to minio
+    logging.info("Saving data to minio")
+    save_minio(client, table_obj["bucket"], f"{table_obj['folder']}-cleaned", date, df_)
 
 
-
-def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
     """
     clean opex esco
     
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,10,6):
-        client = Minio(
-            endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
+    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,10,6):
+        
         objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
         if not client.bucket_exists(objet["bucket"]):
             raise OSError(f"bucket {objet['bucket']} don\'t exits")
         
-        filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
+        filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
 
         try:
-            logging.info("read %s", filename)
+            logging.info("Reading %s", filename)
             df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
                                 header = 3, sheet_name="Fichier_de_calcul",
                                 storage_options={
@@ -94,18 +82,16 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
                     )
         except Exception as error:
             raise OSError(f"{filename} don't exists in bucket") from error
-            
-
         # check columns
         logging.info("check columns")
-        df_.columns = df_.columns.str.lower()
+        df_.columns = df_.columns.str.lower().map(unidecode)
         if "volume discount" not in df_.columns:
             df_["volume discount"] = 0
         missing_columns = set(objet["columns"]).difference(set(df_.columns))
-        if len(missing_columns):
+        if missing_columns:
             raise ValueError(f"missing columns {', '.join(missing_columns)}")
-        logging.info("columns are ok")
-        logging.info("clean ans enrich")
+        logging.info("columns validation OK")
+        logging.info("clean columns")
         cols_to_trim = ["code site oci", "code site"]
         df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.astype("str"))
         df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
@@ -113,36 +99,29 @@ def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None
         df_ = df_.loc[~ df_["code site oci"].isnull(),:]
         df_ = df_.drop_duplicates(["code site oci", "mois"], keep="first")
         df_ = df_.loc[~ df_["total redevances ht"].isnull()]
-        
         logging.info("save to minio")
-        save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
+        save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
 
 
 
 
-def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
     """
      clean or enrich  ihs
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,7,6):
+    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,7,6):
         if date.split("-")[1] in ["01","04","07","10"]:
             
-            client = Minio(
-            endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
+            
             objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
             
             if not client.bucket_exists(objet["bucket"]):
                 raise OSError(f"bucket {objet['bucket']} don\'t exits")
 
             logging.info("get filename")
-            filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
+            filename = get_last_filename(client, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
             logging.info("read file %s",filename)
-            
-            
-        
+
             excel = pd.ExcelFile(f"s3://{objet['bucket']}/{filename}",
                                 storage_options={
                                 "key": accesskey,
@@ -152,7 +131,6 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
             sheet_f = []
             for sheet in objet["sheets"]:
                 sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
-                print(len(sheet_f))
                 data = pd.DataFrame()
                 logging.info("read %s", filename)
                 for sh in sheet_f:
@@ -168,6 +146,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                                         }
                                 )
                         df_.columns = df_.columns.str.lower()
+                        df_.columns = [unidecode(col) for col in df_.columns]
                         columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if sh.find("OCI-MLL BPCI 22") == -1 else objet["columns"]
                         missing_columns = set(columns_to_check).difference(set(df_.columns))
                         if len(missing_columns):
@@ -180,7 +159,7 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                         raise OSError(f"{filename} don't exists in bucket") from error
 
 
-            logging.info("clean ans enrich")
+            logging.info("clean columns")
 
             cols_to_trim = ['site id ihs']
             data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
@@ -198,12 +177,12 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
             data_final = pd.concat([data, data1, data2])
             data_final = data_final.reset_index(drop=True)
 
-            if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,10,6):
+            if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,10,6):
                 logging.info("Add breakout data")
 
                 #download esco to make ratio
                 esco_objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
-                filename = getfilename(endpoint, accesskey, secretkey, esco_objet["bucket"], prefix = f"{esco_objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+                filename = get_last_filename(client, esco_objet["bucket"], prefix = f"{esco_objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
                 try:
                     logging.info("read %s", filename)
                     esco = pd.read_csv(f"s3://{esco_objet['bucket']}/{filename}",
@@ -224,12 +203,9 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 esco = esco.groupby("mois").sum()
                 
                 esco = esco.loc[:,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount", "volume discount", "opex_without_discount"]]
-                print(esco)
                 ratio = esco.loc[: ,["o&m", 'energy',	"infra"	, "maintenance passive préventive", "gardes de sécurité","discount"]]/esco["opex_without_discount"].values[0]
                 #ratio["volume discount"] = esco["volume discount"].divide(esco["opex_without_discount"].values[0])
-                print(ratio.sum(axis=1))
-                print(ratio["o&m"])
-
+                
 
                 data_final["discount"] = 0
                 data_final["volume discount"] = 0    
@@ -248,27 +224,21 @@ def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
                 data_final["maintenance passive préventive"] = 0
                 data_final["gardes de sécurité"] = 0
             logging.info("save to minio")
-            save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
+            save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
 
 
-########## enrich
 
-def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
+def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
      cleaning CA & Parc
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,9,6):
-        client = Minio(
-            endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
+    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,9,6):
+        
         objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
         if not client.bucket_exists(objet["bucket"]):
-                raise OSError(f"bucket {objet['bucket']} don\'t exits")
-        
-        filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+                raise OSError(f"bucket {objet['bucket']} don\'t exits")    
+        filenames = get_files(client, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
         data = pd.DataFrame()
         for filename in filenames:
             try:
@@ -282,30 +252,27 @@ def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
                             )
             except Exception as error:
                     raise OSError(f"{filename} don't exists in bucket") from error
-            df_.columns = df_.columns.str.lower()
+            
             data = pd.concat([data, df_])
             data = data.sort_values("day_id")
             print(data.head())
-            data = data.groupby(["id_site", "month_id"]).aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc_voix': 'last', 'parc_data': 'last'})
-        save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+            data = data.groupby(["id_site"]).aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'last', 'parc_data': 'last'})
+        logging.info("Start to save data")
+        save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
 
 
 
-def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
+def cleaning_alarm(client, endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
         clean alarm
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,12,6):
-        client = Minio(
-            endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
+    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,12,6):
+        
         objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
         if not client.bucket_exists(objet["bucket"]):
                 raise OSError(f"bucket {objet['bucket']} don\'t exits")
         
-        filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+        filenames = get_files(client, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
         data = pd.DataFrame()
         for filename in filenames:
             try:
@@ -329,11 +296,11 @@ def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
         data.date = data.date.astype("str")
 
         data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-
-        data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
-        data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule"]]
+        data = data.loc[(data["alarm_end"].notnull()) | ((data["alarm_end"].isnull()) & data["delay"] / 3600 < 72)]
+        #data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
+        data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule", "delaycellule"]]
         # temps d'indisponibilité par site
-        data = data.groupby(["code_site", "mois", "techno"]).sum(["delay", "nbrecellule"])
+        data = data.groupby(["code_site", "mois", "techno"]).sum(["delay", "nbrecellule", "delaycellule"])
         #unstack var by techno
         data_final = data.unstack()
         data_final.columns = ["_".join(d) for d in data_final.columns]
@@ -345,7 +312,7 @@ def cleaning_trafic(endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
     cleaning trafic"""
 
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2022,12,6):
+    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,12,6):
         client = Minio( endpoint,
             access_key= accesskey,
             secret_key= secretkey,
@@ -354,7 +321,7 @@ def cleaning_trafic(endpoint:str, accesskey:str, secretkey:str,  date: str):
         if not client.bucket_exists(objet["bucket"]):
                 raise OSError(f"bucket {objet['bucket']} don\'t exits")
         
-        filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+        filenames = get_files(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
         data = pd.DataFrame()
         for filename in filenames:
             try:
@@ -396,8 +363,8 @@ def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
     if not client.bucket_exists(objet_2g["bucket"]):
             raise OSError(f"bucket {objet_2g['bucket']} don\'t exits")
     
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-    filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
+    filenames = get_files(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+    filenames.extend(get_files(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
     data = pd.DataFrame()
     for filename in filenames:
         try:
@@ -432,7 +399,7 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
      
     """
-    if datetime.strptime(date, "%Y-%m-%d") >= datetime(2023,1,6) :
+    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2023,1,6) :
         client = Minio( endpoint,
             access_key= accesskey,
             secret_key= secretkey,
@@ -442,8 +409,8 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
         if not client.bucket_exists(objet_2g["bucket"]):
             raise OSError(f"bucket {objet_2g['bucket']} don\'t exits")
         
-        filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-        filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
+        filenames = get_files(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+        filenames.extend(get_files(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
         cssr = pd.DataFrame()
         for filename in filenames:
             try:
