@@ -269,6 +269,9 @@ def cleaning_alarm(client, endpoint:str, accesskey:str, secretkey:str,  date: st
         #unstack var by techno
     data_final = data.unstack()
     data_final.columns = ["_".join(d) for d in data_final.columns]
+    data_final.reset_index(drop=False, inplace= True)
+    data_final = data_final.fillna(0)
+
     save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
 
 
