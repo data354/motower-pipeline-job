@@ -132,7 +132,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                 header = 14 if sh.find("OCI-COLOC") != -1 else 15
                 df_ = excel[sh]
                 df_.columns = df_.iloc[header-1]
-                df_ = df_.iloc[header-1:]
+                df_ = df_.iloc[header:]
                 #df_ = df_.iloc[header:,] 
                 print(df_.head(20))
                 df_.columns = df_.columns.str.lower()
@@ -145,7 +145,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
                 if is_bpci_22:
                     df_['trimestre ht'] = df_['trimestre ht'].astype("float")
                 else:
-                    df_['trimestre 1 - ht'] = df_['trimestrsse 1 - ht'].astype("float")
+                    df_['trimestre 1 - ht'] = df_['trimestre 1 - ht'].astype("float")
 
                 df_["month_total"] = df_['trimestre ht'] / 3 if is_bpci_22 else df_['trimestre 1 - ht'] / 3
                 data = pd.concat([data, df_])
