@@ -2,7 +2,6 @@
 from typing import List
 import logging
 from io import BytesIO
-from pathlib import Path
 
 def save_minio(client, bucket: str, folder: str, date: str, data) -> None:
     """
@@ -19,54 +18,43 @@ def save_minio(client, bucket: str, folder: str, date: str, data) -> None:
         client.make_bucket(bucket)
     csv_bytes = data.to_csv(index=False).encode('utf-8')
     csv_buffer = BytesIO(csv_bytes)
+    date_parts = date.split('-')
     if folder is not None:
         client.put_object(bucket,
-                       f"""{folder}/{date.split('-')[0]}/{date.split('-')[1]}/
-                       {date.split('-')[2]}.csv""",
+                       f"{folder}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
         logging.info("data in minio ok")
     else:
         client.put_object(bucket,
-                       f"{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}.csv",
+                       f"{date_parts[0]}/{date_parts[1]}/{date_parts[2]}.csv",
                         data=csv_buffer,
                         length=len(csv_bytes),
                         content_type='application/csv')
         logging.info("data in minio ok")
 
-#def read_minio(endpoint:str, accesskey, secretkey, buckect, folder)
-
-def save_file_minio(client, bucket:str, file:str):
+def get_latest_file(client, bucket: str, prefix: str = '', extensions: list = None):
     """
-    save file into minio
-    
+    Returns the name of the latest file in the S3 bucket with the specified prefix and extensions.
+     :param client: an S3 client object
+    :param bucket: the name of the S3 bucket
+    :param prefix: the prefix of the file name (optional)
+    :param extensions: a list of file extensions to search for (optional)
+    :return: the name of the latest file with the specified prefix and extensions
     """
-    logging.info("start to save file")
-    if not client.bucket_exists(bucket):
-        client.make_bucket(bucket)
-    path = Path(__file__).parent / file
-    client.fput_object(bucket, file, path)
+    extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
+    objects = client.list_objects_v2(Bucket=bucket, Prefix=prefix)
+    if not objects.get('Contents'):
+        raise ValueError(f"No files found with prefix {prefix}")
+    good_objects = [objet for objet in objects.get('Contents') if objet['Key'].endswith(tuple(extensions))]
+    if not good_objects:
+        raise ValueError(f"No files found with good extensions {extensions}")
+    latest_file = max(good_objects, key=lambda x: x["LastModified"])
+    return latest_file['Key']
 
 
-def get_last_filename(client,bucket:str, prefix:str = None,
-                recursive:bool=True ):
-    """
-        get filename
-    """
-    objets = list(client.list_objects(bucket_name=bucket, prefix=prefix, recursive=recursive))
-    if not objets:
-        raise RuntimeError(f"file {prefix} don't exists")
-    last_date = max([obj.last_modified for obj in objets])
-    filename = [obj.object_name for obj in objets if obj.last_modified == last_date
-                and obj.object_name.endswith([".xlsx", ".xls", "csv"])]
-    if not filename:
-        raise ValueError("file with good extension not found")
-    return filename[0]
-
-
-
-def get_files(client, bucket: str, prefix: str = None, extensions: List[str] = None) -> List[str]:
+def get_files(client, bucket: str, prefix: str = '', extensions: List[str] = None) -> List[str]:
     """
     Get a list of names of all files in the bucket that match the given prefix and extensions.
     Args:
@@ -77,13 +65,11 @@ def get_files(client, bucket: str, prefix: str = None, extensions: List[str] = N
     Returns:
         List of names of all files that match the given criteria
     """
-    objects = list(client.list_objects(bucket_name=bucket, prefix=prefix, recursive=True))
-    if not objects:
+    extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
+    objects = client.list_objects_v2(Bucket=bucket, Prefix=prefix, recursive = True)
+    if not objects.get('Contents'):
         raise RuntimeError(f"No files found with prefix {prefix}")
-    if extensions is None:
-        extensions = []
-    files = [obj.object_name for obj in objects
-            if obj.object_name.lower().endswith(tuple(extensions))]
-    if not files:
-        raise ValueError(f"No files found with extensions {extensions}")
-    return files
+    good_objects = [objet['Key'] for objet in objects.get('Contents') if objet['Key'].endswith(tuple(extensions))]
+    if not good_objects:
+        raise ValueError(f"No files found with good extensions {extensions}")
+    return good_objects
