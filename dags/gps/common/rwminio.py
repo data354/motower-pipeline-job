@@ -44,7 +44,7 @@ def get_latest_file(client, bucket: str, prefix: str = '', extensions: list = No
     :return: the name of the latest file with the specified prefix and extensions
     """
     extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
-    objects = client.list_objects(bucket_name=bucket, prefix=prefix)
+    objects = client.list_objects(bucket_name=bucket, prefix=prefix, recursive=True)
     if not objects:
         raise ValueError(f"No files found with prefix {prefix}")
     good_objects = [obj for obj in objects if obj.object_name.lower().endswith(tuple(extensions))]
