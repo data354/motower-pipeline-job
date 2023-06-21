@@ -422,7 +422,7 @@ def cleaning_congestion(client, endpoint:str, accesskey:str, secretkey:str,  dat
         raise ValueError("Table hourly_datas_radio_prod not found.")
         # Check if bucket exists
     if not client.bucket_exists(objet["bucket"]):
-        raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.")      
     
     date_parts = date.split("-")
     filename = get_latest_file(client=client, bucket=objet["bucket"], prefix=f"{objet['folder']}/{objet['folder']}_{date_parts[0]}{date_parts[1]}")
@@ -454,4 +454,4 @@ def cleaning_congestion(client, endpoint:str, accesskey:str, secretkey:str,  dat
 
     df_ = df_.groupby(["mois", "code_site"])["cellules_2g","cellules_2g_congestionnees","cellules_3g", "cellules_3g_congestionnees", "cellules_4g", "cellules_4g_congestionnees"].sum()
     df_[["cellules_4g_congestionnees", "cellules_2g_congestionnees", "cellules_3g_congestionnees"]] = df_[["cellules_4g_congestionnees", "cellules_2g_congestionnees", "cellules_3g_congestionnees"]].fillna(value=0)
-    save_minio(client, objet["bucket"], f'{objet["bucket"]}-cleaned', date, df_)
+    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
