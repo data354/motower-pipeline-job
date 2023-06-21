@@ -304,13 +304,13 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'avg_cssr_cs_2g',
                                 'avg_cssr_cs_3g']
     
-    df_final["trafic_voix_total"] = df_final["trafic_voix_2G"]+df_final["trafic_voix_3G"] + df_final["trafic_voix_4G"]
-    df_final["trafic_data_total"] = df_final["trafic_data_2G"]+df_final["trafic_data_3G"] + df_final["trafic_data_4G"]
+    df_final["trafic_voix_total"] = df_final["trafic_voix_2g"]+df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
+    df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
 
-    df_final["CA_TOTAL"] = df_final["CA_DATA"] + df_final["CA_VOIX"]
-    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL>=20000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL>=10000000)),["SEGMENT"]] = "PREMIUM"
+    df_final["ca_total"] = df_final["ca_data"] + df_final["ca_voix"]
+    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL>=20000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL>=10000000)),["segment"]] = "PREMIUM"
     df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & ((df_final.CA_TOTAL>=10000000) & (df_final.CA_TOTAL<20000000) )) | ((df_final.LOCALISATION.str.lower()=="intérieur") & ((df_final.CA_TOTAL>=4000000) & (df_final.CA_TOTAL<10000000))),["SEGMENT"]] = "NORMAL"
-    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL<10000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL<4000000)),["SEGMENT"]] = "A DEVELOPPER"
+    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL<10000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL<4000000)),["segment"]] = "A DEVELOPPER"
 
 
     df_final = df_final.loc[:, ['mois',
@@ -374,7 +374,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     # pareto
     oneforall = pareto(df_final)
-    oneforall["date"] = oneforall["MOIS"]+"-01"
+    oneforall["date"] = oneforall["mois"]+"-01"
     oneforall["date"] = pd.to_datetime(oneforall["date"])
 
     interco = 0.139 #CA-voix 
@@ -383,17 +383,17 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     seuil_renta = 0.8
 
 
-    oneforall["INTERCO"] = oneforall["CA_VOIX"]*interco
-    oneforall["IMPOT"] = oneforall["CA_TOTAL"]*impot
-    oneforall["FRAIS_DIST"] = oneforall["CA_TOTAL"]*frais_dist
-    oneforall["OPEX_TOTAL"] = oneforall['OPEX'] + oneforall["INTERCO"] + oneforall["IMPOT"] + oneforall["FRAIS_DIST"]
+    oneforall["interco"] = oneforall["ca_voix"]*interco
+    oneforall["impot"] = oneforall["ca_total"]*impot
+    oneforall["frais_dist"] = oneforall["ca_total"]*frais_dist
+    oneforall["opex_total"] = oneforall['opex'] + oneforall["interco"] + oneforall["impot"] + oneforall["frais_dist"]
 
-    oneforall["EBITDA"] = oneforall["CA_TOTAL"] - oneforall["OPEX_TOTAL"]
+    oneforall["ebitda"] = oneforall["ca_total"] - oneforall["opex_total"]
 
-    oneforall["RENTABLE"] = (oneforall["EBITDA"]/oneforall["OPEX_TOTAL"])>seuil_renta
-    oneforall["NIVEAU_RENTABILITE"] = "NEGATIF"
-    oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX_TOTAL"])>0, "NIVEAU_RENTABILITE"] = "0-80%"
-    oneforall.loc[(oneforall["EBITDA"]/oneforall["OPEX_TOTAL"])>0.8, "NIVEAU_RENTABILITE"] = "+80%"
+    oneforall["rentable"] = (oneforall["ebitda"]/oneforall["OPEX_TOTAL"])>seuil_renta
+    oneforall["niveau_rentabilite"] = "NEGATIF"
+    oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0, "niveau_rentabilite"] = "0-80%"
+    oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0.8, "niveau_rentabilite"] = "+80%"
 
     logging.info("add NUR") # a modifier
     
@@ -442,10 +442,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     #     return final.loc[:,['MOIS', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
     #    'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
     #    'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
-    #    'PROJET', 'CLUTTER', 'POSITION_SITE', 'CA_VOIX', 'CA_DATA', 'PARC_GLOBAL',
+    #    'PROJET', 'CLUTTER', 'POSITION_SITE', 'ca_voix', 'CA_DATA', 'PARC_GLOBAL',
     #    'PARC_DATA', 'O_M', 'Energy', 'Infra', 'Maintenance_Passive_preventive',
     #    'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "Cellules_2G_congestionnees", "Cellules_3G_congestionnees", "Cellules_4G_congestionnees",
-    #     "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT",	"PARETO",	"INTERCO",	"IMPOT",	"FRAIS_DIST",	"OPEX_TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
+    #     "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT",	"PARETO",	"interco",	"impot",	"frais_dist",	"OPEX_TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
         #return big.drop(big.columns[0], axis=1)
     return oneforall
 
