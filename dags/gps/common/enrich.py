@@ -308,9 +308,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
 
     df_final["ca_total"] = df_final["ca_data"] + df_final["ca_voix"]
-    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL>=20000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL>=10000000)),["segment"]] = "PREMIUM"
-    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & ((df_final.CA_TOTAL>=10000000) & (df_final.CA_TOTAL<20000000) )) | ((df_final.LOCALISATION.str.lower()=="intérieur") & ((df_final.CA_TOTAL>=4000000) & (df_final.CA_TOTAL<10000000))),["SEGMENT"]] = "NORMAL"
-    df_final.loc[((df_final.LOCALISATION.str.lower()=="abidjan") & (df_final.CA_TOTAL<10000000)) | ((df_final.LOCALISATION.str.lower()=="intérieur") & (df_final.CA_TOTAL<4000000)),["segment"]] = "A DEVELOPPER"
+    df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total>=20000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total>=10000000)),["segment"]] = "PREMIUM"
+    df_final.loc[((df_final.localisation.str.lower()=="abidjan") & ((df_final.ca_total>=10000000) & (df_final.ca_total<20000000) )) | ((df_final.localisation.str.lower()=="intérieur") & ((df_final.ca_total>=4000000) & (df_final.ca_total<10000000))),["segment"]] = "NORMAL"
+    df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total<10000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total<4000000)),["segment"]] = "A DEVELOPPER"
 
 
     df_final = df_final.loc[:, ['mois',
@@ -390,7 +390,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     oneforall["ebitda"] = oneforall["ca_total"] - oneforall["opex_total"]
 
-    oneforall["rentable"] = (oneforall["ebitda"]/oneforall["OPEX_TOTAL"])>seuil_renta
+    oneforall["rentable"] = (oneforall["ebitda"]/oneforall["opex_total"])>seuil_renta
     oneforall["niveau_rentabilite"] = "NEGATIF"
     oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0, "niveau_rentabilite"] = "0-80%"
     oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0.8, "niveau_rentabilite"] = "+80%"
