@@ -407,6 +407,7 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     cssr = cssr.reset_index(drop=False)
     cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
     cssr = cssr.groupby(["MOIS", "code_site"]).mean()
+    cssr = cssr.reset_index(drop=False)
     logging.info("start to save data")
     save_minio(client, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr)
 
