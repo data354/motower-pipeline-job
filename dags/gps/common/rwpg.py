@@ -19,8 +19,8 @@ def write_pg(host: str, database:str, user: str, password: str,
         information_schema.tables WHERE table_name = '{table}')""")
     table_exists = cur.fetchone()[0]
     if not table_exists:
-        create_query = """
-            CREATE TABLE oneforall (
+        create_query = f"""
+            CREATE TABLE {table} (
             id SERIAL PRIMARY KEY,
             mois VARCHAR,
             site VARCHAR,
@@ -94,7 +94,7 @@ def write_pg(host: str, database:str, user: str, password: str,
         );
         """
         cur.execute(create_query)
-    cur.execute(f"DELETE FROM {table} WHERE mois = %s", (data.mois.unique()[0],))
+    cur.execute(f"DELETE FROM {table} WHERE mois = %s;", (data.mois.unique()[0],))
     conn.commit()
     cur.close()
     data.to_sql(table, conn, index=False, if_exists = 'append')
