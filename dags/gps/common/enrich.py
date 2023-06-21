@@ -398,7 +398,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     logging.info("add NUR") # a modifier
     
 
-    oneforall["days"] = oneforall["MOIS"].apply(get_number_days)
+    oneforall["days"] = oneforall["mois"].apply(get_number_days)
 
     oneforall["nur_2g"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_2g") )
     oneforall["nur_3g"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_3g") )
