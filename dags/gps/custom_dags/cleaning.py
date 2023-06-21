@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.models.baseoperator import chain
 
 from gps.common.cleaning import clean_base_sites, cleaning_esco, cleaning_ihs, cleaning_alarm, cleaning_trafic, cleaning_cssr, cleaning_congestion
+from gps.common.enrich import oneforall, get_last_ofa
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from gps import CONFIG
@@ -31,6 +32,21 @@ CLIENT = Minio( MINIO_ENDPOINT,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
 
+def gen_oneforall(**kwargs):
+
+    data = oneforall(CLIENT, kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"], kwargs["date"], kwargs["start_date"])
+    if not data.empty:
+        save_minio(client=CLIENT, bucket="oneforall", folder=None, date=kwargs["date"], data=data)
+    else:
+        raise RuntimeError(f"No data for {kwargs['date']}")
+
+def save_in_pg(**kwargs):
+    data = get_last_ofa(CLIENT, kwargs['endpoint'], kwargs["accesskey"], kwargs["secretkey"], kwargs["date"])
+    if not data.empty:
+        write_pg(host=PG_SAVE_HOST, database= PG_SAVE_DB, user= PG_SAVE_USER, password = PG_SAVE_PASSWORD, data= data, table = "oneforall")
+
+    else:
+        raise RuntimeError(f"No data for {kwargs['date']}")
 
 def on_failure(context):
     """
@@ -70,7 +86,7 @@ with DAG(
     },
     description='clean monthly data',
     schedule_interval= "0 0 6 * *",
-    start_date=datetime(2022, 7, 6, 0, 0, 0),
+    start_date=datetime(2023, 1, 6, 0, 0, 0),
     catchup=True
 ) as dag:
 
@@ -161,7 +177,29 @@ with DAG(
                     'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
         dag=dag
-    )
+    ),
+    merge_data   = PythonOperator(
+        task_id='join_data',
+        provide_context=True,
+        python_callable=gen_oneforall,
+        op_kwargs={'endpoint': MINIO_ENDPOINT,
+                   'accesskey': MINIO_ACCESS_KEY,
+                   'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE,
+                   'start_date' : "2023-01-06"},
+        dag=dag
+    ),
+    save_pg = PythonOperator(
+        task_id='save_pg',
+        provide_context=True,
+        python_callable=save_in_pg,
+        op_kwargs={'endpoint': MINIO_ENDPOINT,
+                   'accesskey': MINIO_ACCESS_KEY,
+                   'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE
+                   },
+        dag=dag
+    ),
     
     # clean_call_drop = PythonOperator(
     #     task_id='cleaning_call_drop',
@@ -175,4 +213,4 @@ with DAG(
     # )
     
     #chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
-    [clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr, clean_congestion]  #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
+    [clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr, clean_congestion] >> merge_data >> save_pg #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
