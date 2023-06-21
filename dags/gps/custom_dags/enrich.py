@@ -91,4 +91,4 @@ with DAG(
     ),
 
 
-    merge_data >> save_pg
+    merge_data.set_downstream(save_pg)
