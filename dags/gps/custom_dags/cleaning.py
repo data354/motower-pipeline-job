@@ -2,7 +2,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.models.baseoperator import chain
 
-from gps.common.cleaning import clean_base_sites, cleaning_esco, cleaning_ihs, cleaning_ca_parc, cleaning_alarm, cleaning_trafic, cleaning_cssr
+from gps.common.cleaning import clean_base_sites, cleaning_esco, cleaning_ihs, cleaning_alarm, cleaning_trafic, cleaning_cssr
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from gps import CONFIG
