@@ -238,7 +238,6 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_CA_ihs_esco_ind_cong_trafic = bdd_CA_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
     logging.info("add cssr")
     bdd_CA_ihs_esco_ind_cong_trafic_cssr = bdd_CA_ihs_esco_ind_cong_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
-    print(bdd_CA_ihs_esco_ind_cong_trafic_cssr.columns)
     logging.info("final columns")
 
     df_final = bdd_CA_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
@@ -246,10 +245,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
                                                            'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
                                                            'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
-       'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2g', 'delay_3g', 'delay_4g','nbrecellule_2g', 'nbrecellule_3g', 'nbrecellule_4g',
+       'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         
-        "trafic_voix_2g",	"trafic_voix_3g",	"trafic_voix_4g",	"trafic_data_2g",	"trafic_data_3g",	"trafic_data_4g",
-        'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2g"	,"avg_cssr_cs_3g"]]
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G",
+        'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4G',"avg_cssr_cs_2g"	,"avg_cssr_cs_3G"]]
     
     
     logging.info("final columns renamed")  
