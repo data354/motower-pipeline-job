@@ -1,6 +1,7 @@
 """ postgres common"""
 
 import psycopg2
+from sqlalchemy import create_engine
 
 def write_pg(host: str, database:str, user: str, password: str,
             data, table: str = None, port:str="5432"):
@@ -14,6 +15,8 @@ def write_pg(host: str, database:str, user: str, password: str,
         password=password,
         port = port
         )
+    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
+    engine = create_engine(db_uri)
     cur = conn.cursor()
     cur.execute(f"""SELECT EXISTS (SELECT FROM
         information_schema.tables WHERE table_name = '{table}');""")
@@ -97,5 +100,6 @@ def write_pg(host: str, database:str, user: str, password: str,
     cur.execute("DELETE FROM "+table+ "WHERE mois = %s;", (data.mois.unique()[0],))
     conn.commit()
     cur.close()
-    data.to_sql(table, conn, index=False, if_exists = 'append')
     conn.close()
+
+    data.to_sql(table, engine, index=False, if_exists = 'append')
