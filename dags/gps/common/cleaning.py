@@ -414,3 +414,44 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
 
 # clean congestion
 
+def cleaning_congestion(client, endpoint:str, accesskey:str, secretkey:str,  date: str): 
+    """
+    """
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
+    if not objet:
+        raise ValueError("Table hourly_datas_radio_prod not found.")
+        # Check if bucket exists
+    if not client.bucket_exists(objet["bucket"]):
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
+    
+    date_parts = date.split("-")
+    filename = get_latest_file(client=client, bucket=objet["bucket"], prefix=f"{objet['folder']}/{objet['folder']}_{date_parts[0]}{date_parts[1]}")
+    logging.info("Reading %s", filename)
+     # Read file from minio
+    try:
+        df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                           storage_options={
+                               "key": accesskey,
+                               "secret": secretkey,
+                               "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                           })
+    except Exception as error:
+        raise ValueError(f"{filename} does not exist in bucket.") from error
+     # Check columns
+    logging.info("Checking columns")
+    df_.columns = df_.columns.str.lower().map(unidecode)
+    missing_cols = set(objet["columns"]) - set(df_.columns)
+    if missing_cols:
+        raise ValueError(f"Missing columns: {', '.join(missing_cols)}")
+     # Clean data
+    logging.info("Cleaning data")
+ 
+    df_["mois"] = f"{date_parts[0]}-{date_parts[1]}"
+    cols_to_trim = ["code_site"]
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
+    df_.dropna(subset=["code_site"], inplace=True)
+    df_.drop_duplicates(subset=["code_site"], keep="first", inplace=True)
+
+    df_ = df_.groupby(["mois", "code_site"])["cellules_2g","cellules_2g_congestionnees","cellules_3g", "cellules_3g_congestionnees", "cellules_4g", "cellules_4g_congestionnees"].sum()
+    df_[["cellules_4g_congestionnees", "cellules_2g_congestionnees", "cellules_3g_congestionnees"]] = df_[["cellules_4g_congestionnees", "cellules_2g_congestionnees", "cellules_3g_congestionnees"]].fillna(value=0)
+    save_minio(client, objet["bucket"], f'{objet["bucket"]}-cleaned', date, df_)

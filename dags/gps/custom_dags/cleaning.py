@@ -2,7 +2,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.models.baseoperator import chain
 
-from gps.common.cleaning import clean_base_sites, cleaning_esco, cleaning_ihs, cleaning_alarm, cleaning_trafic, cleaning_cssr
+from gps.common.cleaning import clean_base_sites, cleaning_esco, cleaning_ihs, cleaning_alarm, cleaning_trafic, cleaning_cssr, cleaning_congestion
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from gps import CONFIG
@@ -150,6 +150,17 @@ with DAG(
                     'secretkey': MINIO_SECRET_KEY,
                    'date': DATE},
         dag=dag
+    ),
+    clean_congestion = PythonOperator(
+        task_id='cleaning_congestion',
+        provide_context=True,
+        python_callable=cleaning_congestion,
+        op_kwargs={'client': CLIENT,
+                   'endpoint': MINIO_ENDPOINT,
+                    'accesskey': MINIO_ACCESS_KEY, 
+                    'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE},
+        dag=dag
     )
     
     # clean_call_drop = PythonOperator(
@@ -164,4 +175,4 @@ with DAG(
     # )
     
     #chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
-    [clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr]  #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
+    [clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr, clean_congestion]  #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
