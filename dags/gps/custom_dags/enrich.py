@@ -88,7 +88,7 @@ with DAG(
                    'date': DATE
                    },
         dag=dag
-    ),
+    )
 
 
-    merge_data.set_downstream(save_pg)
+    merge_data >> save_pg
