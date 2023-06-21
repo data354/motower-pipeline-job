@@ -245,7 +245,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
                                                            'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
                                                            'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
-       'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G','nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+       'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         
         "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G",
         'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
@@ -285,7 +285,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'tva',  'opex',
                                 'delay_2g',
                                 'delay_3g',
-                                'delay_4g',
+                                'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
                                 'nbrecellule_2g',
                                 'nbrecellule_3g',
                                 'nbrecellule_4g',
@@ -347,7 +347,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'opex',
                                 'delay_2g',
                                 'delay_3g',
-                                'delay_4g',
+                                'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
                                 'nbrecellule_2g',
                                 'nbrecellule_3g',
                                 'nbrecellule_4g',
