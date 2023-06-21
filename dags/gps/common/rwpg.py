@@ -94,7 +94,7 @@ def write_pg(host: str, database:str, user: str, password: str,
         );
         """
         cur.execute(create_query)
-    cur.execute(f"DELETE FROM {table} WHERE mois = %s;", (data.mois.unique()[0],))
+    cur.execute("DELETE FROM "+table+ "WHERE mois = %s;", (data.mois.unique()[0],))
     conn.commit()
     cur.close()
     data.to_sql(table, conn, index=False, if_exists = 'append')
