@@ -16,7 +16,7 @@ def write_pg(host: str, database:str, user: str, password: str,
         )
     cur = conn.cursor()
     cur.execute(f"""SELECT EXISTS (SELECT FROM
-        information_schema.tables WHERE table_name = '{table}')""")
+        information_schema.tables WHERE table_name = '{table}');""")
     table_exists = cur.fetchone()[0]
     if not table_exists:
         create_query = f"""
