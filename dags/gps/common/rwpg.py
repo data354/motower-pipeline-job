@@ -26,6 +26,7 @@ def write_pg(host: str, database:str, user: str, password: str,
             CREATE TABLE {table} (
             id SERIAL PRIMARY KEY,
             mois VARCHAR,
+            code_oci varchar,
             site VARCHAR,
             autre_code VARCHAR,
             longitude VARCHAR,
