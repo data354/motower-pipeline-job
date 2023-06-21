@@ -37,6 +37,7 @@ def pareto(df):
   df["sommecum"] = df.ca_total.cumsum()
   df.loc[df.sommecum<total*0.8 ,"pareto"] = 1
   df.loc[df.sommecum>total*0.8 ,"pareto"] = 0
+  df["pareto"] = df["pareto"].astype(bool)
   return df.drop(columns = ["sommecum"])
 
 
