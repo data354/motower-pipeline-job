@@ -238,7 +238,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_CA_ihs_esco_ind_cong_trafic = bdd_CA_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
     logging.info("add cssr")
     bdd_CA_ihs_esco_ind_cong_trafic_cssr = bdd_CA_ihs_esco_ind_cong_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
-
+    print(bdd_CA_ihs_esco_ind_cong_trafic_cssr.columns)
     logging.info("final columns")
 
     df_final = bdd_CA_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
