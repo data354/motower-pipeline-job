@@ -11,9 +11,9 @@ import logging
 
 ################################## joindre les tables
 def get_number_days(mois: str):
-  """
+    """
   
-  """
+    """
     try:
         year, month = map(int, mois.split("-"))
     except ValueError:
