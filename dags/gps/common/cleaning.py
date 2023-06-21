@@ -367,19 +367,19 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     """
      
     """
-    objet_2g = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2"), None)
+    objet_2g = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
     if not objet_2g:
-        raise ValueError("Table hourly_datas_radio_prod not found.")
+        raise ValueError("Table Taux_succes_2 not found.")
         # Check if bucket exists
     if not client.bucket_exists(objet_2g["bucket"]):
         raise ValueError(f"Bucket {objet_2g['bucket']} does not exist.") 
     
-    objet_3g = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_3"), None)
+    objet_3g = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_3g"), None)
     if not objet_3g:
-        raise ValueError("Table hourly_datas_radio_prod not found.")
+        raise ValueError("Table Taux_succes_3 not found.")
         # Check if bucket exists
     if not client.bucket_exists(objet_3g["bucket"]):
-        raise ValueError(f"Bucket {objet_3g['bucket']} does not exist.") 
+        raise ValueError(f"Bucket {objet_3g['bucket']} does not exist.")
     
     date_parts = date.split("-")
     filenames = get_files(client, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date_parts[0]}/{date_parts[1]}") + get_files(client, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date_parts[0]}/{date_parts[1]}")
