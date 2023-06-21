@@ -62,7 +62,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     """
     #get bdd site
     objet = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
-    filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
     try:
         logging.info("read %s", filename)
         bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -79,7 +79,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
     
         
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
        
     try:        
         caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -97,7 +97,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None) 
         
         
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -123,7 +123,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         pre = "10"
     
     objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{pre}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{pre}/{date.split('-')[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -140,7 +140,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     # get opex indisponibilité
 
     objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -157,7 +157,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     # get opex indisponibilité
 
     objet = [d for d in CONFIG["tables"] if d["name"] == "hourly_datas_radio_prod"][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -173,7 +173,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     # get CSSR
     objet = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
     try:
         logging.info("read %s", filename)
         cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -188,7 +188,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     # get congestion
     objet = [d for d in CONFIG["tables"] if "CONGESTION" in d["name"] ][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
     try:
         logging.info("read %s", filename)
         cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
