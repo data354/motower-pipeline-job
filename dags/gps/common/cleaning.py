@@ -309,7 +309,7 @@ def cleaning_trafic(client, endpoint:str, accesskey:str, secretkey:str,  date: s
     data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
     data.date_jour = data.date_jour.astype("str")
     data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
-    
+    data = data[["mois","code_site", "techno", "trafic_voix","trafic_data"]]
     data = data.groupby(["mois","code_site", "techno"]).sum(["trafic_voix","trafic_data"])
     data = data.unstack()
     data.columns = ["_".join(d) for d in data.columns]
@@ -406,3 +406,7 @@ def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
         cssr = cssr.groupby(["MOIS", "code_site"]).mean()
         logging.info("start to save data")
         save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr)
+
+
+# clean congestion
+
