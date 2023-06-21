@@ -76,7 +76,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
     
     #get CA
-    objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
+    objet = [d for d in CONFIG["tables"] if d["name"] == "caparc"][0]
     
         
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
