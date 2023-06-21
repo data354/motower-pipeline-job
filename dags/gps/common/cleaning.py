@@ -381,8 +381,8 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     if not client.bucket_exists(objet_3g["bucket"]):
         raise ValueError(f"Bucket {objet_3g['bucket']} does not exist.") 
     
-        
-    filenames = get_files(client, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}") + get_files(client, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+    date_parts = date.split("-")
+    filenames = get_files(client, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date_parts[0]}/{date_parts[1]}") + get_files(client, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date_parts[0]}/{date_parts[1]}")
     cssr = pd.DataFrame()
     for filename in filenames:
         try:
