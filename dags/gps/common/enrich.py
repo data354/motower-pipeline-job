@@ -32,11 +32,11 @@ def pareto(df):
   """
     add pareto
   """
-  total = df.CA_TOTAL.sum()
-  df = df.sort_values(by="CA_TOTAL", ascending = False)
-  df["sommecum"] = df.CA_TOTAL.cumsum()
-  df.loc[df.sommecum<total*0.8 ,"PARETO"] = 1
-  df.loc[df.sommecum>total*0.8 ,"PARETO"] = 0
+  total = df.ca_total.sum()
+  df = df.sort_values(by="ca_total", ascending = False)
+  df["sommecum"] = df.ca_total.cumsum()
+  df.loc[df.sommecum<total*0.8 ,"pareto"] = 1
+  df.loc[df.sommecum>total*0.8 ,"pareto"] = 0
   return df.drop(columns = ["sommecum"])
 
 
