@@ -188,7 +188,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     # get congestion
     objet = [d for d in CONFIG["tables"] if "CONGESTION" in d["name"] ][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
     try:
         logging.info("read %s", filename)
         cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -232,7 +232,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_CA_ihs_esco_ind = bdd_CA_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add congestion")
-    bdd_CA_ihs_esco_ind_cong = bdd_CA_ihs_esco_ind.merge(cong, left_on =["code oci", "mois"], right_on = ["code_site","mois"], how="left" )
+    bdd_CA_ihs_esco_ind_cong = bdd_CA_ihs_esco_ind.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add trafic")
     bdd_CA_ihs_esco_ind_cong_trafic = bdd_CA_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
