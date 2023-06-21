@@ -309,7 +309,7 @@ def cleaning_trafic(client, endpoint:str, accesskey:str, secretkey:str,  date: s
     data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
     data.date_jour = data.date_jour.astype("str")
     data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
-    data = data[["mois","code_site", "techno", "trafic_voix","trafic_data"]]
+    data = data[["mois","code_site", "techno", "trafic_voix", "trafic_data"]]
     data = data.groupby(["mois","code_site", "techno"]).sum(["trafic_voix","trafic_data"])
     data = data.unstack()
     data.columns = ["_".join(d) for d in data.columns]
@@ -363,49 +363,52 @@ def cleaning_trafic(client, endpoint:str, accesskey:str, secretkey:str,  date: s
 
 
 
-def cleaning_cssr(endpoint:str, accesskey:str, secretkey:str,  date: str):
+def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str):
     """
      
     """
-    if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2023,1,6) :
-        client = Minio( endpoint,
-            access_key= accesskey,
-            secret_key= secretkey,
-            secure=False)
-        objet_2g = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
-        objet_3g = [d for d in CONFIG["tables"] if "Taux_succes_3" in d["name"] ][0]
-        if not client.bucket_exists(objet_2g["bucket"]):
-            raise OSError(f"bucket {objet_2g['bucket']} don\'t exits")
+    objet_2g = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2"), None)
+    if not objet_2g:
+        raise ValueError("Table hourly_datas_radio_prod not found.")
+        # Check if bucket exists
+    if not client.bucket_exists(objet_2g["bucket"]):
+        raise ValueError(f"Bucket {objet_2g['bucket']} does not exist.") 
+    
+    objet_3g = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_3"), None)
+    if not objet_3g:
+        raise ValueError("Table hourly_datas_radio_prod not found.")
+        # Check if bucket exists
+    if not client.bucket_exists(objet_3g["bucket"]):
+        raise ValueError(f"Bucket {objet_3g['bucket']} does not exist.") 
+    
         
-        filenames = get_files(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-        filenames.extend(get_files(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
-        cssr = pd.DataFrame()
-        for filename in filenames:
-            try:
+    filenames = get_files(client, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}") + get_files(client, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
+    cssr = pd.DataFrame()
+    for filename in filenames:
+        try:
                     
-                    df_ = pd.read_csv(f"s3://{objet_2g['bucket']}/{filename}",
+            df_ = pd.read_csv(f"s3://{objet_2g['bucket']}/{filename}",
                         storage_options={
                             "key": accesskey,
                             "secret": secretkey,
                             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
                                     }
                             )
-            except Exception as error:
-                    raise OSError(f"{filename} don't exists in bucket") from error
-            cssr = pd.concat([cssr, df_])
-        logging.info("start to clean data")
-        cssr.date_jour = cssr.date_jour.astype("str")
-        cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
-        cssr = cssr.loc[cssr.avg_cssr_cs.notnull(), :]
-        cssr = cssr.loc[:,["date_jour",	"code_site", "avg_cssr_cs"	,	"techno"] ]
-        cssr = cssr.groupby(["date_jour",	"code_site","techno"	]).sum()
-        cssr = cssr.unstack()
-        cssr.columns = ["_".join(d) for d in cssr.columns]
-        cssr = cssr.reset_index()
-        cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
-        cssr = cssr.groupby(["MOIS", "code_site"]).mean()
-        logging.info("start to save data")
-        save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr)
+        except Exception as error:
+            raise OSError(f"{filename} don't exists in bucket") from error
+        cssr = pd.concat([cssr, df_], ignore_index=True)
+    logging.info("start to clean data")
+    cssr.date_jour = cssr.date_jour.astype("str")
+    cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
+    cssr = cssr.loc[:,["date_jour",	"code_site", "avg_cssr_cs"	,	"techno"] ].dropna(subset=["code_site", "avg_cssr_cs"	,	"techno"])
+    cssr = cssr.groupby(["date_jour",	"code_site","techno"	]).sum()
+    cssr = cssr.unstack()
+    cssr.columns = ["_".join(d) for d in cssr.columns]
+    cssr = cssr.reset_index(drop=False)
+    cssr["MOIS"] =  cssr.date_jour.str[:4].str.cat(cssr.date_jour.str[4:6], "-" )
+    cssr = cssr.groupby(["MOIS", "code_site"]).mean()
+    logging.info("start to save data")
+    save_minio(client, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr)
 
 
 # clean congestion

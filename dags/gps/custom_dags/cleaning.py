@@ -140,14 +140,17 @@ with DAG(
                    'date': DATE},
         dag=dag
     ),
-    # clean_cssr = PythonOperator(
-    #     task_id='cleaning_cssr',
-    #     provide_context=True,
-    #     python_callable=cleaning_cssr,
-    #     op_kwargs={'client': CLIENT,
-    #                'date': DATE},
-    #     dag=dag
-    # )
+    clean_cssr = PythonOperator(
+        task_id='cleaning_cssr',
+        provide_context=True,
+        python_callable=cleaning_cssr,
+        op_kwargs={'client': CLIENT,
+                   'endpoint': MINIO_ENDPOINT,
+                    'accesskey': MINIO_ACCESS_KEY, 
+                    'secretkey': MINIO_SECRET_KEY,
+                   'date': DATE},
+        dag=dag
+    )
     
     # clean_call_drop = PythonOperator(
     #     task_id='cleaning_call_drop',
@@ -161,4 +164,4 @@ with DAG(
     # )
     
     #chain([clean_base_site, clean_opex_esco,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic], merge_data)
-    [clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic]  #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
+    [clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr]  #, ,clean_opex_ihs, clean_ca_parc, clean_alarm, clean_trafic, clean_cssr]
