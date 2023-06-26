@@ -159,26 +159,26 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
     data = pd.DataFrame()
     for sheet in objet["sheets"]:
         matching_sheets = [s for s in excel.keys() if s.find(sheet) != -1]
-    for sh_ in matching_sheets:
-        logging.info("read %s sheet %s", filename, sh_)
-        header = 14 if sh_.find("OCI-COLOC") != -1 else 15
-        df_ = excel[sh_]
-        df_.columns = df_.iloc[header-1]
-        df_ = df_.iloc[header:]
-        df_.columns = df_.columns.str.lower()
-        is_bpci_22 = sh_.find("OCI-MLL BPCI 22") == -1
-        columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if is_bpci_22 else objet["columns"]
-        missing_columns = set(columns_to_check) - (set(df_.columns))
-        if missing_columns:
-            raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh_} of file {filename}")
-        df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if is_bpci_22 else df_.loc[:, objet['columns']]
-        if is_bpci_22:
-            df_['trimestre ht'] = df_['trimestre ht'].astype("float")
-        else:
-            df_['trimestre 1 - ht'] = df_['trimestre 1 - ht'].astype("float")
+        for sh_ in matching_sheets:
+            logging.info("read %s sheet %s", filename, sh_)
+            header = 14 if sh_.find("OCI-COLOC") != -1 else 15
+            df_ = excel[sh_]
+            df_.columns = df_.iloc[header-1]
+            df_ = df_.iloc[header:]
+            df_.columns = df_.columns.str.lower()
+            is_bpci_22 = sh_.find("OCI-MLL BPCI 22") == -1
+            columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if is_bpci_22 else objet["columns"]
+            missing_columns = set(columns_to_check) - (set(df_.columns))
+            if missing_columns:
+                raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh_} of file {filename}")
+            df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if is_bpci_22 else df_.loc[:, objet['columns']]
+            if is_bpci_22:
+                df_['trimestre ht'] = df_['trimestre ht'].astype("float")
+            else:
+                df_['trimestre 1 - ht'] = df_['trimestre 1 - ht'].astype("float")
 
-    df_["month_total"] = df_['trimestre ht'] / 3 if is_bpci_22 else df_['trimestre 1 - ht'] / 3
-    data = pd.concat([data, df_])
+            df_["month_total"] = df_['trimestre ht'] / 3 if is_bpci_22 else df_['trimestre 1 - ht'] / 3
+            data = pd.concat([data, df_])
     logging.info("clean columns")
     cols_to_trim = ['site id ihs']
     subset_unique = ["site id ihs", "mois"]
