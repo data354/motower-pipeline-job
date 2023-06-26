@@ -1,6 +1,7 @@
 """ enrich data"""
 
 import pandas as pd
+import requests
 import calendar
 from datetime import datetime, timedelta
 from minio import Minio
@@ -12,7 +13,7 @@ import logging
 ################################## joindre les tables
 def get_number_days(mois: str):
     """
-  
+       get number of days in month
     """
     try:
         year, month = map(int, mois.split("-"))
@@ -20,42 +21,56 @@ def get_number_days(mois: str):
         return "Invalid input format. Please use format 'YYYY-MM'."
     return calendar.monthrange(year, month)[1]
 
-
-def get_number_cellule(df, cellule: str):
+def get_number_cellule(dataframe, cellule: str):
+    """
+        get number of cellule 
+    """
     # Get the sum of values in the specified cell for the given month
-    cellule_total = df[cellule].sum()
+    cellule_total = dataframe[cellule].sum()
     return cellule_total
 
 
 
-def pareto(df):
+def pareto(dataframe):
   """
     add pareto
   """
-  total = df.ca_total.sum()
-  df = df.sort_values(by="ca_total", ascending = False)
-  df["sommecum"] = df.ca_total.cumsum()
-  df.loc[df.sommecum<total*0.8 ,"pareto"] = 1
-  df.loc[df.sommecum>total*0.8 ,"pareto"] = 0
-  df["pareto"] = df["pareto"].astype(bool)
-  return df.drop(columns = ["sommecum"])
+  total = dataframe.ca_total.sum()
+  dataframe = dataframe.sort_values(by="ca_total", ascending = False)
+  dataframe["sommecum"] = dataframe.ca_total.cumsum()
+  dataframe.loc[dataframe.sommecum<total*0.8 ,"pareto"] = 1
+  dataframe.loc[dataframe.sommecum>total*0.8 ,"pareto"] = 0
+  dataframe["pareto"] = dataframe["pareto"].astype(bool)
+  return dataframe.drop(columns = ["sommecum"])
 
 
 
-def prev_segment(df):
+def prev_segment(dataframe):
+    """
+        get previous segment
+    """
     
     past_site = None
     past_segment = None
-    for idx, row in df.iterrows():
+    for idx, row in dataframe.iterrows():
         if past_site == row["CODE_OCI"]:
-            df.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
+            dataframe.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
             past_segment = row["SEGMENT"]
         else: 
             past_site = row["CODE_OCI"]
             past_segment = row["SEGMENT"]
-            df.loc[idx,"PREVIOUS_SEGMENT"] = None
-    return df
+            dataframe.loc[idx,"PREVIOUS_SEGMENT"] = None
+    return dataframe
 
+def get_thresold(code: str):
+    """
+     get thresold from api
+    """
+    objets = requests.get(CONFIG["api_params"], timeout=15).json()
+    objet =  next((obj for obj in objets if obj["code"] == code), None)
+    if not objet:
+        raise ValueError("thresold of type %s not available", code)
+    return objet.get("value", CONFIG[code]).replace(",",".")
 
 def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
     """
@@ -207,41 +222,41 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     
     logging.info("merge bdd and CA")
-    bdd_CA = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
-    print(bdd_CA.columns)
+    bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
+    print(bdd_ca.columns)
     logging.info("add opex")
     
-    bdd_CA_ihs = bdd_CA.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
-    bdd_CA_ihs_esco = bdd_CA_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
-    print(bdd_CA_ihs_esco.columns)
+    bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
+    bdd_ca_ihs_esco = bdd_ca_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
+    print(bdd_ca_ihs_esco.columns)
     
 
     # join esco and ihs colonnes
     
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_CA_ihs_esco["total redevances ht"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_ca_ihs_esco["total redevances ht"]
 
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["o&m_x"].isnull(), "o&m_x"] = bdd_CA_ihs_esco["o&m_y"]
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["energy_x"].isnull(), "energy_x"] = bdd_CA_ihs_esco["energy_y"]
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["infra_x"].isnull(), "infra_x"] = bdd_CA_ihs_esco["infra_y"]
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["maintenance passive preventive_x"].isnull(), "maintenance passive preventive_x"] = bdd_CA_ihs_esco["maintenance passive preventive_y"]
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["gardes de securite_x"].isnull(), "gardes de securite_x"] = bdd_CA_ihs_esco["gardes de securite_y"]
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_CA_ihs_esco["discount_y"]
-    bdd_CA_ihs_esco.loc[bdd_CA_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_CA_ihs_esco["volume discount_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["o&m_x"].isnull(), "o&m_x"] = bdd_ca_ihs_esco["o&m_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["energy_x"].isnull(), "energy_x"] = bdd_ca_ihs_esco["energy_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["infra_x"].isnull(), "infra_x"] = bdd_ca_ihs_esco["infra_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["maintenance passive preventive_x"].isnull(), "maintenance passive preventive_x"] = bdd_ca_ihs_esco["maintenance passive preventive_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["gardes de securite_x"].isnull(), "gardes de securite_x"] = bdd_ca_ihs_esco["gardes de securite_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_ca_ihs_esco["discount_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_ca_ihs_esco["volume discount_y"]
     
     
     logging.info("add indisponibilite")
-    bdd_CA_ihs_esco_ind = bdd_CA_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add congestion")
-    bdd_CA_ihs_esco_ind_cong = bdd_CA_ihs_esco_ind.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_ind_cong = bdd_ca_ihs_esco_ind.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add trafic")
-    bdd_CA_ihs_esco_ind_cong_trafic = bdd_CA_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_ind_cong_trafic = bdd_ca_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
     logging.info("add cssr")
-    bdd_CA_ihs_esco_ind_cong_trafic_cssr = bdd_CA_ihs_esco_ind_cong_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
     logging.info("final columns")
 
-    df_final = bdd_CA_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
+    df_final = bdd_ca_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
                                                            'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc_voix', 'parc_data',
@@ -252,7 +267,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
-    logging.info("final columns renamed")  
+    logging.info("final columns renamed")
     
     df_final.columns = ['mois','mois1', 'code_oci',
                                 'site',
@@ -378,10 +393,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["date"] = oneforall["mois"]+"-01"
     oneforall["date"] = pd.to_datetime(oneforall["date"])
 
-    interco = 0.139 #CA-voix 
-    impot = 0.116 #CA
-    frais_dist =  0.09 #CA
-    seuil_renta = 0.8
+    interco = float(get_thresold("intercos")) /100 #CA-voix 
+    impot = float(get_thresold("impot_taxe"))/100 #CA
+    frais_dist = float( get_thresold("frais_distribution"))/100 #CA
+    seuil_renta = float(get_thresold("seuil_rentabilite"))/100
 
 
     oneforall["interco"] = oneforall["ca_voix"]*interco
@@ -407,8 +422,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     oneforall["previous_segment"] = None
     oneforall.reset_index(drop=True,inplace=True)
-    if datetime.strptime(date, "%Y-%m-%d") > datetime.strptime(start_date, "%Y-%m-%d"):
-        last = datetime.strptime(date, "%Y-%m-%d") - timedelta(weeks=4)
+    if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
+        last = datetime.strptime(date, CONFIG["date_format"]) - timedelta(weeks=4)
         last_filename = get_latest_file(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
         logging.info(f"read {last_filename}")
         lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
@@ -424,30 +439,6 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
             print(previos_segment)
             oneforall.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
             print(oneforall.loc[idx, ["code_oci","previous_segment"]])
-        # big = pd.concat([lastoneforall, oneforall])
-        # big = big.sort_values(["CODE_OCI", "MOIS"])
-        # past_site = None
-        # past_segment = None
-        # big["PREVIOUS_SEGMENT"] = None
-        # for idx, row in big.iterrows():
-        #     if past_site == row["CODE_OCI"]:
-        #         big.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
-        #         past_segment = row["SEGMENT"]
-        #     else: 
-        #         past_site = row["CODE_OCI"]
-        #         past_segment = row["SEGMENT"]
-        #         big.loc[idx,"PREVIOUS_SEGMENT"] = None
-        #final = prev_segment(big)
-        #big = big.loc[big.MOIS.isin(oneforall.MOIS.unique()), :]
-        #big = big.loc[big.PREVIOUS_SEGMENT.notnull()]
-    #     return final.loc[:,['MOIS', 'CODE_OCI','SITE', 'AUTRE_CODE', 'LONGITUDE', 'LATITUDE',
-    #    'TYPE_DU_SITE', 'STATUT', 'LOCALISATION', 'COMMUNE', 'DEPARTEMENT', 'REGION',
-    #    'PARTENAIRES', 'PROPRIETAIRE', 'GESTIONNAIRE', 'TYPE_GEOLOCALITE',
-    #    'PROJET', 'CLUTTER', 'POSITION_SITE', 'ca_voix', 'CA_DATA', 'PARC_GLOBAL',
-    #    'PARC_DATA', 'O_M', 'Energy', 'Infra', 'Maintenance_Passive_preventive',
-    #    'Gardes_de_securite', 'Discount', 'Volume_discount' ,'TVA', 'OPEX',  'delay_2G', 'delay_3G', 'delay_4G', 'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G', "Cellules_2G_congestionnees", "Cellules_3G_congestionnees", "Cellules_4G_congestionnees",
-    #     "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G","trafic_data_4G","avg_cssr_cs_2G"	,"avg_cssr_cs_3G", "trafic_voix_total", "trafic_data_total", "CA_TOTAL", "SEGMENT",	"PARETO",	"interco",	"impot",	"frais_dist",	"OPEX_TOTAL",	"EBITDA",	"RENTABLE",	"NIVEAU_RENTABILITE",	"days",	"NUR_2G",	"NUR_3G",	"NUR_4G",	"PREVIOUS_SEGMENT"]]
-        #return big.drop(big.columns[0], axis=1)
     return oneforall
 
 
