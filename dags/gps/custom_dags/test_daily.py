@@ -104,7 +104,7 @@ def extract_ftp_job(**kwargs):
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 with DAG(
-        'extract',
+        'test_extract',
         default_args={
             'depends_on_past': False,
             'wait_for_downstream': False,
@@ -130,7 +130,8 @@ with DAG(
             'smtp_user': SMTP_USER,
             'smtp_port': SMTP_PORT,
             'receivers': CONFIG["airflow_receivers"]
-        }
+        },
+
 
     )
 
@@ -156,5 +157,5 @@ with DAG(
         tasks.append(task)
 
     sensor_CA >> list(filter(lambda x: x == "ingest_caparc", tasks))
-    
+
     list(filter(lambda x: x != "ingest_caparc", tasks))
