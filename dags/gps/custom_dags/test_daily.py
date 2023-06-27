@@ -120,6 +120,7 @@ with DAG(
         catchup=True
 ) as dag:
     sensor_CA = PythonSensor(
+        task_id= "sensor_ca",
         python_callable= file_exists,
         op_args={
             'hostname': FTP_HOST,
@@ -130,7 +131,7 @@ with DAG(
             'smtp_user': SMTP_USER,
             'smtp_port': SMTP_PORT,
             'receivers': CONFIG["airflow_receivers"]
-        },
+        }
 
 
     )
