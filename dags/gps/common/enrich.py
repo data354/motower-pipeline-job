@@ -76,9 +76,14 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     """
        merge all data and generate oneforall
     """
+    date_parts = date.split("-")
     #get bdd site
     objet = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
-    filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
+    if objet is None:
+        raise ValueError("Table 'BASE_SITES' not found in configuration")
+    # Parse the date string into datetime object
+    
+    filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     try:
         logging.info("read %s", filename)
         bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -92,12 +97,14 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
     
     #get CA
-    objet = [d for d in CONFIG["tables"] if d["name"] == "caparc"][0]
-    
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
+    if objet is None:
+        raise ValueError("Table 'caparc' not found in configuration")
         
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
-       
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+
     try:        
+        logging.info("read %s", filename)
         caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                 storage_options={
                             "key": accesskey,
@@ -111,10 +118,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     # get opex esco
 
     objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None) 
-        
-        
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
-
+    if objet is None:
+        raise ValueError("Table 'BASE_SITES' not found in configuration")
+    
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     try:
         logging.info("read %s", filename)
         esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -127,7 +134,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                     )
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
-
+    
     # get opex ihs
     if date.split('-')[1] in ["01","02", "03"]:
         pre = "01"
@@ -138,8 +145,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     else:
         pre = "10"
     
-    objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{pre}/{date.split('-')[2]}")
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_IHS"), None)
+    if objet is None:
+        raise ValueError("Table 'OPEX_IHS' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{pre}/{date_parts[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -153,10 +162,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
     
-    # get opex indisponibilité
-
-    objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
+    # get  indisponibilité
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
+    if objet is None:
+        raise ValueError("Table 'faitalarme' not found in configuration")
+  
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -170,10 +181,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
 
-    # get opex indisponibilité
-
-    objet = [d for d in CONFIG["tables"] if d["name"] == "hourly_datas_radio_prod"][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
+    # get trafic
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "hourly_datas_radio_prod"), None)
+    if objet is None:
+        raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
 
     try:
         logging.info("read %s", filename)
@@ -188,8 +200,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
     
     # get CSSR
-    objet = [d for d in CONFIG["tables"] if "Taux_succes_2" in d["name"] ][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2"), None)
+    if objet is None:
+        raise ValueError("Table 'Taux_succes_2' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+
     try:
         logging.info("read %s", filename)
         cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -203,8 +218,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
 
     # get congestion
-    objet = [d for d in CONFIG["tables"] if "CONGESTION" in d["name"] ][0]
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date.split('-')[0]}/{date.split('-')[1]}/{date.split('-')[2]}")
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
+    if objet is None:
+        raise ValueError("Table 'CONGESTION' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     try:
         logging.info("read %s", filename)
         cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -223,14 +240,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     logging.info("merge bdd and CA")
     bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
-    print(bdd_ca.columns)
-    logging.info("add opex")
     
+    logging.info("add opex")
     bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
     bdd_ca_ihs_esco = bdd_ca_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
-    print(bdd_ca_ihs_esco.columns)
     
-
     # join esco and ihs colonnes
     
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_ca_ihs_esco["total redevances ht"]
@@ -243,7 +257,6 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_ca_ihs_esco["discount_y"]
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_ca_ihs_esco["volume discount_y"]
     
-    
     logging.info("add indisponibilite")
     bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
@@ -252,8 +265,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     logging.info("add trafic")
     bdd_ca_ihs_esco_ind_cong_trafic = bdd_ca_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+
     logging.info("add cssr")
     bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
+
     logging.info("final columns")
 
     df_final = bdd_ca_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
@@ -267,7 +282,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
-    logging.info("final columns renamed")
+    logging.info("final columns renamed")  
     
     df_final.columns = ['mois','mois1', 'code_oci',
                                 'site',
@@ -320,6 +335,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'avg_cssr_cs_2g',
                                 'avg_cssr_cs_3g']
     
+    # enrich
     df_final["trafic_voix_total"] = df_final["trafic_voix_2g"]+df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
     df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
 
@@ -393,6 +409,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["date"] = oneforall["mois"]+"-01"
     oneforall["date"] = pd.to_datetime(oneforall["date"])
 
+    # get thresold
     interco = float(get_thresold("intercos")) /100 #CA-voix 
     impot = float(get_thresold("impot_taxe"))/100 #CA
     frais_dist = float( get_thresold("frais_distribution"))/100 #CA
@@ -411,7 +428,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0, "niveau_rentabilite"] = "0-80%"
     oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0.8, "niveau_rentabilite"] = "+80%"
 
-    logging.info("add NUR") # a modifier
+    logging.info("add NUR") 
     
 
     oneforall["days"] = oneforall["mois"].apply(get_number_days)
