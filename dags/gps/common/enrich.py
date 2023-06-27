@@ -200,7 +200,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
     
     # get CSSR
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2"), None)
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
     if objet is None:
         raise ValueError("Table 'Taux_succes_2' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
