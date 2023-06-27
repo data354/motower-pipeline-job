@@ -98,7 +98,7 @@ def save_in_pg(**kwargs):
         raise RuntimeError(f"No data for {kwargs['date']}")
  # Set up DAG
 with DAG(
-    "clean",
+    "enrich",
     default_args={
         "depends_on_past": False,
         "email": CONFIG["airflow_receivers"],
