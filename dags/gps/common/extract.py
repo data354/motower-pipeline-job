@@ -7,6 +7,7 @@ from unidecode import unidecode
 import pandas as pd
 import psycopg2
 from gps import CONFIG
+from gps.common.alerting import send_email
 
 # Define SQL queries for different tables
 
@@ -101,6 +102,24 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
         return execute_query([conn, date, SQL_QUERIES[table]] )
     raise RuntimeError("Please verify function params")
 
+def file_exists(hostname: str, user: str, password: str, date: str, smtp_host, smtp_user, smtp_port, receivers)-> bool:
+    """
+    """
+    filename = f'extract_vbm_{date.replace("-", "")}.csv'
+    logging.info("Get %s", filename)
+    downloaded = BytesIO()
+    try:
+        server = ftplib.FTP(hostname, user, password, timeout=15)
+        server.cwd(CONFIG["ftp_dir"])
+        logging.info("downloading....")
+        server.retrbinary(f'RETR {filename}', downloaded.write)
+        return True
+    except ftplib.error_perm:
+        content  = f"Missing file {filename}. Please can you upload the file as soon as possible?"
+        subject=  f"Missing file {filename}."
+        send_email(host= smtp_host, port= smtp_port, user = smtp_user, receivers = receivers, subject = subject, content=content) 
+        return False
+
 
 def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFrame:
     """
@@ -114,6 +133,14 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
         pd.DataFrame
     """
     # Connect to the FTP server
+    # 
+    
+    # try:
+    #     logging.info("downloading....")
+    #     server.retrbinary(f'RETR {filename}', downloaded.write)
+    # except ftplib.error_perm as error:
+    #     raise OSError(f"{filename} don't exists on FTP server") from error
+
     try:
         server = ftplib.FTP(hostname, user, password, timeout=15)
         server.cwd(CONFIG["ftp_dir"])
@@ -126,13 +153,7 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     filename = f'extract_vbm_{date.replace("-", "")}.csv'
     logging.info("Get %s", filename)
     downloaded = BytesIO()
-    try:
-        logging.info("downloading....")
-        server.retrbinary(f'RETR {filename}', downloaded.write)
-    except ftplib.error_perm as error:
-        raise OSError(f"{filename} don't exists on FTP server") from error
-
-    # Read the downloaded file into a DataFrame
+    #Read the downloaded file into a DataFrame
     downloaded.seek(0)
     try:
         logging.info("Read data")
