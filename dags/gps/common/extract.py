@@ -109,7 +109,7 @@ def file_exists(hostname: str, user: str, password: str, date: str, smtp_host, s
     logging.info("Get %s", filename)
     downloaded = BytesIO()
     try:
-        server = ftplib.FTP(hostname, user, password, timeout=15)
+        server = ftplib.FTP(hostname, user, password, timeout=200)
         server.cwd(CONFIG["ftp_dir"])
         logging.info("downloading....")
         server.retrbinary(f'RETR {filename}', downloaded.write)
