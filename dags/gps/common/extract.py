@@ -124,13 +124,15 @@ def file_exists(hostname: str, user: str, password: str, date: str, smtp_host, s
     """
     """
     filename = f"extract_vbm_{date.replace('-', '')}.csv"
+    logging.info(f"Reading {filename} ")
     try:
         server = ftplib.FTP(hostname, user, password, timeout=200)
-    except ftplib.error_perm :
-        content  = f"Authentication error to FTP server"
-        subject=  f"Authentication error."
-        send_email(host= smtp_host, port= smtp_port, user = smtp_user, receivers = receivers, subject = subject, content=content) 
-        return False
+    except Exception as error :
+        # content  = f"Authentication error to FTP server"
+        # subject=  f"Authentication error."
+        # send_email(host= smtp_host, port= smtp_port, user = smtp_user, receivers = receivers, subject = subject, content=content) 
+        raise ValueError("merde quelle erreur je loupe") from error
+        #return False
     
     file_list = server.nlst(CONFIG["ftp_dir"])
     if filename not in file_list:
