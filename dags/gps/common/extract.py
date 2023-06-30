@@ -142,10 +142,10 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     #     raise OSError(f"{filename} don't exists on FTP server") from error
 
     try:
-        server = ftplib.FTP(hostname, user, password, timeout=100)
+        server = ftplib.FTP(hostname, user, password, timeout=300)
         server.cwd(CONFIG["ftp_dir"])
     except ftplib.error_perm as err:
-        raise OSError(
+        raise OSError( 
             f"{CONFIG['ftp_dir']} don\'t exist on FTP server") from err
     except Exception as error:
         raise ConnectionError("Connection to FTP server failed.") from error
