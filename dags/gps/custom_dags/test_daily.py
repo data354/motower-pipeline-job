@@ -157,6 +157,6 @@ with DAG(
             )
         tasks.append(task)
 
-    sensor_CA >> list(filter(lambda x: x == "ingest_caparc", tasks))
+    sensor_CA >> list(filter(lambda x: x["task_id"] == "ingest_caparc", tasks))
 
     list(filter(lambda x: x != "ingest_caparc", tasks))
