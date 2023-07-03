@@ -122,7 +122,7 @@ with DAG(
         },
         description='ingest data',
         schedule_interval="30 5 * * *",
-        start_date=datetime(2022, 9, 1, 6, 30, 0),
+        start_date=datetime(2023, 1, 1, 6, 30, 0),
         catchup=True
 ) as dag:
     sensor_CA = PythonSensor(
