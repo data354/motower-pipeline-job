@@ -168,7 +168,7 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     downloaded.seek(0)
     try:
         logging.info("Read data")
-        df_ = pd.read_csv(downloaded, engine="python", sep=";")
+        df_ = pd.read_csv(downloaded, engine="python", sep=";", delim_whitespace=True)
     except Exception as error:
         raise ValueError(
             "Failed to read the downloaded file into a DataFrame.") from error
