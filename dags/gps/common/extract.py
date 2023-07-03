@@ -133,7 +133,9 @@ def file_exists(hostname: str, user: str, password: str, date: str, smtp_host, s
     server.cwd(CONFIG["ftp_dir"])
     file_list = server.nlst()
     print(filename in file_list)
-    return filename in file_list
+    if filename in file_list:
+        return True
+    return False
 
 def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFrame:
     """
