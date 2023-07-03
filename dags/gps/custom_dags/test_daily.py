@@ -164,7 +164,7 @@ with DAG(
             'ingest_date': INGEST_FTP_DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
-            'users': SMTP_HOST,
+            'users': SMTP_USER,
             'receivers': CONFIG["airflow_receivers"]
         }
     )
