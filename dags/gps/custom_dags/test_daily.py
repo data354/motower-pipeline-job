@@ -1,6 +1,6 @@
 """  EXTRACT DAG"""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlalchemy
 
 from minio import Minio
@@ -103,6 +103,10 @@ def extract_ftp_job(**kwargs):
             save_minio(CLIENT, kwargs["bucket"], kwargs["folder"], kwargs["ingest_date"], data)
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+
+def create_sensor_CA(**kwargs):
+    file_exists(kwargs["hostname"], kwargs["user"], kwargs["password"], kwargs["date"], kwargs["smtp_host"], kwargs["smtp_user"], kwargs["smtp_port"], kwargs["receivers"])
+
 with DAG(
         'test_extract',
         default_args={
@@ -121,6 +125,8 @@ with DAG(
 ) as dag:
     sensor_CA = PythonSensor(
         task_id= "sensor_ca",
+        mode='poke',
+        poke_interval= timedelta(days=1),
         python_callable= file_exists,
         op_args={
             'hostname': FTP_HOST,
@@ -131,7 +137,8 @@ with DAG(
             'smtp_user': SMTP_USER,
             'smtp_port': SMTP_PORT,
             'receivers': CONFIG["airflow_receivers"]
-        }
+        },
+        
 
 
     )
