@@ -104,8 +104,8 @@ def extract_ftp_job(**kwargs):
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
-def create_sensor_CA(**kwargs):
-    file_exists(kwargs["hostname"], kwargs["user"], kwargs["password"], kwargs["date"], kwargs["smtp_host"], kwargs["smtp_user"], kwargs["smtp_port"], kwargs["receivers"])
+def create_sensor_CA():
+    file_exists(FTP_HOST, FTP_USER, FTP_PASSWORD, INGEST_FTP_DATE, SMTP_HOST,SMTP_USER, SMTP_USER, CONFIG["airflow_receivers"])
 
 with DAG(
         'test_extract',
@@ -129,16 +129,16 @@ with DAG(
         poke_interval= 24* 60 *60,
         timeout = 120 * 60 * 60,
         python_callable= create_sensor_CA,
-        op_args={
-            'hostname': FTP_HOST,
-            'user': FTP_USER,
-            'password': FTP_PASSWORD,
-            'date': INGEST_FTP_DATE,
-            'smtp_host': SMTP_HOST,
-            'smtp_user': SMTP_USER,
-            'smtp_port': SMTP_PORT,
-            'receivers': CONFIG["airflow_receivers"]
-        },
+        # op_args={
+        #     'hostname': FTP_HOST,
+        #     'user': FTP_USER,
+        #     'password': FTP_PASSWORD,
+        #     'date': INGEST_FTP_DATE,
+        #     'smtp_host': SMTP_HOST,
+        #     'smtp_user': SMTP_USER,
+        #     'smtp_port': SMTP_PORT,
+        #     'receivers': CONFIG["airflow_receivers"]
+        # },
         
 
 
