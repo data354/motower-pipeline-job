@@ -12,6 +12,7 @@ from gps import CONFIG
 
 from gps.common.extract import extract_pg, extract_ftp, file_exists
 from gps.common.rwminio import save_minio
+from gps.common.alerting import send_email
 
 
 PG_HOST = Variable.get('pg_host')
@@ -113,6 +114,14 @@ def create_sensor_CA(**kwargs):
         return True
     return False
 
+def send_email_onfailure(**kwargs):
+    """
+    """
+    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
+    subject = f"  Missing file {filename}"
+    content = f"Missinf file {filename}. please provide file asap"
+    send_email(kwargs["host"], kwargs["port"], kwargs["users"], kwargs["receivers"], subject, content)
+    
 with DAG(
         'test_extract',
         default_args={
@@ -129,7 +138,7 @@ with DAG(
         start_date=datetime(2023, 1, 1, 6, 30, 0),
         catchup=True
 ) as dag:
-    sensor_CA = PythonSensor(
+    check_file_sensor = PythonSensor(
         task_id= "sensor_ca",
         mode='poke',
         poke_interval= 24* 60 *60,
@@ -145,9 +154,12 @@ with DAG(
         #     'smtp_port': SMTP_PORT,
         #     'receivers': CONFIG["airflow_receivers"]
         },
-        
 
-
+    )
+    send_email_task = PythonOperator(
+        task_id='send_email',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
     )
 
     tasks = []
@@ -189,6 +201,6 @@ with DAG(
             )
 
 
-    sensor_CA >> ingest_caparc
+    check_file_sensor >> send_email_task>>ingest_caparc
 
     tasks
