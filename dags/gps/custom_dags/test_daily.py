@@ -201,6 +201,6 @@ with DAG(
             )
 
 
-    check_file_sensor >> send_email_task>>ingest_caparc
-
+    check_file_sensor >> send_email_task
+    check_file_sensor >> ingest_caparc
     tasks
