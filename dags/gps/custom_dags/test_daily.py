@@ -107,7 +107,11 @@ def extract_ftp_job(**kwargs):
 def create_sensor_CA(**kwargs):
     """
     """
-    file_exists(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"], SMTP_HOST,SMTP_USER, SMTP_USER, CONFIG["airflow_receivers"])
+    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
+    liste = file_exists(FTP_HOST, FTP_USER, FTP_PASSWORD)
+    if filename in liste:
+        return True
+    return False
 
 with DAG(
         'test_extract',
