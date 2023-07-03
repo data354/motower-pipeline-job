@@ -160,6 +160,13 @@ with DAG(
         task_id='send_email',
         python_callable=send_email_onfailure,
         trigger_rule='one_success',  # Exécuter la tâche si le sensor échoue
+        op_kwargs={
+            'ingest_date': INGEST_FTP_DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'user': SMTP_HOST,
+            'receivers': CONFIG["airflow_receivers"]
+        }
     )
 
     tasks = []
