@@ -127,7 +127,7 @@ with DAG(
         task_id= "sensor_ca",
         mode='poke',
         poke_interval= timedelta(days=1),
-        python_callable= file_exists,
+        python_callable= create_sensor_CA,
         op_args={
             'hostname': FTP_HOST,
             'user': FTP_USER,
