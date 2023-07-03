@@ -164,11 +164,11 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     filename = f'extract_vbm_{date.replace("-", "")}.csv'
     logging.info("Get %s", filename)
     downloaded = BytesIO()
-    #Read the downloaded file into a DataFrame
-    downloaded.seek(0)
     try:
         server.retrbinary(f'RETR {filename}', downloaded.write)
         logging.info("Read data")
+        #Read the downloaded file into a DataFrame
+        downloaded.seek(0)
         df_ = pd.read_csv(downloaded, engine="python", sep=";")
     except Exception as error:
         raise ValueError(
