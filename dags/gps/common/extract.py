@@ -148,7 +148,7 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     
     # try:
     #     logging.info("downloading....")
-    #     server.retrbinary(f'RETR {filename}', downloaded.write)
+    #     
     # except ftplib.error_perm as error:
     #     raise OSError(f"{filename} don't exists on FTP server") from error
 
@@ -167,8 +167,9 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     #Read the downloaded file into a DataFrame
     downloaded.seek(0)
     try:
+        server.retrbinary(f'RETR {filename}', downloaded.write)
         logging.info("Read data")
-        df_ = pd.read_csv(downloaded, engine="python", sep=";", delim_whitespace=True, delimiter=";")
+        df_ = pd.read_csv(downloaded, engine="python", sep=";")
     except Exception as error:
         raise ValueError(
             "Failed to read the downloaded file into a DataFrame.") from error
