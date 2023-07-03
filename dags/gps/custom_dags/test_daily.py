@@ -104,7 +104,9 @@ def extract_ftp_job(**kwargs):
         else:
             raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
-def create_sensor_CA(*kwargs):
+def create_sensor_CA(**kwargs):
+    """
+    """
     file_exists(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"], SMTP_HOST,SMTP_USER, SMTP_USER, CONFIG["airflow_receivers"])
 
 with DAG(
@@ -129,7 +131,7 @@ with DAG(
         poke_interval= 24* 60 *60,
         timeout = 120 * 60 * 60,
         python_callable= create_sensor_CA,
-        op_args={
+        op_kwargs={
         #     'hostname': FTP_HOST,
         #     'user': FTP_USER,
         #     'password': FTP_PASSWORD,
