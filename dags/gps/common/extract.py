@@ -126,6 +126,9 @@ def file_exists(hostname: str, user: str, password: str, date: str, smtp_host, s
     filename = f"extract_vbm_{date.replace('-', '')}.csv"
     logging.info(f"Reading {filename} ")
     try:
+        print(hostname)
+        print(user)
+        print(password)
         server = ftplib.FTP(hostname, user, password, timeout=200)
     except Exception as error :
         # content  = f"Authentication error to FTP server"
@@ -134,12 +137,12 @@ def file_exists(hostname: str, user: str, password: str, date: str, smtp_host, s
         raise ValueError("merde quelle erreur je loupe") from error
         #return False
     
-    file_list = server.nlst(CONFIG["ftp_dir"])
-    if filename not in file_list:
-        content  = f"Missing file {filename}. Please can you upload the file as soon as possible?"
-        subject=  f"Missing file {filename}."
-        send_email(host= smtp_host, port= smtp_port, user = smtp_user, receivers = receivers, subject = subject, content=content) 
-    return filename in file_list
+    # file_list = server.nlst(CONFIG["ftp_dir"])
+    # if filename not in file_list:
+    #     content  = f"Missing file {filename}. Please can you upload the file as soon as possible?"
+    #     subject=  f"Missing file {filename}."
+    #     send_email(host= smtp_host, port= smtp_port, user = smtp_user, receivers = receivers, subject = subject, content=content) 
+    # return filename in file_list
 
 def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFrame:
     """
