@@ -126,7 +126,7 @@ with DAG(
     sensor_CA = PythonSensor(
         task_id= "sensor_ca",
         mode='poke',
-        poke_interval= timedelta(days=1),
+        poke_interval= timedelta(days = 1),
         timeout = timedelta(days = 5),
         python_callable= create_sensor_CA,
         op_args={
