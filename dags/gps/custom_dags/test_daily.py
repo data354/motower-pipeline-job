@@ -159,7 +159,7 @@ with DAG(
     send_email_task = PythonOperator(
         task_id='send_email',
         python_callable=send_email_onfailure,
-        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        trigger_rule='one_success',  # Exécuter la tâche si le sensor échoue
     )
 
     tasks = []
