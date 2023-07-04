@@ -9,10 +9,11 @@ def send_email(host, port, user, receivers, subject, content):
     """
      function to send email
     """
+    logging.info(f"Sending mail ... ")
     for receiver in receivers:
         smtp_server = smtplib.SMTP(host, port)
         smtp_server.sendmail(user, receiver, f"Subject: {subject}\n{content}") # sending the mail
-    logging.info("Email sent succefully :) ")
+        logging.info(f"Email sent succefully :) to {receiver} ")
 
 
 def alert_failure(**kwargs):
