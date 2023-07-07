@@ -371,10 +371,14 @@ with DAG(
             'code': "CONGESTION"
         }
         )
-        check_bdd_sensor >> send_email_bdd_task >> clean_base_site
-        [check_esco_sensor, check_esco_annexe_sensor] >> send_email_esco_task >> clean_opex_esco
-        check_ihs_sensor >> send_email_ihs_task >> clean_opex_ihs
+        check_bdd_sensor >> send_email_bdd_task 
+        check_bdd_sensor >> clean_base_site
+        check_esco_sensor >> send_email_esco_task
+        [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco
+        check_ihs_sensor >> send_email_ihs_task 
+        check_ihs_sensor>> clean_opex_ihs
         check_congestion_sensor >> send_email_congestion_task >>  clean_congestion
+        check_congestion_sensor >>  clean_congestion
         [clean_alarm, clean_trafic, clean_cssr]
 
     # Task group for oneforall tasks
