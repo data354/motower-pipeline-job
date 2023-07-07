@@ -206,7 +206,6 @@ with DAG(
         check_esco_annexe_sensor =  PythonSensor(
             task_id= "check_esco_annexe_sensor",
             mode='poke',
-            soft_fail = True,
             poke_interval= 24* 60 *60,
             timeout = 144 * 60 * 60,
             python_callable= check_file,
@@ -219,6 +218,7 @@ with DAG(
             #     'smtp_port': SMTP_PORT,
             #     'receivers': CONFIG["airflow_receivers"]
             })
+        
         send_email_esco_task = PythonOperator(
         task_id='send_email_esco',
         python_callable=send_email_onfailure,
@@ -380,7 +380,7 @@ with DAG(
         [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco
         check_ihs_sensor >> send_email_ihs_task 
         check_ihs_sensor>> clean_opex_ihs
-        check_congestion_sensor >> send_email_congestion_task >>  clean_congestion
+        check_congestion_sensor >> send_email_congestion_task 
         check_congestion_sensor >>  clean_congestion
         [clean_alarm, clean_trafic, clean_cssr]
 
