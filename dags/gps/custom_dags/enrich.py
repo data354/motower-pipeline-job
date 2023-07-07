@@ -289,7 +289,7 @@ with DAG(
             dag=dag,
         )
         check_bdd_sensor >> clean_base_site
-        check_congestion_sensor >> clean_opex_esco
+        check_esco_sensor >> clean_opex_esco
         check_ihs_sensor >> clean_opex_ihs
         check_congestion_sensor >> clean_congestion
         [clean_alarm, clean_trafic, clean_cssr]
