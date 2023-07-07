@@ -20,6 +20,7 @@ from gps.common.enrich import oneforall, get_last_ofa
 from gps.common.alerting import alert_failure
 from gps.common.rwminio import save_minio, get_latest_file
 from gps.common.rwpg import write_pg
+from gps.common.alerting import get_receivers, send_email
 
 
 MINIO_ENDPOINT = Variable.get('minio_host')
@@ -88,6 +89,7 @@ def gen_oneforall(**kwargs):
         save_minio(client=CLIENT, bucket="oneforall", folder=None, date=kwargs["date"], data=data)
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
+
 def save_in_pg(**kwargs):
     data = get_last_ofa(
         CLIENT,
@@ -107,6 +109,20 @@ def save_in_pg(**kwargs):
         )
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
+
+def send_email_onfailure(**kwargs):
+    """
+    send email if sensor failed
+    """
+    date_parts = kwargs["date"].split("-")
+    filename = f"{kwargs['code']}_{date_parts[0]}{date_parts[1]}.xlsx"
+    subject = f"  Missing file {filename}"
+    content = f"Missing file {filename}. please provide file asap"
+    receivers = get_receivers(code=kwargs["code"])
+     
+    send_email(kwargs["host"], kwargs["port"], kwargs["users"], receivers, subject, content)
+
+
  # Set up DAG
 with DAG(
     "enrich",
@@ -129,7 +145,7 @@ with DAG(
             task_id= "check_bdd_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 264 * 60 * 60,
+            timeout = 144 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -140,6 +156,19 @@ with DAG(
             #     'smtp_port': SMTP_PORT,
             #     'receivers': CONFIG["airflow_receivers"]
             })
+        
+        send_email_bdd_task = PythonOperator(
+        task_id='send_email_bdd',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        op_kwargs={
+            'date': DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'users': SMTP_USER,
+            'code': "BASE_SITES"
+        }
+        )
         
         clean_base_site = PythonOperator(
             task_id="cleaning_bdd",
@@ -159,7 +188,7 @@ with DAG(
             task_id= "check_esco_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 264 * 60 * 60,
+            timeout = 144 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -170,6 +199,36 @@ with DAG(
             #     'smtp_port': SMTP_PORT,
             #     'receivers': CONFIG["airflow_receivers"]
             })
+        
+        check_esco_annexe_sensor =  PythonSensor(
+            task_id= "check_esco_annexe_sensor",
+            mode='poke',
+            soft_fail = True,
+            poke_interval= 24* 60 *60,
+            timeout = 144 * 60 * 60,
+            python_callable= check_file,
+            op_kwargs={
+                  'client': CLIENT,
+                  'table_type': 'ANNEXE_OPEX_ESCO',
+                  'date': DATE,
+            #     'smtp_host': SMTP_HOST,
+            #     'smtp_user': SMTP_USER,
+            #     'smtp_port': SMTP_PORT,
+            #     'receivers': CONFIG["airflow_receivers"]
+            })
+        send_email_esco_task = PythonOperator(
+        task_id='send_email_esco',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        op_kwargs={
+            'date': DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'users': SMTP_USER,
+            'code': "OPEX_ESCO"
+        }
+        )
+        
         clean_opex_esco = PythonOperator(
             task_id="cleaning_esco",
             provide_context=True,
@@ -188,7 +247,7 @@ with DAG(
             task_id= "check_ihs_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 264 * 60 * 60,
+            timeout = 144 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -199,6 +258,18 @@ with DAG(
             #     'smtp_port': SMTP_PORT,
             #     'receivers': CONFIG["airflow_receivers"]
             })
+        send_email_ihs_task = PythonOperator(
+        task_id='send_email_ihs',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        op_kwargs={
+            'date': DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'users': SMTP_USER,
+            'code': "OPEX_IHS"
+        }
+        )
         clean_opex_ihs = PythonOperator(
             task_id="cleaning_ihs",
             provide_context=True,
@@ -264,7 +335,7 @@ with DAG(
             task_id= "check_congestion_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 264 * 60 * 60,
+            timeout = 144 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -288,10 +359,22 @@ with DAG(
             },
             dag=dag,
         )
-        check_bdd_sensor >> clean_base_site
-        check_esco_sensor >> clean_opex_esco
-        check_ihs_sensor >> clean_opex_ihs
-        check_congestion_sensor >> clean_congestion
+        send_email_congestion_task = PythonOperator(
+        task_id='send_email_congestion',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        op_kwargs={
+            'date': DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'users': SMTP_USER,
+            'code': "CONGESTION"
+        }
+        )
+        check_bdd_sensor >> send_email_bdd_task >> clean_base_site
+        [check_esco_sensor, check_esco_annexe_sensor] >> send_email_esco_task >> clean_opex_esco
+        check_ihs_sensor >> send_email_ihs_task >> clean_opex_ihs
+        check_congestion_sensor >> send_email_congestion_task >>  clean_congestion
         [clean_alarm, clean_trafic, clean_cssr]
 
     # Task group for oneforall tasks

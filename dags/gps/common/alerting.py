@@ -5,6 +5,18 @@ import requests
 from gps import CONFIG
 
 
+
+def get_receivers(code: str):
+    """
+     get receivers from api
+    """
+    objets = requests.get(CONFIG["api_mails"], timeout=15).json()
+    objet =  next((obj for obj in objets if obj["typeFichier"] == code), None)
+    if not objet:
+        raise ValueError("thresold of type %s not available", code)
+    return objet.get("email", ['jean-louis.gbadi@orange.com'])
+
+
 def send_email(host, port, user, receivers, subject, content):
     """
      function to send email

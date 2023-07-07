@@ -15,6 +15,16 @@ def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
     df_.dropna(subset=subset_na, inplace=True)
     return df_
 
+def process_code_oci_annexe(col):
+    """
+        get the good code oci
+    """
+    values = col.split(' ')
+    if len(values) > 1:
+        return values[1]
+    else:
+        return col
+
 def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date: str) -> None:
     """
        clean  base sites file:
@@ -101,11 +111,43 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
         # check columns
-    logging.info("check columns")
+    
     df_.columns = df_.columns.str.lower().map(unidecode)
     if "volume discount" not in df_.columns:
         df_["volume discount"] = 0
-    missing_columns = set(objet["columns"]) - (set(df_.columns))
+
+    ## get annexe if exists
+
+    
+    objet = next((d for d in CONFIG["tables"] if d["name"] == "ANNEXE_OPEX_ESCO"), None)
+    if objet is None:
+        raise ValueError("Table ANNEXE_OPEX_ESCO not found in CONFIG.")
+    if not client.bucket_exists(objet["bucket"]):
+        raise OSError(f"Bucket {objet['bucket']} does not exist.")
+    prefix = f"{objet['folder']}/{objet['folder']}_{date_parts[0]}{date_parts[1]}"
+    filename = get_latest_file(client, objet["bucket"], prefix=prefix)
+    if filename!=None:
+        logging.info("add annexe")
+        try:
+            logging.info("Reading %s", filename)
+            annexe = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+                                    header = 3, sheet_name="Fichier_de_calcul",
+                                    storage_options={
+                                    "key": accesskey,
+                                    "secret": secretkey,
+                    "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                    }
+                        )
+        except Exception as error:
+            raise OSError(f"{filename} don't exists in bucket") from error
+            # check columns
+
+    annexe.columns = annexe.columns.str.lower().map(unidecode)
+    annexe["code site oci"] = annexe["code site oci"].apply(process_code_oci_annexe)
+    ## concat df_ and annexe
+    data = pd.concat([df_, annexe])
+    logging.info("check columns")
+    missing_columns = set(objet["columns"]) - (set(data.columns))
     if missing_columns:
         raise ValueError(f"missing columns {', '.join(missing_columns)}")
     logging.info("columns validation OK")
@@ -114,10 +156,10 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     cols_to_trim = ["code site oci", "code site"]
     subset_na=["code site oci","total redevances ht" ]
     subset_unique = ["code site oci"]
-    df_["mois"] = date_parts[0]+"-"+date_parts[1]
-    df_ = clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)
+    data["mois"] = date_parts[0]+"-"+date_parts[1]
+    data = clean_dataframe(data, cols_to_trim, subset_unique, subset_na)
     logging.info("Saving to minio")
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
+    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
 
 
 
