@@ -102,7 +102,7 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         raise OSError(f"{filename} don't exists in bucket") from error
         # check columns
     logging.info("check columns")
-        
+    df_.columns = df_.columns.str.lower().map(unidecode)
     if "volume discount" not in df_.columns:
         df_["volume discount"] = 0
     missing_columns = set(objet["columns"]) - (set(df_.columns))
@@ -141,7 +141,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
     # Retrieving object from CONFIG
     objet = next((d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"), None)
     if objet is None:
-        raise ValueError("Table OPEX_ESCO not found in CONFIG.")
+        raise ValueError("Table OPEX_IHS not found in CONFIG.")
     if not client.bucket_exists(objet["bucket"]):
         raise OSError(f"Bucket {objet['bucket']} does not exist.")
      # Retrieving the latest file and reading it
@@ -489,7 +489,7 @@ def cleaning_congestion(client, endpoint:str, accesskey:str, secretkey:str,  dat
     """
     objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
     if not objet:
-        raise ValueError("Table hourly_datas_radio_prod not found.")
+        raise ValueError("Table CONGESTION not found.")
         # Check if bucket exists
     if not client.bucket_exists(objet["bucket"]):
         raise ValueError(f"Bucket {objet['bucket']} does not exist.")      

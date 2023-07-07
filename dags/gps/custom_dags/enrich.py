@@ -126,7 +126,7 @@ with DAG(
      # Task group for cleaning tasks
     with TaskGroup("cleaning", tooltip="Tasks for cleaning") as section_cleaning:
         check_bdd_sensor =  PythonSensor(
-            task_id= "check_file_sensor",
+            task_id= "check_bdd_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
             timeout = 264 * 60 * 60,
@@ -155,6 +155,21 @@ with DAG(
             on_failure_callback=on_failure,
             dag=dag,
         )
+        check_esco_sensor =  PythonSensor(
+            task_id= "check_esco_sensor",
+            mode='poke',
+            poke_interval= 24* 60 *60,
+            timeout = 264 * 60 * 60,
+            python_callable= check_file,
+            op_kwargs={
+                  'client': CLIENT,
+                  'table_type': 'OPEX_ESCO',
+                  'date': DATE,
+            #     'smtp_host': SMTP_HOST,
+            #     'smtp_user': SMTP_USER,
+            #     'smtp_port': SMTP_PORT,
+            #     'receivers': CONFIG["airflow_receivers"]
+            })
         clean_opex_esco = PythonOperator(
             task_id="cleaning_esco",
             provide_context=True,
@@ -169,6 +184,21 @@ with DAG(
             on_failure_callback=on_failure,
             dag=dag,
         )
+        check_ihs_sensor =  PythonSensor(
+            task_id= "check_ihs_sensor",
+            mode='poke',
+            poke_interval= 24* 60 *60,
+            timeout = 264 * 60 * 60,
+            python_callable= check_file,
+            op_kwargs={
+                  'client': CLIENT,
+                  'table_type': 'OPEX_IHS',
+                  'date': DATE,
+            #     'smtp_host': SMTP_HOST,
+            #     'smtp_user': SMTP_USER,
+            #     'smtp_port': SMTP_PORT,
+            #     'receivers': CONFIG["airflow_receivers"]
+            })
         clean_opex_ihs = PythonOperator(
             task_id="cleaning_ihs",
             provide_context=True,
@@ -230,6 +260,21 @@ with DAG(
             },
             dag=dag,
         )
+        check_congestion_sensor =  PythonSensor(
+            task_id= "check_congestion_sensor",
+            mode='poke',
+            poke_interval= 24* 60 *60,
+            timeout = 264 * 60 * 60,
+            python_callable= check_file,
+            op_kwargs={
+                  'client': CLIENT,
+                  'table_type': 'CONGESTION',
+                  'date': DATE,
+            #     'smtp_host': SMTP_HOST,
+            #     'smtp_user': SMTP_USER,
+            #     'smtp_port': SMTP_PORT,
+            #     'receivers': CONFIG["airflow_receivers"]
+            })
         clean_congestion = PythonOperator(
             task_id="cleaning_congestion",
             provide_context=True,
@@ -244,7 +289,10 @@ with DAG(
             dag=dag,
         )
         check_bdd_sensor >> clean_base_site
-        [clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr, clean_congestion]
+        check_congestion_sensor >> clean_opex_esco
+        check_ihs_sensor >> clean_opex_ihs
+        check_congestion_sensor >> clean_congestion
+        [clean_alarm, clean_trafic, clean_cssr]
 
     # Task group for oneforall tasks
     with TaskGroup("oneforall", tooltip="Tasks for generate oneforall") as section_oneforall:
