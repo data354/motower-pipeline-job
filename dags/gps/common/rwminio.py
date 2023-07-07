@@ -48,7 +48,9 @@ def get_latest_file(client, bucket: str, prefix: str = '', extensions: list = No
     if not objects:
         #raise ValueError(f"No files found with prefix {prefix}")
         return None
+    logging.info("good ")
     good_objects = [obj for obj in objects if obj.object_name.lower().endswith(tuple(extensions))]
+    print(good_objects)
     if not good_objects:
         #raise ValueError(f"No files found with good extensions {extensions}")
         return None
