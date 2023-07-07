@@ -3,6 +3,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.utils.task_group import TaskGroup
 from airflow.operators.python import PythonOperator
+from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from minio import Minio
 from gps import CONFIG
@@ -17,7 +18,7 @@ from gps.common.cleaning import (
 )
 from gps.common.enrich import oneforall, get_last_ofa
 from gps.common.alerting import alert_failure
-from gps.common.rwminio import save_minio
+from gps.common.rwminio import save_minio, get_latest_file
 from gps.common.rwpg import write_pg
 
 
@@ -63,6 +64,16 @@ def on_failure(context):
         raise RuntimeError("Can't get file type")
     alert_failure(**params)
 
+def check_file(**kwargs ):
+    """
+    check if file exists
+    """
+    table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
+    date_parts = kwargs["date"].split("-")
+    filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
+    if filename != None:
+        return True
+    return False
 
 def gen_oneforall(**kwargs):
     data = oneforall(
@@ -114,6 +125,22 @@ with DAG(
 ) as dag:
      # Task group for cleaning tasks
     with TaskGroup("cleaning", tooltip="Tasks for cleaning") as section_cleaning:
+        check_bdd_sensor =  PythonSensor(
+            task_id= "check_file_sensor",
+            mode='poke',
+            poke_interval= 24* 60 *60,
+            timeout = 264 * 60 * 60,
+            python_callable= check_file,
+            op_kwargs={
+                  'client': CLIENT,
+                  'table_type': 'BASE_SITES',
+                  'date': DATE,
+            #     'smtp_host': SMTP_HOST,
+            #     'smtp_user': SMTP_USER,
+            #     'smtp_port': SMTP_PORT,
+            #     'receivers': CONFIG["airflow_receivers"]
+            })
+        
         clean_base_site = PythonOperator(
             task_id="cleaning_bdd",
             provide_context=True,
@@ -216,7 +243,8 @@ with DAG(
             },
             dag=dag,
         )
-        [ clean_base_site, clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr, clean_congestion]
+        check_bdd_sensor >> clean_base_site
+        [clean_opex_esco, clean_opex_ihs, clean_alarm, clean_trafic, clean_cssr, clean_congestion]
 
     # Task group for oneforall tasks
     with TaskGroup("oneforall", tooltip="Tasks for generate oneforall") as section_oneforall:

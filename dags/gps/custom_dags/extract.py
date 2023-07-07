@@ -124,7 +124,7 @@ def send_email_onfailure(**kwargs):
     send_email(kwargs["host"], kwargs["port"], kwargs["users"], kwargs["receivers"], subject, content)
     
 with DAG(
-        'test_extract',
+        'daily_extract',
         default_args={
             'depends_on_past': False,
             'wait_for_downstream': False,
