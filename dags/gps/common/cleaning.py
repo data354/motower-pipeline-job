@@ -102,8 +102,8 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         raise OSError(f"{filename} don't exists in bucket") from error
         # check columns
     logging.info("check columns")
-    df_.columns = df_.columns.str.lower().map(unidecode)
-    if "volume discount" not in df_.columns:    
+        
+    if "volume discount" not in df_.columns:
         df_["volume discount"] = 0
     missing_columns = set(objet["columns"]) - (set(df_.columns))
     if missing_columns:
