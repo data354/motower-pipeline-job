@@ -46,10 +46,12 @@ def get_latest_file(client, bucket: str, prefix: str = '', extensions: list = No
     extensions = ['.xlsx', '.xls', '.csv'] if extensions is None else extensions
     objects = client.list_objects(bucket_name=bucket, prefix=prefix, recursive=True)
     if not objects:
-        raise ValueError(f"No files found with prefix {prefix}")
+        #raise ValueError(f"No files found with prefix {prefix}")
+        return None
     good_objects = [obj for obj in objects if obj.object_name.lower().endswith(tuple(extensions))]
     if not good_objects:
-        raise ValueError(f"No files found with good extensions {extensions}")
+        #raise ValueError(f"No files found with good extensions {extensions}")
+        return None
     latest_file = max(good_objects, key=lambda x: x.last_modified)
     return latest_file.object_name
 
