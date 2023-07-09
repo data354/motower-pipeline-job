@@ -71,13 +71,14 @@ def check_file(**kwargs ):
     """
     if (kwargs['table_type'] == 'OPEX_IHS') and (kwargs["date"].split('-')[1] not in ["01", "04", "07", "10"]):
         return True
-    else: 
-        table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
-        date_parts = kwargs["date"].split("-")
-        filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
-        if filename is None:
-            return False
-        return True
+    table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
+    date_parts = kwargs["date"].split("-")
+    print("before")
+    filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
+    print("after")
+    if filename is None:
+        return False
+    return True
 
 def gen_oneforall(**kwargs):
     data = oneforall(
