@@ -313,7 +313,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'gardes_de_securite',
                                 'discount',
                                 'volume_discount',
-                                'tva',  'opex',
+                                'tva',  'opex_itn',
                                 'delay_2g',
                                 'delay_3g',
                                 'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
@@ -376,7 +376,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'discount',
                                 'volume_discount',
                                 'tva',
-                                'opex',
+                                'opex_itn',
                                 'delay_2g',
                                 'delay_3g',
                                 'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
@@ -409,6 +409,23 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["date"] = oneforall["mois"]+"-01"
     oneforall["date"] = pd.to_datetime(oneforall["date"])
 
+    oneforall["cellules_congestionnees_total"] = oneforall['cellules_2g_congestionnees'] +  oneforall['cellules_3g_congestionnees'] + oneforall['cellules_4g_congestionnees']
+    oneforall["cellules_total"] = oneforall['cellules_2g'] + oneforall['cellules_3g'] + oneforall['cellules_4g']
+
+    oneforall["taux_congestion_2g"] = oneforall['cellules_2g_congestionnees'] / oneforall['cellules_2g']
+    oneforall["taux_congestion_3g"] = oneforall['cellules_3g_congestionnees'] / oneforall['cellules_3g']
+    oneforall["taux_congestion_4g"] = oneforall['cellules_4g_congestionnees'] / oneforall['cellules_4g']
+    oneforall["taux_congestion_total"] =  oneforall["taux_congestion_2g"] + oneforall["taux_congestion_3g"] + oneforall["taux_congestion_4g"]
+    oneforall["recommandation"] = "Surveillance technique"
+    oneforall[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
+    
+    oneforall["arpu"] = oneforall["ca_total"] + oneforall["parc_global"]
+    oneforall["segmentation_rentabilite"] = 'Unknown'
+    oneforall[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 1'
+    oneforall[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 2'
+    oneforall[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] >=0.15),"segmentation_rentabilite"] = 'Seg 3'
+    oneforall[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] >= 0.15),"segmentation_rentabilite"] = 'Seg 4'
+
     # get thresold
     interco = float(get_thresold("intercos")) /100 #CA-voix 
     impot = float(get_thresold("impot_taxe"))/100 #CA
@@ -419,14 +436,15 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["interco"] = oneforall["ca_voix"]*interco
     oneforall["impot"] = oneforall["ca_total"]*impot
     oneforall["frais_dist"] = oneforall["ca_total"]*frais_dist
-    oneforall["opex_total"] = oneforall['opex'] + oneforall["interco"] + oneforall["impot"] + oneforall["frais_dist"]
+    oneforall["opex"] = oneforall['opex_itn'] + oneforall["interco"] + oneforall["impot"] + oneforall["frais_dist"]
 
-    oneforall["ebitda"] = oneforall["ca_total"] - oneforall["opex_total"]
-
-    oneforall["rentable"] = (oneforall["ebitda"]/oneforall["opex_total"])>seuil_renta
+    oneforall["ebitda"] = oneforall["ca_total"] - oneforall["opex"]
+    oneforall["marge_ca"] = oneforall["ebitda"]/oneforall["ca_total"]
+    oneforall["rentable"] = (oneforall["marge_ca"])>seuil_renta
+   
     oneforall["niveau_rentabilite"] = "NEGATIF"
-    oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0, "niveau_rentabilite"] = "0-80%"
-    oneforall.loc[(oneforall["ebitda"]/oneforall["opex_total"])>0.8, "niveau_rentabilite"] = "+80%"
+    oneforall.loc[(oneforall["marge_ca"])>0, "niveau_rentabilite"] = f"0-{seuil_renta}%"
+    oneforall.loc[(oneforall["marge_ca"])>seuil_renta, "niveau_rentabilite"] = f"+{seuil_renta}%"
 
     logging.info("add NUR") 
     
@@ -437,6 +455,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["nur_3g"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_3g") )
     oneforall["nur_4g"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_4g") )
     
+    oneforall["nur_total"] =  oneforall["nur_2g"] +  oneforall["nur_3g"] +  oneforall["nur_4g"]
     oneforall["previous_segment"] = None
     oneforall.reset_index(drop=True,inplace=True)
     if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
