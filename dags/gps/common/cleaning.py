@@ -2,6 +2,7 @@
 import logging
 from copy import deepcopy
 import pandas as pd
+from copy import deepcopy
 from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
@@ -126,6 +127,7 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         raise OSError(f"Bucket {objet['bucket']} does not exist.")
     prefix = f"{objet['folder']}/{objet['folder']}_{date_parts[0]}{date_parts[1]}"
     filename = get_latest_file(client, objet["bucket"], prefix=prefix)
+    data = deepcopy(df_)
     if filename!=None:
         logging.info("add annexe")
         try:
@@ -142,10 +144,10 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
             raise OSError(f"{filename} don't exists in bucket") from error
             # check columns
 
-    annexe.columns = annexe.columns.str.lower().map(unidecode)
-    annexe["code site oci"] = annexe["code site oci"].apply(process_code_oci_annexe)
+        annexe.columns = annexe.columns.str.lower().map(unidecode)
+        annexe["code site oci"] = annexe["code site oci"].apply(process_code_oci_annexe)
     ## concat df_ and annexe
-    data = pd.concat([df_, annexe])
+        data = pd.concat([df_, annexe])
     logging.info("check columns")
     missing_columns = set(objet["columns"]) - (set(data.columns))
     if missing_columns:
