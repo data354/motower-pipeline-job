@@ -424,6 +424,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] >=0.15),"segmentation_rentabilite"] = 'Seg 3'
     oneforall[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] >= 0.15),"segmentation_rentabilite"] = 'Seg 4'
 
+
+    oneforall["cssr_pondere_trafic_2g"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_2g']) / sum(oneforall["trafic_voix_2g"])) / 100
+    oneforall["cssr_pondere_trafic_3g"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_3g']) / sum(oneforall["trafic_voix_3g"])) / 100
+
     # get thresold
     interco = float(get_thresold("intercos")) /100 #CA-voix 
     impot = float(get_thresold("impot_taxe"))/100 #CA
@@ -435,7 +439,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["impot"] = oneforall["ca_total"]*impot
     oneforall["frais_dist"] = oneforall["ca_total"]*frais_dist
     oneforall["opex"] = oneforall['opex_itn'] + oneforall["interco"] + oneforall["impot"] + oneforall["frais_dist"]
-
+    oneforall["autre_opex"] = oneforall["opex"] - oneforall["opex_itn"]
     oneforall["ebitda"] = oneforall["ca_total"] - oneforall["opex"]
     oneforall["marge_ca"] = oneforall["ebitda"]/oneforall["ca_total"]
     oneforall["rentable"] = (oneforall["marge_ca"])>seuil_renta
