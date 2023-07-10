@@ -73,10 +73,8 @@ def check_file(**kwargs ):
         return True
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
     date_parts = kwargs["date"].split("-")
-    print("before")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
-    print("after")
-    if filename is None:
+    if filename == '':
         return False
     return True
 

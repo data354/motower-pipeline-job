@@ -406,8 +406,6 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     # pareto
     oneforall = pareto(df_final)
-    oneforall["date"] = oneforall["mois"]+"-01"
-    oneforall["date"] = pd.to_datetime(oneforall["date"])
 
     oneforall["cellules_congestionnees_total"] = oneforall['cellules_2g_congestionnees'] +  oneforall['cellules_3g_congestionnees'] + oneforall['cellules_4g_congestionnees']
     oneforall["cellules_total"] = oneforall['cellules_2g'] + oneforall['cellules_3g'] + oneforall['cellules_4g']
