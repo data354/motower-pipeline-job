@@ -415,14 +415,14 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["taux_congestion_4g"] = oneforall['cellules_4g_congestionnees'] / oneforall['cellules_4g']
     oneforall["taux_congestion_total"] =  oneforall["taux_congestion_2g"] + oneforall["taux_congestion_3g"] + oneforall["taux_congestion_4g"]
     oneforall["recommandation"] = "Surveillance technique"
-    oneforall[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
+    oneforall.loc[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
     
     oneforall["arpu"] = oneforall["ca_total"] + oneforall["parc_global"]
     oneforall["segmentation_rentabilite"] = 'Unknown'
-    oneforall[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 1'
-    oneforall[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 2'
-    oneforall[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] >=0.15),"segmentation_rentabilite"] = 'Seg 3'
-    oneforall[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] >= 0.15),"segmentation_rentabilite"] = 'Seg 4'
+    oneforall.loc[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 1'
+    oneforall.loc[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 2'
+    oneforall.loc[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] >=0.15),"segmentation_rentabilite"] = 'Seg 3'
+    oneforall.loc[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] >= 0.15),"segmentation_rentabilite"] = 'Seg 4'
 
 
     oneforall["cssr_pondere_trafic_2g"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_2g']) / sum(oneforall["trafic_voix_2g"])) / 100
@@ -446,7 +446,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
    
     oneforall["niveau_rentabilite"] = "NEGATIF"
     oneforall.loc[(oneforall["marge_ca"])>0, "niveau_rentabilite"] = f"0-{seuil_renta}%"
-    oneforall.loc[(oneforall["marge_ca"])>seuil_renta, "niveau_rentabilite"] = f"+{seuil_renta}%"
+    oneforall.loc[(oneforall["marge_ca"])>=seuil_renta, "niveau_rentabilite"] = f"+{seuil_renta}%"
 
     logging.info("add NUR") 
     
