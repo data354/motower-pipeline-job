@@ -419,10 +419,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     oneforall["arpu"] = oneforall["ca_total"] + oneforall["parc_global"]
     oneforall["segmentation_rentabilite"] = 'Unknown'
-    oneforall.loc[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 1'
-    oneforall.loc[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] < 0.15),"segmentation_rentabilite"] = 'Seg 2'
-    oneforall.loc[(oneforall["arpu"]>=3000 & oneforall["taux_congestion_4g"] >=0.15),"segmentation_rentabilite"] = 'Seg 3'
-    oneforall.loc[(oneforall["arpu"]<3000 & oneforall["taux_congestion_4g"] >= 0.15),"segmentation_rentabilite"] = 'Seg 4'
+    oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 1'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 2'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] >=0.15)),"segmentation_rentabilite"] = 'Seg 3'
+    oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g"] >= 0.15)),"segmentation_rentabilite"] = 'Seg 4'
 
 
     oneforall["cssr_pondere_trafic_2g"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_2g']) / sum(oneforall["trafic_voix_2g"])) / 100
