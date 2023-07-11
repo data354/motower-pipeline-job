@@ -6,6 +6,7 @@ from copy import deepcopy
 from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
+from gps.common.enrich import get_number_days
 
 def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
     """
@@ -145,9 +146,10 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
             # check columns
 
         annexe.columns = annexe.columns.str.lower().map(unidecode)
+        annexe.dropna(subset = ["code site oci", "code site"], inplace = True)
         annexe["code site oci"] = annexe["code site oci"].apply(process_code_oci_annexe)
     ## concat df_ and annexe
-        data = pd.concat([df_, annexe])
+        data = pd.concat([data, annexe])
     logging.info("check columns")
     missing_columns = set(objet["columns"]) - (set(data.columns))
     if missing_columns:
@@ -267,36 +269,45 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
 
 
 
-# def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: str):
-#     """
-#      cleaning CA & Parc
-#     """
-#     if datetime.strptime(date, CONFIG["date_format"]) >= datetime(2022,9,6):
-        
-#         objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
-#         if not client.bucket_exists(objet["bucket"]):
-#                 raise OSError(f"bucket {objet['bucket']} don\'t exits")    
-#         filenames = get_files(client, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-#         data = pd.DataFrame()
-#         for filename in filenames:
-#             try:
+def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+    """
+     cleaning CA & Parc
+    """
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
+    if not objet:
+        raise ValueError("Table faitalarme not found.")
+     # Check if the bucket for the alarm table exists
+    if not client.bucket_exists(objet["bucket"]):
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
+    date_parts = date.split("-")
+    filenames = get_files(client, objet["bucket"], prefix=f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}")
+    if len(filenames) != get_number_days(date):
+        raise RuntimeError(f"We need {get_number_days(date)} files for {date} but we have {len(filenames)}")
+    data = pd.DataFrame()
+    for filename in filenames:
+        try:
                     
-#                     df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-#                         storage_options={
-#                             "key": accesskey,
-#                             "secret": secretkey,
-#                             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-#                                     }
-#                             )
-#             except Exception as error:
-#                     raise OSError(f"{filename} don't exists in bucket") from error
-            
-#             data = pd.concat([data, df_])
-#             data = data.sort_values("day_id")
-#             print(data.head())
-#             data = data.groupby(["id_site"]).aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'last', 'parc_data': 'last'})
-#         logging.info("Start to save data")
-#         save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+            df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}", sep=",",
+                        storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
+                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                    }
+                            )
+        except Exception as error:
+            raise OSError(f"{filename} don't exists in bucket") from error
+        df_.columns = df_.columns.str.lower()
+        data = pd.concat([data, df_])
+    cols_to_trim = ["id_site"]
+    data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
+    data = data.sort_values("day_id")
+    data = data.groupby(["id_site"]).aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'last', 'parc_data': 'last', "parc_2g": 'last',
+          "parc_3g": 'last',
+          "parc_4g": 'last',
+          "parc_5g": 'last',
+          "parc_other": 'last'})
+    logging.info("Start to save data")
+    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
 
 
 
