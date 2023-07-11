@@ -412,7 +412,12 @@ with DAG(
             dag=dag,
         )
         merge_data >> save_pg
-    section_cleaning >> section_oneforall
+    check_bdd_sensor >> clean_base_site >> section_oneforall
+    [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco >> section_oneforall
+    check_ihs_sensor>> clean_opex_ihs >> section_oneforall
+    check_congestion_sensor >>  clean_congestion >> section_oneforall
+    [clean_alarm, clean_trafic, clean_cssr] >> section_oneforall
+    #section_cleaning >> section_oneforall
 
     # clean_call_drop = PythonOperator(
     #     task_id='cleaning_call_drop',
