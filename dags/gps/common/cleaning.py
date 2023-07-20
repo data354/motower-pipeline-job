@@ -163,7 +163,7 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     data["mois"] = date_parts[0]+"-"+date_parts[1]
     data = clean_dataframe(data, cols_to_trim, subset_unique, subset_na)
     logging.info("Saving to minio")
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+    save_minio(client, objet["bucket"], f'OPEX_ESCO-cleaned', date, data)
 
 
 
