@@ -281,9 +281,8 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
         raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
     date_parts = date.split("-")
     filenames = get_files(client, objet["bucket"], prefix=f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}")
-    year, month = map(int, date.split("-"))
     
-    number_days = calendar.monthrange(year, month)[1]
+    number_days = calendar.monthrange(int(date.split("-")[0]), int(date.split("-")[1]))[1]
     if len(filenames) != number_days:
         raise RuntimeError(f"We need {number_days} files for {date} but we have {len(filenames)}")
     data = pd.DataFrame()
