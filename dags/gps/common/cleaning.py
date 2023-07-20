@@ -308,6 +308,7 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
           "parc_4g": 'last',
           "parc_5g": 'last',
           "parc_other": 'last'})
+    data.reset_index(drop=False, inplace=True)
     logging.info("Start to save data")
     save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
 
