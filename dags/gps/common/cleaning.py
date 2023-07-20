@@ -3,10 +3,10 @@ import logging
 from copy import deepcopy
 import pandas as pd
 from copy import deepcopy
+import calendar
 from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
-from gps.common.enrich import get_number_days
 
 def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
     """
@@ -281,8 +281,11 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
         raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
     date_parts = date.split("-")
     filenames = get_files(client, objet["bucket"], prefix=f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}")
-    if len(filenames) != get_number_days(date):
-        raise RuntimeError(f"We need {get_number_days(date)} files for {date} but we have {len(filenames)}")
+    year, month = map(int, date.split("-"))
+    
+    number_days = calendar.monthrange(year, month)[1]
+    if len(filenames) != number_days:
+        raise RuntimeError(f"We need {number_days} files for {date} but we have {len(filenames)}")
     data = pd.DataFrame()
     for filename in filenames:
         try:

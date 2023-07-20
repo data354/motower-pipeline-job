@@ -95,8 +95,12 @@ CLIENT = Minio( MINIO_ENDPOINT,
 def extract_job(**kwargs):
     data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
             password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
+    if kwargs["thetable"] == "hourly_datas_radio_prod" and data.empty:
+        data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
+            password= PG_PASSWORD , table= "hourly_datas_radio_prod_archive" , date= kwargs["ingest_date"])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    
     save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
             
 
