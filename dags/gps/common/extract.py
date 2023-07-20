@@ -74,7 +74,6 @@ def execute_query(args):
     conn, date, sql_query = args
     
     df_ = pd.read_sql_query(sql_query, conn, params=(date,))
-    conn.close()
     return df_
 
 
