@@ -15,6 +15,7 @@ from gps.common.cleaning import (
     cleaning_traffic,
     cleaning_cssr,
     cleaning_congestion,
+    cleaning_ca_parc
 )
 from gps.common.enrich import oneforall, get_last_ofa
 from gps.common.alerting import alert_failure
@@ -308,6 +309,21 @@ with DAG(
             },
             dag=dag,
         )
+
+        clean_caparc = PythonOperator(
+            task_id="cleaning_caparc",
+            provide_context=True,
+            python_callable=cleaning_ca_parc,
+            op_kwargs={
+                "client": CLIENT,
+                "endpoint": MINIO_ENDPOINT,
+                "accesskey": MINIO_ACCESS_KEY,
+                "secretkey": MINIO_SECRET_KEY,
+                "date": DATE,
+            },
+            dag=dag,
+        )
+
         clean_trafic = PythonOperator(
             task_id="cleaning_trafic",
             provide_context=True,
@@ -382,7 +398,7 @@ with DAG(
         check_ihs_sensor>> clean_opex_ihs
         check_congestion_sensor >> send_email_congestion_task 
         check_congestion_sensor >>  clean_congestion
-        [clean_alarm, clean_trafic, clean_cssr]
+        [clean_alarm, clean_trafic, clean_cssr, clean_caparc]
 
     # Task group for oneforall tasks
     with TaskGroup("oneforall", tooltip="Tasks for generate oneforall") as section_oneforall:
@@ -416,7 +432,7 @@ with DAG(
     [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
     check_congestion_sensor >>  clean_congestion >> section_oneforall
-    [clean_alarm, clean_trafic, clean_cssr] >> section_oneforall
+    [clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
     #section_cleaning >> section_oneforall
 
     # clean_call_drop = PythonOperator(
