@@ -305,7 +305,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     logging.info("final columns renamed")  
     
-    df_final.columns = ['mois', 'code_oci',
+    print(df_final.columns)
+    print(df_final.shape)
+    df_final.columns = ['mois','mois1', 'code_oci',
                                 'site',
                                 'autre_code',
                                 'longitude',
@@ -361,7 +363,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'cellules_4g',
                                 'avg_cssr_cs_2g',
                                 'avg_cssr_cs_3g']
-    
+    print(df_final.shape)
     # enrich
     df_final["trafic_voix_total"] = df_final["trafic_voix_2g"]+df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
     df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
