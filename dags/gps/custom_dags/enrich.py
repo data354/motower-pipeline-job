@@ -161,8 +161,8 @@ with DAG(
      # Task group for cleaning tasks
     with TaskGroup("cleaning", tooltip="Tasks for cleaning") as section_cleaning:
         table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
-        extract_trafic_v2_task = PythonOperator(
-                task_id="extract_trafic_v_task",
+        extract_trafic_deux = PythonOperator(
+                task_id="extract_trafic_deux",
                 provide_context=True,
                 python_callable=extract_trafic_V2,
                 op_kwargs={
@@ -174,8 +174,8 @@ with DAG(
                 },
                 dag=dag,
             )
-        clean_trafic_v2 = PythonOperator(
-            task_id="cleaning_trafic_v",
+        clean_trafic_deux = PythonOperator(
+            task_id="cleaning_trafic_deux",
             provide_context=True,
             python_callable=cleaning_trafic_v2,
             op_kwargs={
@@ -434,6 +434,7 @@ with DAG(
             'code': "CONGESTION"
         }
         )
+        extract_trafic_deux >> clean_trafic_deux 
         check_bdd_sensor >> send_email_bdd_task 
         check_bdd_sensor >> clean_base_site
         check_esco_sensor >> send_email_esco_task
@@ -472,6 +473,7 @@ with DAG(
             dag=dag,
         )
         merge_data >> save_pg
+    extract_trafic_deux >> clean_trafic_deux >> section_oneforall
     check_bdd_sensor >> clean_base_site >> section_oneforall
     [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
