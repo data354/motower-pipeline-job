@@ -299,7 +299,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                                            'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
        'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         
-        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4g", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4G", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
         'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
@@ -352,7 +352,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'trafic_data_2g',
                                 'trafic_data_3g',
                                 'trafic_data_4g',
-                                "trafic_data_v2_2G", "trafic_data_v2_3G", "trafic_data_v2_4g", "trafic_voix_v2_2G", "trafic_voix_v2_3G", "trafic_voix_v2_4G",
+                                "trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
                                 'cellules_2g_congestionnees',
                                 'cellules_2g',
                                 'cellules_3g_congestionnees',
@@ -421,7 +421,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'trafic_data_2g',
                                 'trafic_data_3g',
                                 'trafic_data_4g',
-                                "trafic_data_v2_2G", "trafic_data_v2_3G", "trafic_data_v2_4g", "trafic_voix_v2_2G", "trafic_voix_v2_3G", "trafic_voix_v2_4G",
+                                "trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
                                 'cellules_2g_congestionnees',
                                 'cellules_2g',
                                 'cellules_3g_congestionnees',
