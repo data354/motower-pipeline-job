@@ -162,7 +162,7 @@ with DAG(
     with TaskGroup("cleaning", tooltip="Tasks for cleaning") as section_cleaning:
         table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
         extract_trafic_v2_task = PythonOperator(
-                task_id="extract_trafic_v2_task ",
+                task_id="extract_trafic_v_task ",
                 provide_context=True,
                 python_callable=extract_trafic_V2,
                 op_kwargs={
