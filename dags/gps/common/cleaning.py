@@ -463,8 +463,12 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
         raise OSError(f"{filename} don't exists in bucket") from error
     trafic.columns = trafic.columns.str.lower()
     trafic = trafic.loc[trafic.techno != "4G_TDD", :]
-    trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
-    trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
+    try:
+        trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
+        trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
+    except AttributeError :
+        trafic["trafic_data_go"] = trafic["trafic_data_go"]
+        trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"]
     trafic["mois"] = trafic["date_id"].str[:-3]
     trafic = trafic[["mois", "id_site", "trafic_data_go", "trafic_voix_erl", "nbre_cellule", "nbre_cellule_congestionne", "techno" ]]
     trafic = trafic.groupby(["mois", "id_site", "techno"]).sum()
