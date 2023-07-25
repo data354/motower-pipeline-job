@@ -97,10 +97,10 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
     if (table is None) and (date is None) and (sql_query is not None):
         return execute_query([conn, date, sql_query])
     if table in SQL_QUERIES:
-        if table != "faitalarme":
-            return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )
         if table == "ks_tdb_radio_drsi":
             return execute_query([conn, date[:-2]+"01", SQL_QUERIES[table]])
+        if table != "faitalarme":
+            return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )
         return execute_query([conn, date, SQL_QUERIES[table]] )
     raise RuntimeError("Please verify function params")
 
