@@ -175,7 +175,7 @@ with DAG(
                 dag=dag,
             )
         clean_trafic_v2 = PythonOperator(
-            task_id="cleaning_trafic_v2",
+            task_id="cleaning_trafic_v",
             provide_context=True,
             python_callable=cleaning_trafic_v2,
             op_kwargs={
