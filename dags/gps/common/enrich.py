@@ -305,7 +305,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     logging.info("final columns renamed")  
     
-    df_final.columns = ['mois','mois1', 'code_oci',
+    df_final.columns = ['mois', 'code_oci',
                                 'site',
                                 'autre_code',
                                 'longitude',
