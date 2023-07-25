@@ -462,6 +462,7 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
     trafic.columns = trafic.columns.str.lower()
+    trafic = trafic.loc[trafic.techno != "4G_TDD", :]
     trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
     trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
     trafic["mois"] = trafic["date_id"].str[:-3]
