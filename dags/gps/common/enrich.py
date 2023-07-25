@@ -200,21 +200,21 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
     
     # get trafic_v2
-    # objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
-    # if objet is None:
-    #     raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
-    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    # try:
-    #     logging.info("read %s", filename)
-    #     trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
+    if objet is None:
+        raise ValueError("Table 'ks_tdb_radio_drsi' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
+        logging.info("read %s", filename)
+        trafic2 = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
 
     # get CSSR
     objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
@@ -283,8 +283,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     logging.info("add trafic")
     bdd_ca_ihs_esco_ind_cong_trafic = bdd_ca_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
+    logging.info("add trafic v2")
+    bdd_ca_ihs_esco_ind_cong_trafic2 = bdd_ca_ihs_esco_ind_cong_trafic.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
+
     logging.info("add cssr")
-    bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("final columns")
 
@@ -296,7 +299,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                                            'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
        'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         
-        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G",
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4g", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
         'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
@@ -349,6 +352,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'trafic_data_2g',
                                 'trafic_data_3g',
                                 'trafic_data_4g',
+                                "trafic_data_v2_2G", "trafic_data_v2_3G", "trafic_data_v2_4g", "trafic_voix_v2_2G", "trafic_voix_v2_3G", "trafic_voix_v2_4G",
                                 'cellules_2g_congestionnees',
                                 'cellules_2g',
                                 'cellules_3g_congestionnees',
@@ -417,6 +421,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'trafic_data_2g',
                                 'trafic_data_3g',
                                 'trafic_data_4g',
+                                "trafic_data_v2_2G", "trafic_data_v2_3G", "trafic_data_v2_4g", "trafic_voix_v2_2G", "trafic_voix_v2_3G", "trafic_voix_v2_4G",
                                 'cellules_2g_congestionnees',
                                 'cellules_2g',
                                 'cellules_3g_congestionnees',
