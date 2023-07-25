@@ -54,6 +54,7 @@ def extract_trafic_V2(**kwargs):
     """
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
+    print(data.shape)
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     

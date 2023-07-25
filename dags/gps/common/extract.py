@@ -74,7 +74,7 @@ def execute_query(args):
         pandas DataFrame
     """
     conn, date, sql_query = args
-    
+    logging.info(f"get data to date {date}")
     df_ = pd.read_sql_query(sql_query, conn, params=(date,))
     return df_
 
