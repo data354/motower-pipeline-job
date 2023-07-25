@@ -21,6 +21,8 @@ SQL_QUERIES = {
     sum(trafic_data) as trafic_data, techno from 
     hourly_datas_radio_prod_archive where date_jour = %s group by date_jour, code_site, techno;""",
 
+    "ks_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_TDB_RADIO_DRSI" where "DATE_ID" = %s ;
+    ''' ,
     "Taux_succes_2g": """select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,
     MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
     MAX(CAST(cssr_cs AS DECIMAL)) AS max_cssr_cs, AVG(CAST(cssr_cs AS DECIMAL)) AS avg_cssr_cs,
@@ -97,6 +99,8 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
     if table in SQL_QUERIES:
         if table != "faitalarme":
             return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )
+        if table == "ks_tdb_radio_drsi":
+            return execute_query([conn, date[:-2]+"01", SQL_QUERIES[table]])
         return execute_query([conn, date, SQL_QUERIES[table]] )
     raise RuntimeError("Please verify function params")
 

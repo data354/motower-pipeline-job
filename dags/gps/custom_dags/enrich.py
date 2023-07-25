@@ -15,14 +15,15 @@ from gps.common.cleaning import (
     cleaning_traffic,
     cleaning_cssr,
     cleaning_congestion,
-    cleaning_ca_parc
+    cleaning_ca_parc,
+    cleaning_trafic_v2
 )
 from gps.common.enrich import oneforall, get_last_ofa
 from gps.common.alerting import alert_failure
 from gps.common.rwminio import save_minio, get_latest_file
 from gps.common.rwpg import write_pg
 from gps.common.alerting import get_receivers, send_email
-
+from gps.common.extract import extract_pg
 
 MINIO_ENDPOINT = Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
@@ -37,11 +38,26 @@ PG_SAVE_DB = Variable.get('pg_save_db')
 PG_SAVE_USER = Variable.get('pg_save_user')
 PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
+PG_HOST = Variable.get('pg_host')
+PG_V2_DB = Variable.get('pg_v2_db')
+PG_V2_USER = Variable.get('pg_v2_user')
+PG_V2_PASSWORD = Variable.get('pg_v2_password')
+
 DATE = "{{data_interval_start.strftime('%Y-%m-%d')}}"
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
+
+def extract_trafic_V2(**kwargs):
+    """
+    """
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER,
+            password= PG_V2_PASSWORD , table= kwargs["table"] , date= kwargs["ingest_date"])
+    if  data.empty:
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    
+    save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
 
 def on_failure(context):
     """
@@ -144,6 +160,34 @@ with DAG(
 ) as dag:
      # Task group for cleaning tasks
     with TaskGroup("cleaning", tooltip="Tasks for cleaning") as section_cleaning:
+        table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
+        extract_trafic_v2_task = PythonOperator(
+                task_id="extract_trafic_v2_task ",
+                provide_context=True,
+                python_callable=extract_trafic_V2,
+                op_kwargs={
+                    'thetable': table_config["name"],
+                    'bucket': table_config["bucket"],
+                    'folder': table_config["folder"],
+                    'table': table_config["table"],
+                    'ingest_date': DATE
+                },
+                dag=dag,
+            )
+        clean_trafic_v2 = PythonOperator(
+            task_id="cleaning_trafic_v2",
+            provide_context=True,
+            python_callable=cleaning_trafic_v2,
+            op_kwargs={
+                "client": CLIENT,
+                "endpoint": MINIO_ENDPOINT,
+                "accesskey": MINIO_ACCESS_KEY,
+                "secretkey": MINIO_SECRET_KEY,
+                "date": DATE,
+            },
+            on_failure_callback=on_failure,
+            dag=dag,
+        )
         check_bdd_sensor =  PythonSensor(
             task_id= "check_bdd_sensor",
             mode='poke',

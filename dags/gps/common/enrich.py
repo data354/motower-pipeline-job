@@ -199,6 +199,23 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
     
+    # get trafic_v2
+    # objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
+    # if objet is None:
+    #     raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
+    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    # try:
+    #     logging.info("read %s", filename)
+    #     trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
+
     # get CSSR
     objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
     if objet is None:
@@ -428,7 +445,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["recommandation"] = "Surveillance technique"
     oneforall.loc[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
     
-    oneforall["arpu"] = oneforall["ca_total"] + oneforall["parc_global"]
+    oneforall["arpu"] = oneforall["ca_total"] / oneforall["parc_global"]
     oneforall["segmentation_rentabilite"] = 'Unknown'
     oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 1'
     oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 2'
@@ -456,8 +473,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["rentable"] = (oneforall["marge_ca"])>seuil_renta
    
     oneforall["niveau_rentabilite"] = "NEGATIF"
-    oneforall.loc[(oneforall["marge_ca"])>0, "niveau_rentabilite"] = f"0-{seuil_renta}%"
-    oneforall.loc[(oneforall["marge_ca"])>=seuil_renta, "niveau_rentabilite"] = f"+{seuil_renta}%"
+    oneforall.loc[(oneforall["marge_ca"])>0, "niveau_rentabilite"] = "NON RENTABLE"
+    oneforall.loc[(oneforall["marge_ca"])>=seuil_renta, "niveau_rentabilite"] = "RENTABLE"
 
     logging.info("add NUR") 
     

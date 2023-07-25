@@ -428,6 +428,50 @@ def cleaning_traffic(client, endpoint: str, accesskey: str, secretkey: str, date
      # Save the cleaned DataFrame to Minio
     save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
 
+def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, date: str):
+    """
+    Cleans traffic files
+    Args:
+        - client: Minio client
+        - endpoint: Minio endpoint
+        - accesskey: Minio access key
+        - secretkey: Minio secret key
+        - date: execution date (provided by airflow)
+    Return:
+        None
+    """
+     # Find the required object in the CONFIG dictionary
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
+    if not objet:
+        raise ValueError("Table ks_tdb_radio_drsi not found.")
+     # Check if bucket exists
+    if not client.bucket_exists(objet["bucket"]):
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.")
+     # Split the date into parts
+    date_parts = date.split("-")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
+        logging.info("read %s", filename)
+        trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    trafic.columns = trafic.columns.str.lower()
+    trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
+    trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
+    trafic["mois"] = trafic["date_id"].str[:-3]
+    trafic = trafic[["mois", "id_site", "trafic_data_go", "trafic_voix_erl", "nbre_cellule", "nbre_cellule_congestionne", "techno" ]]
+    trafic = trafic.groupby(["mois", "id_site", "techno"]).sum()
+    trafic = trafic.unstack()
+    trafic.columns = ["_".join(d) for d in trafic.columns]
+    trafic.reset_index(drop=False, inplace=True)
+     # Save the cleaned dataFrame to Minio
+    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, trafic)
 
 # def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
 #     """
