@@ -290,6 +290,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("final columns")
+    bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic_cssr.loc[:, ~bdd_ca_ihs_esco_ind_cong_trafic_cssr.columns.duplicated()]
 
     df_final = bdd_ca_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
@@ -307,7 +308,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     print(df_final.columns)
     print(df_final.shape)
-    df_final.columns = ['mois','mois1', 'code_oci',
+    df_final.columns = ['mois', 'code_oci',
                                 'site',
                                 'autre_code',
                                 'longitude',
