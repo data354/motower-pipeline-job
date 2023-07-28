@@ -1,7 +1,7 @@
 """  EXTRACT DAG"""
 
 from datetime import datetime, timedelta
-
+from pathlib import Path
 from minio import Minio
 from airflow.operators.python import PythonOperator
 from airflow.sensors.python import PythonSensor
@@ -12,6 +12,10 @@ from gps import CONFIG
 from gps.common.extract import extract_pg, extract_ftp, list_ftp_file
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email
+
+doc_md = Path(__file__).parents[1] / "docs/daily.md"
+
+
 
 
 PG_HOST = Variable.get('pg_host')
@@ -157,6 +161,7 @@ with DAG(
         poke_interval= 24* 60 *60,
         timeout = 120 * 60 * 60,
         python_callable= check_file,
+        doc_md = doc_md,
         op_kwargs={
         #     'hostname': FTP_HOST,
         #     'user': FTP_USER,
@@ -172,6 +177,7 @@ with DAG(
     send_email_task = PythonOperator(
         task_id='send_email',
         python_callable=send_email_onfailure,
+        doc_md = doc_md,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
             'ingest_date': INGEST_FTP_DATE,
@@ -192,6 +198,7 @@ with DAG(
                 task_id=task_id,
                 provide_context=True,
                 python_callable=callable_fn,
+                doc_md = doc_md,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
@@ -210,6 +217,7 @@ with DAG(
                 task_id=task_id,
                 provide_context=True,
                 python_callable=callable_fn,
+                doc_md = doc_md,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
