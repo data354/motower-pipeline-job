@@ -302,7 +302,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         
         "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4G", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
         'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',
-        "nbre_cellule_v2_2G", "nbre_cellule_congestionne_v2_2G","nbre_cellule_v2_3G", "nbre_cellule_congestionne_v2_3G", "nbre_cellule_v2_4G", "nbre_cellule_congestionne_v2_4G",
+        "nbre_cellule_v2_2G", "nbre_cellule_congestionne_2G","nbre_cellule_3G", "nbre_cellule_congestionne_3G", "nbre_cellule_4G", "nbre_cellule_congestionne_4G",
         "avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
