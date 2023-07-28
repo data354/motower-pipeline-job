@@ -301,10 +301,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
        'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         
         "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4G", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
-        'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',"avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
+        'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',
+        "nbre_cellule_v2_2G", "nbre_cellule_congestionne_v2_2G","nbre_cellule_v2_3G", "nbre_cellule_congestionne_v2_3G", "nbre_cellule_v2_4G", "nbre_cellule_congestionne_v2_4G",
+        "avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
-    logging.info("final columns renamed")  
+    logging.info("final columns renamed")
     
     print(df_final.columns)
     print(df_final.shape)
@@ -362,6 +364,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'cellules_3g',
                                 'cellules_4g_congestionnees',
                                 'cellules_4g',
+                                "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", "cellules_congestionne_v2_4g",
                                 'avg_cssr_cs_2g',
                                 'avg_cssr_cs_3g']
     print(df_final.shape)
@@ -431,6 +434,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'cellules_3g',
                                 'cellules_4g_congestionnees',
                                 'cellules_4g',
+                                "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", "cellules_congestionne_v2_4g",
                                 'avg_cssr_cs_2g',
                                 'avg_cssr_cs_3g',
                                 'trafic_voix_total',
@@ -444,14 +448,28 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall = pareto(df_final)
 
     oneforall["cellules_congestionnees_total"] = oneforall['cellules_2g_congestionnees'] +  oneforall['cellules_3g_congestionnees'] + oneforall['cellules_4g_congestionnees']
+    oneforall["cellules_congestionnees_total_v2"] = oneforall['cellules_congestionne_v2_2g'] +  oneforall['cellules_congestionne_v2_3g'] + oneforall['cellules_congestionne_v2_4g'] ###
+
     oneforall["cellules_total"] = oneforall['cellules_2g'] + oneforall['cellules_3g'] + oneforall['cellules_4g']
+    oneforall["cellules_total_v2"] = oneforall['cellules_v2_2g'] + oneforall['cellules_v2_3g'] + oneforall['cellules_v2_4g'] ###
 
     oneforall["taux_congestion_2g"] = oneforall['cellules_2g_congestionnees'] / oneforall['cellules_2g']
     oneforall["taux_congestion_3g"] = oneforall['cellules_3g_congestionnees'] / oneforall['cellules_3g']
     oneforall["taux_congestion_4g"] = oneforall['cellules_4g_congestionnees'] / oneforall['cellules_4g']
     oneforall["taux_congestion_total"] =  oneforall["taux_congestion_2g"] + oneforall["taux_congestion_3g"] + oneforall["taux_congestion_4g"]
+
+
+    oneforall["taux_congestion_2g_v2"] = oneforall['cellules_congestionne_v2_2g'] / oneforall['cellules_v2_2g']
+    oneforall["taux_congestion_3g_v2"] = oneforall['cellules_congestionne_v2_3g'] / oneforall['cellules_v2_3g']
+    oneforall["taux_congestion_4g_v2"] = oneforall['cellules_congestionne_v2_4g'] / oneforall['cellules_v2_4g']
+    oneforall["taux_congestion_total_v2"] =  oneforall["taux_congestion_2g_v2"] + oneforall["taux_congestion_3g_v2"] + oneforall["taux_congestion_4g_v2"]
+
+
     oneforall["recommandation"] = "Surveillance technique"
     oneforall.loc[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
+
+    oneforall["recommandation_v2"] = "Surveillance technique"
+    oneforall.loc[(oneforall["taux_congestion_total_v2"]<=0.5), "recommandation_v2"] =  "Surveillance commerciale"
     
     oneforall["arpu"] = oneforall["ca_total"] / oneforall["parc_global"]
     oneforall["segmentation_rentabilite"] = 'Unknown'
@@ -460,9 +478,18 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] >=0.15)),"segmentation_rentabilite"] = 'Seg 3'
     oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g"] >= 0.15)),"segmentation_rentabilite"] = 'Seg 4'
 
+    oneforall["segmentation_rentabilite_v2"] = 'Unknown'
+    oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g_v2"] < 0.15)),"segmentation_rentabilite_v2"] = 'Seg 1'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g_v2"] < 0.15)),"segmentation_rentabilite_v2"] = 'Seg 2'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g_v2"] >=0.15)),"segmentation_rentabilite_v2"] = 'Seg 3'
+    oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g_v2"] >= 0.15)),"segmentation_rentabilite_v2"] = 'Seg 4'
+
 
     oneforall["cssr_pondere_trafic_2g"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_2g']) / sum(oneforall["trafic_voix_2g"])) / 100
     oneforall["cssr_pondere_trafic_3g"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_3g']) / sum(oneforall["trafic_voix_3g"])) / 100
+
+    oneforall["cssr_pondere_trafic_2g_v2"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_v2_2g']) / sum(oneforall["trafic_voix_v2_2g"])) / 100
+    oneforall["cssr_pondere_trafic_3g_v2"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_v2_3g']) / sum(oneforall["trafic_voix_v2_3g"])) / 100
 
     # get thresold
     interco = float(get_thresold("intercos")) /100 #CA-voix 
@@ -492,8 +519,16 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["nur_2g"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_2g") )
     oneforall["nur_3g"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_3g") )
     oneforall["nur_4g"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_4g") )
+
+
+    oneforall["nur_2g_v2"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_2g") )
+    oneforall["nur_3g_v2"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_3g") )
+    oneforall["nur_4g_v2"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_4g") )
     
     oneforall["nur_total"] =  oneforall["nur_2g"] +  oneforall["nur_3g"] +  oneforall["nur_4g"]
+
+    oneforall["nur_total_v2"] =  oneforall["nur_2g_v2"] +  oneforall["nur_3g_v2"] +  oneforall["nur_4g_v2"]
+
     oneforall["previous_segment"] = None
     oneforall.reset_index(drop=True,inplace=True)
     if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
