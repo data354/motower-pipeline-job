@@ -13,9 +13,9 @@ from gps.common.extract import extract_pg, extract_ftp, list_ftp_file
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email
 
-doc_md = Path(__file__).parents[1] / "docs/daily.md"
+#doc_md = Path(__file__).parents[1] / "docs/daily.md"
 
-
+doc_md = """test doc airflow"""
 
 
 PG_HOST = Variable.get('pg_host')
