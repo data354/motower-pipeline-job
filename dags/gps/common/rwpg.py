@@ -137,6 +137,10 @@ def write_pg(host: str, database:str, user: str, password: str,
             nur_3g FLOAT,
             nur_4g FLOAT,
             nur_total FLOAT,
+            nur_2g_v2  FLOAT,
+            nur_3g_v2  FLOAT,
+            nur_4g_v2  FLOAT,
+            nur_total_v2  FLOAT,
             previous_segment VARCHAR
         );
         """
