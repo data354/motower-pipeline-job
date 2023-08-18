@@ -64,6 +64,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
      # Check columns
     logging.info("Checking columns")
     df_.columns = df_.columns.str.lower().map(unidecode)
+    df_.columns = df_.columns.str.strip()
     missing_cols = set(table_obj["columns"]) - set(df_.columns)
     if missing_cols:
         raise ValueError(f"Missing columns: {', '.join(missing_cols)}")
