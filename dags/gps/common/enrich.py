@@ -163,23 +163,23 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
     
     # get  indisponibilité
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
-    if objet is None:
-        raise ValueError("Table 'faitalarme' not found in configuration")
+    # objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
+    # if objet is None:
+    #     raise ValueError("Table 'faitalarme' not found in configuration")
   
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
 
-    try:
-        logging.info("read %s", filename)
-        indisponibilite = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    # try:
+    #     logging.info("read %s", filename)
+    #     indisponibilite = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
 
     # get trafic
     objet = next((table for table in CONFIG["tables"] if table["name"] == "hourly_datas_radio_prod"), None)
@@ -275,24 +275,31 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_ca_ihs_esco["volume discount_y"]
     
     logging.info("add indisponibilite")
-    bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    #bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add congestion")
-    bdd_ca_ihs_esco_ind_cong = bdd_ca_ihs_esco_ind.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add trafic")
-    bdd_ca_ihs_esco_ind_cong_trafic = bdd_ca_ihs_esco_ind_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_cong_trafic = bdd_ca_ihs_esco_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add trafic v2")
-    bdd_ca_ihs_esco_ind_cong_trafic2 = bdd_ca_ihs_esco_ind_cong_trafic.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
+    bdd_ca_ihs_esco_cong_trafic2 = bdd_ca_ihs_esco_cong_trafic.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
 
     logging.info("add cssr")
-    bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("final columns")
-    bdd_ca_ihs_esco_ind_cong_trafic_cssr = bdd_ca_ihs_esco_ind_cong_trafic_cssr.loc[:, ~bdd_ca_ihs_esco_ind_cong_trafic_cssr.columns.duplicated()]
+    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:, ~bdd_ca_ihs_esco_cong_trafic_cssr.columns.duplicated()]
+    bdd_ca_ihs_esco_cong_trafic_cssr["delay_2G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delay_3G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delay_4G"] = 0
 
-    df_final = bdd_ca_ihs_esco_ind_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
+    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_2G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_3G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_4G"] = 0
+
+    df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
                                                            'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc', 'parc_data',"parc_2g",
