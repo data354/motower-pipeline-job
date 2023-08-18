@@ -12,6 +12,7 @@ def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
     """
       trim some cols, drop duplicates, dropna
     """
+    df_.columns = df_.columns.str.strip()
     df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
     df_.drop_duplicates(subset=subset_unique, inplace=True, keep="first")
     df_.dropna(subset=subset_na, inplace=True)
@@ -275,7 +276,7 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
     """
     objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
     if not objet:
-        raise ValueError("Table faitalarme not found.")
+        raise ValueError("Table caparc not found.")
      # Check if the bucket for the alarm table exists
     if not client.bucket_exists(objet["bucket"]):
         raise ValueError(f"Bucket {objet['bucket']} does not exist.") 
