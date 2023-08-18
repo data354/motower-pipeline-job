@@ -299,6 +299,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_3G"] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_4G"] = 0
 
+    bdd_ca_ihs_esco_cong_trafic_cssr["nbre_cellule_2G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["nbre_cellule_3G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["nbre_cellule_4G"] = 0
+
+
+
     df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
