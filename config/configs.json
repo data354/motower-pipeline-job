@@ -1,80 +1,193 @@
-{"tables":
-    [
-        {
-            "name": "hourly_datas_radio_prod" ,
-            "bucket": "trafic",
-            "folder": "trafic"
+{
+    "tables": [
+      {
+        "name": "hourly_datas_radio_prod",
+        "bucket": "trafic",
+        "folder": "trafic",
+        "table": "trafic"
+      },
+      {
+        "name": "hourly_datas_radio_prod_archive",
+        "bucket": "trafic",
+        "folder": "trafic",
+        "table": "trafic"
+      },
+      {
+        "name": "ks_tdb_radio_drsi",
+        "bucket": "trafic",
+        "folder": "trafic_v2",
+        "table": "trafic_v2"
 
-        },
-        {
-            "name": "hourly_datas_radio_prod_archive" ,
-            "bucket": "trafic",
-            "folder": "trafic"
-
-        },
-        {
-            "name": "Taux_succes_2g",
-            "bucket": "success-rate",
-            "folder": "2g"
-
-        },
-        {
-            "name": "Taux_succes_3g" ,
-            "bucket":"success-rate",
-            "folder": "3g"
-
-        },
-        {
-            "name": "Call_drop_2g",
-            "bucket": "call-drop",
-            "folder": "2g"
-        },
-        {
-            "name": "Call_drop_3g" ,
-            "bucket": "call-drop",
-            "folder": "3g"
-
-        },
-        {
-            "name":"faitalarme",
-            "bucket": "indisponibilite",
-            "folder": "indisponibilite"
-    
-        },
-        {
-            "name":"ca&parc",
-            "bucket": "ca-parc",
-            "folder": "ca-parc",
-            "columns": ["day_id", "id_site", "ca_voix", "ca_data", "parc_voix", "parc_data"]
-    
-        },
-        {
-            "name":"BASE_SITES",
-            "bucket": "gpsoci",
-            "folder": "BASE_SITES",
-            "columns": ["site", "code oci", "autre code", "longitude", "latitude","type du site","statut" ,"commune", "departement","region", "localisation", "ville", "partenaires", "proprietaire", "gestionnaire", "type geolocalite", "position site", "projet"  ]
-    
-        },  
-        {
-            "name":"OPEX_ESCO",
-            "bucket": "gpsoci",
-            "folder": "OPEX_ESCO",
-            "columns": ["code site oci", "code site", "nom du site", "o&m", "energy", "infra", "maintenance passive préventive", "gardes de sécurité", "discount", "total redevances ht", "tva : 18%", "total redevances ttc"]
-    
-        },
-        {
-            "name":"OPEX_IHS",
-            "bucket": "gpsoci",
-            "folder": "OPEX_IHS",
-            "columns": ["site id ihs", "site name", "category", "trimestre 1 - ht"],
-            "sheets" : ["OCI-MLL", "OCI-COLOC", "OCI-PREST", "OCI-ATHENA", "OCI-BTS", "OCI-65"]
-        }
-
+      },
+      {
+        "name": "Taux_succes_2g",
+        "bucket": "success-rate",
+        "folder": "2g",
+        "table": "successrate"
+      },
+      {
+        "name": "Taux_succes_3g",
+        "bucket": "success-rate",
+        "folder": "3g",
+        "table": "successrate"
+      },
+      {
+        "name": "Call_drop_2g",
+        "bucket": "call-drop",
+        "folder": "2g",
+        "table": "calldrop"
+      },
+      {
+        "name": "Call_drop_3g",
+        "bucket": "call-drop",
+        "folder": "3g",
+        "table": "calldrop"
+      },
+      {
+        "name": "faitalarme",
+        "bucket": "indisponibilite",
+        "folder": "indisponibilite",
+        "table": "indisponibilite"
+      },
+      {
+        "name": "caparc",
+        "bucket": "ca-parc",
+        "folder": "ca-parc",
+        "columns": [
+          "day_id",
+          "id_site",
+          "ca_voix",
+          "ca_data",
+          "parc",
+          "parc_data",
+          "parc_2g",
+          "parc_3g",
+          "parc_4g",
+          "parc_5g",
+          "parc_other"
+        ],
+        "table": "caparc"
+      },
+      {
+        "name": "BASE_SITES",
+        "bucket": "gpsoci",
+        "folder": "BASE_SITES",
+        "columns": [
+          "site",
+          "code oci",
+          "autre code",
+          "longitude",
+          "latitude",
+          "type du site",
+          "statut",
+          "commune",
+          "departement",
+          "region",
+          "localisation",
+          "ville",
+          "partenaires",
+          "proprietaire",
+          "gestionnaire",
+          "type geolocalite",
+          "position site",
+          "projet",
+          "clutter"
+        ],
+        "table": "basesites"
+      },
+      {
+        "name": "OPEX_ESCO",
+        "bucket": "gpsoci",
+        "folder": "OPEX_ESCO",
+        "columns": [
+          "code site oci",
+          "code site",
+          "nom du site",
+          "o&m",
+          "energy",
+          "infra",
+          "maintenance passive preventive",
+          "gardes de securite",
+          "discount",
+          "total redevances ht",
+          "tva : 18%",
+          "total redevances ttc"
+        ],
+        "table": "esco"
+      },
+      {
+        "name": "ANNEXE_OPEX_ESCO",
+        "bucket": "gpsoci",
+        "folder": "ANNEXE_OPEX_ESCO",
+        "columns": [
+          "code site oci",
+          "code site",
+          "nom du site",
+          "o&m",
+          "energy",
+          "infra",
+          "maintenance passive preventive",
+          "gardes de securite",
+          "discount",
+          "total redevances ht",
+          "tva : 18%",
+          "total redevances ttc"
+        ],
+        "table": "esco"
+      },
+      {
+        "name": "OPEX_IHS",
+        "bucket": "gpsoci",
+        "folder": "OPEX_IHS",
+        "columns": [
+          "site id ihs",
+          "site name",
+          "category",
+          "trimestre 1 - ht"
+        ],
+        "sheets": [
+          "OCI-MLL",
+          "OCI-COLOC",
+          "OCI-PREST",
+          "OCI-ATHENA",
+          "OCI-BTS",
+          "OCI-65"
+        ],
+        "table": "ihs"
+      },
+      {
+        "name": "CONGESTION",
+        "bucket": "gpsoci",
+        "folder": "CONGESTION",
+        "columns": [
+          "periode",
+          "code_site",
+          "id_site",
+          "site",
+          "latitude",
+          "longitude",
+          "cellules_2g_congestionnees",
+          "cellules_2g",
+          "cellules_3g_congestionnees",
+          "cellules_3g",
+          "cellules_4g_congestionnees",
+          "cellules_4g"
+        ],
+        "table": "congestion"
+      }
     ],
-
-    "data": "/home/yasmine/Documents/DATA354/ds54/apps/python/data",
-    "ftp_dir":"EXTRACT_VBM",
-    "airflow_receivers": ["richmond.kongo@orange.com","assane.diop@orange.com","cyrille1.danho@orange.com"],
+    "data": "/home/yasmine/Documents/DATA354/ds5vpn.orange-cit.ci:44434/apps/python/data",
+    "ftp_dir": "EXTRACT_VBM",
+    "airflow_receivers": [
+      "richmond.kongo@orange.com",
+      "assane.diop@orange.com",
+      "cyrille1.danho@orange.com"
+    ],
     "api_mails": "http://10.242.36.139.sslip.io/api/alerting",
-    "api_params": "http://10.242.36.139.sslip.io/api/parametre"
-}
+    "api_params": "http://10.242.36.139.sslip.io/api/parametre",
+    "date_format": "%Y-%m-%d",
+    "intercos":  0.139,
+    "impot_taxe": 0.116 ,
+    "frais_distribution" :  0.09 ,
+    "seuil_rentabilite" : 0.65
+  }

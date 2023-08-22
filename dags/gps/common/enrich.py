@@ -1,363 +1,586 @@
-from pathlib import Path
+""" enrich data"""
+
 import pandas as pd
+import requests
+import calendar
+from datetime import datetime, timedelta
 from minio import Minio
 from copy import deepcopy
-from pandas.io.excel import ExcelFile
-
 from gps import CONFIG
-from gps.common.rwminio import save_minio, getfilename, getfilesnames
+from gps.common.rwminio import  get_latest_file
 import logging
 
-def cleaning_base_site(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+################################## joindre les tables
+def get_number_days(mois: str):
     """
-     function clean data from minio
+       get number of days in month
     """
+    try:
+        year, month = map(int, mois.split("-"))
+    except ValueError:
+        return "Invalid input format. Please use format 'YYYY-MM'."
+    return calendar.monthrange(year, month)[1]
 
-    client = Minio(
-        endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet = [d for d in CONFIG["tables"] if d["name"] == "BASE_SITES"][0]
-    if not client.bucket_exists(objet["bucket"]):
-        raise OSError(f"bucket {objet['bucket']} don\'t exits")
-    logging.info("get filename")
+def get_number_cellule(dataframe, cellule: str):
+    """
+        get number of cellule 
+    """
+    # Get the sum of values in the specified cell for the given month
+    cellule_total = dataframe[cellule].sum()
+    return cellule_total
 
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
+
+
+def pareto(dataframe):
+  """
+    add pareto
+  """
+  total = dataframe.ca_total.sum()
+  dataframe = dataframe.sort_values(by="ca_total", ascending = False)
+  dataframe["sommecum"] = dataframe.ca_total.cumsum()
+  dataframe.loc[dataframe.sommecum<total*0.8 ,"pareto"] = 1
+  dataframe.loc[dataframe.sommecum>total*0.8 ,"pareto"] = 0
+  dataframe["pareto"] = dataframe["pareto"].astype(bool)
+  return dataframe.drop(columns = ["sommecum"])
+
+
+
+def prev_segment(dataframe):
+    """
+        get previous segment
+    """
+    
+    past_site = None
+    past_segment = None
+    for idx, row in dataframe.iterrows():
+        if past_site == row["CODE_OCI"]:
+            dataframe.loc[idx, "PREVIOUS_SEGMENT"] = past_segment
+            past_segment = row["SEGMENT"]
+        else: 
+            past_site = row["CODE_OCI"]
+            past_segment = row["SEGMENT"]
+            dataframe.loc[idx,"PREVIOUS_SEGMENT"] = None
+    return dataframe
+
+def get_thresold(code: str):
+    """
+     get thresold from api
+    """
+    objets = requests.get(CONFIG["api_params"], timeout=15).json()
+    objet =  next((obj for obj in objets if obj["code"] == code), None)
+    if not objet:
+        raise ValueError("thresold of type %s not available", code)
+    return objet.get("value", CONFIG[code]).replace(",",".")
+
+def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
+    """
+       merge all data and generate oneforall
+    """
+    date_parts = date.split("-")
+    #get bdd site
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
+    if objet is None:
+        raise ValueError("Table 'BASE_SITES' not found in configuration")
+    # Parse the date string into datetime object
+    
+    filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     try:
         logging.info("read %s", filename)
-        df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-            storage_options={
-            "key": accesskey,
-            "secret": secretkey,
-            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-            }
-                )
+        bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                storage_options={
+                "key": accesskey,
+                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
+    
+    #get CA
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
+    if objet is None:
+        raise ValueError("Table 'caparc' not found in configuration")
         
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
 
-    # check columns
-    logging.info("check columns")
-    df_.columns = df_.columns.str.lower()
-    missing_columns = set(objet["columns"]).difference(set(df_.columns))
-    if len(missing_columns):
-        raise ValueError(f"missing columns {', '.join(missing_columns)}")
-    logging.info("columns are ok")
-   
-    # strip columns
-    logging.info("clean and enrich")
-    cols_to_trim = ["code oci", "autre code"]
-    df_[objet["columns"]] = df_[objet["columns"]].apply(lambda x: x.astype("str"))
-    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
-    df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    df_ = df_.loc[~ df_["code oci"].isnull(),:]
-    df_ = df_.drop_duplicates(["code oci", "mois"], keep="first")
-    df_["code oci id"] = df_["code oci"].str.replace("OCI","").astype("float64")
-    # get statut == service
-    df_ = df_.loc[df_["statut"].str.lower() == "service", objet["columns"]]
-    df_ = df_.loc[(df_["position site"].str.lower() == "localité") & (df_["position site"].str.lower() == "localié"), objet["columns"]]
-    logging.info("save to minio")
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
-
-
-
-def cleaning_esco(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
-    """
-    clean opex esco
-    
-    """
-    client = Minio(
-        endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"][0]
-    if not client.bucket_exists(objet["bucket"]):
-        raise OSError(f"bucket {objet['bucket']} don\'t exits")
-    
-    filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
-
-    try:
+    try:        
         logging.info("read %s", filename)
-        df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-                            header = 3, sheet_name="Fichier_de_calcul",
-                            storage_options={
-                            "key": accesskey,
-                            "secret": secretkey,
-            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-            }
-                )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
-        
-
-    # check columns
-    logging.info("check columns")
-    df_.columns = df_.columns.str.lower()
-    missing_columns = set(objet["columns"]).difference(set(df_.columns))
-    if len(missing_columns):
-        raise ValueError(f"missing columns {', '.join(missing_columns)}")
-    logging.info("columns are ok")
-    logging.info("clean ans enrich")
-    cols_to_trim = ["code site oci", "code site"]
-    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.astype("str"))
-    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
-    df_["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-    df_ = df_.loc[~ df_["code site oci"].isnull(),:]
-    df_ = df_.drop_duplicates(["code site oci", "mois"], keep="first")
-    df_ = df_.loc[~ df_["total redevances ht"].isnull()]
-    logging.info("save to minio")
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
-
-
-
-
-def cleaning_ihs(endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
-    """
-     clean or enrich  ihs
-    """
-    
-    if date.split("-")[1] in ["01","04","07","10"]:
-        
-        client = Minio(
-        endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-        objet = [d for d in CONFIG["tables"] if d["name"] == "OPEX_IHS"][0]
-        
-        if not client.bucket_exists(objet["bucket"]):
-            raise OSError(f"bucket {objet['bucket']} don\'t exits")
-
-        logging.info("get filename")
-        filename = getfilename(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{objet['folder']}_{date.split('-')[0]}{date.split('-')[1]}")
-        logging.info("read file %s",filename)
-        
-        
-       
-        excel = pd.ExcelFile(f"s3://{objet['bucket']}/{filename}",
-                             storage_options={
+        caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                storage_options={
                             "key": accesskey,
                             "secret": secretkey,
                             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                } )
-        sheet_f = []
-        for sheet in objet["sheets"]:
-           sheet_f.extend([s for s in excel.sheet_names if s.find(sheet)!=-1])
-        print(len(sheet_f))
-        data = pd.DataFrame()
+                                    }
+                            )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    
+    # get opex esco
+
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None) 
+    if objet is None:
+        raise ValueError("Table 'BASE_SITES' not found in configuration")
+    
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
         logging.info("read %s", filename)
-        for sh in sheet_f:
-            header = 14 if sh.find("OCI-COLOC") != -1 else 15
-            try:
-                
-                df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-                                 header=header , sheet_name=sh,
-                    storage_options={
-                        "key": accesskey,
-                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                }
-                        )
-                df_.columns = df_.columns.str.lower()
-                columns_to_check = ['site id ihs', 'site name', 'category', 'trimestre ht'] if sh.find("OCI-MLL BPCI 22") == -1 else objet["columns"]
-                missing_columns = set(columns_to_check).difference(set(df_.columns))
-                if len(missing_columns):
-                    raise ValueError(f"missing columns {', '.join(missing_columns)} in sheet {sh} of file {filename}")
-                df_ = df_.loc[:, ['site id ihs', 'site name', 'category', 'trimestre ht']] if sh.find("OCI-MLL BPCI 22") == -1 else df_.loc[:, objet['columns']]
-                df_["month_total"] = df_['trimestre ht'] / 3 if sh.find("OCI-MLL BPCI 22") == -1 else df_['trimestre 1 - ht'] / 3
-                data = pd.concat([data, df_])
-            except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
-
-
-        logging.info("clean ans enrich")
-
-        cols_to_trim = ['site id ihs']
-        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
-        data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-        data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-        data = data.loc[~ data['site id ihs'].isnull(),:]
-        data.loc[data["trimestre ht"].isna(),"trimestre ht"] = data.loc[data["trimestre 1 - ht"].notna(), "trimestre 1 - ht"]
-        data = data.loc[~ data["trimestre ht"].isnull(),:]
-        data1 = deepcopy(data)
-        data1["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+1).zfill(2)
-        data2 = deepcopy(data)
-        data2["mois"] = date.split("-")[0]+"-"+str(int(date.split("-")[1])+2).zfill(2)
-        logging.info("save to minio")
-        save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, pd.concat([data, data1, data2]))
-
-
-
-########## enrich
-
-def cleaning_ca_parc(endpoint:str, accesskey:str, secretkey:str,  date: str):
-    """
-     cleaning CA & Parc
-    """
-
-    client = Minio(
-        endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet = [d for d in CONFIG["tables"] if d["name"] == "ca&parc"][0]
-    if not client.bucket_exists(objet["bucket"]):
-            raise OSError(f"bucket {objet['bucket']} don\'t exits")
+        esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
     
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-    data = pd.DataFrame()
-    for filename in filenames:
-        try:
-                
-                df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                    storage_options={
-                        "key": accesskey,
-                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                }
-                        )
-        except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
-        df_.columns = df_.columns.str.lower()
-        data = pd.concat([data, df_])
+    # get opex ihs
+    if date.split('-')[1] in ["01","02", "03"]:
+        pre = "01"
+    elif date.split('-')[1] in ["04","05", "06"]:
+        pre = "04"
+    elif date.split('-')[1] in ["07","08", "09"]:
+        pre = "07"
+    else:
+        pre = "10"
     
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_IHS"), None)
+    if objet is None:
+        raise ValueError("Table 'OPEX_IHS' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{pre}/{date_parts[2]}")
 
-
-
-def cleaning_alarm(endpoint:str, accesskey:str, secretkey:str,  date: str):
-    """
-        clean alarm
-    """
-    client = Minio(
-        endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet = [d for d in CONFIG["tables"] if d["name"] == "faitalarme"][0]
-    if not client.bucket_exists(objet["bucket"]):
-            raise OSError(f"bucket {objet['bucket']} don\'t exits")
+    try:
+        logging.info("read %s", filename)
+        ihs = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
     
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-    data = pd.DataFrame()
-    for filename in filenames:
-        try:
-                
-                df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                    storage_options={
-                        "key": accesskey,
-                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                }
-                        )
-        except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
-        df_.columns = df_.columns.str.lower()
-        data = pd.concat([data, df_])
+    # get  indisponibilité
+    # objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
+    # if objet is None:
+    #     raise ValueError("Table 'faitalarme' not found in configuration")
+  
+    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+
+    # try:
+    #     logging.info("read %s", filename)
+    #     indisponibilite = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
+
+    # get trafic
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "hourly_datas_radio_prod"), None)
+    if objet is None:
+        raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+
+    try:
+        logging.info("read %s", filename)
+        trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    
+    # get trafic_v2
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
+    if objet is None:
+        raise ValueError("Table 'ks_tdb_radio_drsi' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
+        logging.info("read %s", filename)
+        trafic2 = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+
+    # get CSSR
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
+    if objet is None:
+        raise ValueError("Table 'Taux_succes_2g' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+
+    try:
+        logging.info("read %s", filename)
+        cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+
+    # get congestion
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
+    if objet is None:
+        raise ValueError("Table 'CONGESTION' not found in configuration")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
+        logging.info("read %s", filename)
+        cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+
+
+    # merging
 
     
-    cols_to_trim = ["code_site"]
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-    data.date = data.date.astype("str")
-
-    data["mois"] = date.split("-")[0]+"-"+date.split("-")[1]
-
-    data = data.sort_values("nbrecellule", ascending=False).drop_duplicates(["occurence", "code_site", "techno"], keep ="first" )
-    data = data.loc[:, ["code_site", "delay","mois", "techno", "nbrecellule"]]
-    # temps d'indisponibilité par site
-    data = data.groupby(["code_site", "mois", "techno"]).sum(["delay", "nbrecellule"])
-    #unstack var by techno
-    data_final = data.unstack()
-    data_final.columns = ["_".join(d) for d in data_final.columns]
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
-
-
-
-def cleaning_trafic(endpoint:str, accesskey:str, secretkey:str,  date: str):
-    """
-    cleaning trafic"""
-
-
-    client = Minio( endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet = [d for d in CONFIG["tables"] if d["name"] == "hourly_datas_radio_prod"][0]
-    if not client.bucket_exists(objet["bucket"]):
-            raise OSError(f"bucket {objet['bucket']} don\'t exits")
+    logging.info("merge bdd and CA")
+    bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet["bucket"], prefix = f"{objet['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-    data = pd.DataFrame()
-    for filename in filenames:
-        try:
-                
-                df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                    storage_options={
-                        "key": accesskey,
-                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                }
-                        )
-        except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
-        df_.columns = df_.columns.str.lower()
-        data = pd.concat([data, df_])
+    logging.info("add opex")
+    bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
+    bdd_ca_ihs_esco = bdd_ca_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
+    
+    # join esco and ihs colonnes
+    
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_ca_ihs_esco["total redevances ht"]
 
-    cols_to_trim = ["code_site"]
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-    data.date_jour = data.date_jour.astype("str")
-    data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["o&m_x"].isnull(), "o&m_x"] = bdd_ca_ihs_esco["o&m_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["energy_x"].isnull(), "energy_x"] = bdd_ca_ihs_esco["energy_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["infra_x"].isnull(), "infra_x"] = bdd_ca_ihs_esco["infra_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["maintenance passive preventive_x"].isnull(), "maintenance passive preventive_x"] = bdd_ca_ihs_esco["maintenance passive preventive_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["gardes de securite_x"].isnull(), "gardes de securite_x"] = bdd_ca_ihs_esco["gardes de securite_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_ca_ihs_esco["discount_y"]
+    bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_ca_ihs_esco["volume discount_y"]
+    
+    logging.info("add indisponibilite")
+    #bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
+
+    logging.info("add congestion")
+    bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
+
+    logging.info("add trafic")
+    bdd_ca_ihs_esco_cong_trafic = bdd_ca_ihs_esco_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+
+    logging.info("add trafic v2")
+    bdd_ca_ihs_esco_cong_trafic2 = bdd_ca_ihs_esco_cong_trafic.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
+
+    logging.info("add cssr")
+    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
+
+    logging.info("final columns")
+    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:, ~bdd_ca_ihs_esco_cong_trafic_cssr.columns.duplicated()]
+    bdd_ca_ihs_esco_cong_trafic_cssr["delay_2G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delay_3G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delay_4G"] = 0
+
+    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_2G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_3G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_4G"] = 0
+
+    bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_2G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_3G"] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_4G"] = 0
+
+
+
+    df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
+                                                       'type du site', 'statut','localisation', 'commune', 'departement', 'region',
+                                                         'partenaires','proprietaire', 'gestionnaire','type geolocalite',
+                                                           'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc', 'parc_data',"parc_2g",
+                                                         "parc_3g", "parc_4g", "parc_5g", "parc_other",
+                                                           'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
+       'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+        
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4G", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
+        'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',
+        "nbre_cellule_2G", "nbre_cellule_congestionne_2G","nbre_cellule_3G", "nbre_cellule_congestionne_3G", "nbre_cellule_4G", "nbre_cellule_congestionne_4G",
+        "avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
+    
+    
+    logging.info("final columns renamed")
+    
+    print(df_final.columns)
+    print(df_final.shape)
+    df_final.columns = ['mois', 'code_oci',
+                                'site',
+                                'autre_code',
+                                'longitude',
+                                'latitude',
+                                'type_du_site',
+                                'statut',
+                                'localisation',
+                                'commune',
+                                'departement',
+                                'region',
+                                'partenaires',
+                                'proprietaire',
+                                'gestionnaire',
+                                'type_geolocalite',
+                                'projet',
+                                'clutter',
+                                'position_site',
+                                'ca_voix',
+                                'ca_data',
+                                'parc_global',
+                                'parc_data',
+                                "parc_2g",
+                                "parc_3g",
+                                "parc_4g",
+                                "parc_5g",
+                                "autre_parc",
+                                'o_m',
+                                'energie',
+                                'infra',
+                                'maintenance_passive_preventive',
+                                'garde_de_securite',
+                                'discount',
+                                'volume_discount',
+                                'tva',  'opex_itn',
+                                'delay_2g',
+                                'delay_3g',
+                                'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
+                                'nbrecellule_2g',
+                                'nbrecellule_3g',
+                                'nbrecellule_4g',
+                                'trafic_voix_2g',
+                                'trafic_voix_3g',
+                                'trafic_voix_4g',
+                                'trafic_data_2g',
+                                'trafic_data_3g',
+                                'trafic_data_4g',
+                                "trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
+                                'cellules_2g_congestionnees',
+                                'cellules_2g',
+                                'cellules_3g_congestionnees',
+                                'cellules_3g',
+                                'cellules_4g_congestionnees',
+                                'cellules_4g',
+                                "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", "cellules_congestionne_v2_4g",
+                                'avg_cssr_cs_2g',
+                                'avg_cssr_cs_3g']
+    print(df_final.shape)
+    # enrich
+    df_final["trafic_voix_total"] = df_final["trafic_voix_2g"]+df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
+    df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
+
+    df_final["ca_total"] = df_final["ca_data"] + df_final["ca_voix"]
+    df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total>=20000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total>=10000000)),["segment"]] = "PREMIUM"
+    df_final.loc[((df_final.localisation.str.lower()=="abidjan") & ((df_final.ca_total>=10000000) & (df_final.ca_total<20000000) )) | ((df_final.localisation.str.lower()=="intérieur") & ((df_final.ca_total>=4000000) & (df_final.ca_total<10000000))),["segment"]] = "NORMAL"
+    df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total<10000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total<4000000)),["segment"]] = "A DEVELOPPER"
+
+
+    df_final = df_final.loc[:, ['mois',
+                                'code_oci',
+                                'site',
+                                'autre_code',
+                                'longitude',
+                                'latitude',
+                                'type_du_site',
+                                'statut',
+                                'localisation',
+                                'commune',
+                                'departement',
+                                'region',
+                                'partenaires',
+                                'proprietaire',
+                                'gestionnaire',
+                                'type_geolocalite',
+                                'projet',
+                                'clutter',
+                                'position_site',
+                                'ca_voix',
+                                'ca_data',
+                                'parc_global',
+                                'parc_data',
+                                "parc_2g",
+                                "parc_3g",
+                                "parc_4g",
+                                "parc_5g",
+                                "autre_parc",
+                                'o_m',
+                                'energie',
+                                'infra',
+                                'maintenance_passive_preventive',
+                                'garde_de_securite',
+                                'discount',
+                                'volume_discount',
+                                'tva',
+                                'opex_itn',
+                                'delay_2g',
+                                'delay_3g',
+                                'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
+                                'nbrecellule_2g',
+                                'nbrecellule_3g',
+                                'nbrecellule_4g',
+                                'trafic_voix_2g',
+                                'trafic_voix_3g',
+                                'trafic_voix_4g',
+                                'trafic_data_2g',
+                                'trafic_data_3g',
+                                'trafic_data_4g',
+                                "trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
+                                'cellules_2g_congestionnees',
+                                'cellules_2g',
+                                'cellules_3g_congestionnees',
+                                'cellules_3g',
+                                'cellules_4g_congestionnees',
+                                'cellules_4g',
+                                "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", "cellules_congestionne_v2_4g",
+                                'avg_cssr_cs_2g',
+                                'avg_cssr_cs_3g',
+                                'trafic_voix_total',
+                                'trafic_data_total',
+                                'ca_total',
+                                'segment']]
+    
+    
+    
+    # pareto
+    oneforall = pareto(df_final)
+
+    oneforall["cellules_congestionnees_total"] = oneforall['cellules_2g_congestionnees'] +  oneforall['cellules_3g_congestionnees'] + oneforall['cellules_4g_congestionnees']
+    oneforall["cellules_congestionnees_total_v2"] = oneforall['cellules_congestionne_v2_2g'] +  oneforall['cellules_congestionne_v2_3g'] + oneforall['cellules_congestionne_v2_4g'] ###
+
+    oneforall["cellules_total"] = oneforall['cellules_2g'] + oneforall['cellules_3g'] + oneforall['cellules_4g']
+    oneforall["cellules_total_v2"] = oneforall['cellules_v2_2g'] + oneforall['cellules_v2_3g'] + oneforall['cellules_v2_4g'] ###
+
+    oneforall["taux_congestion_2g"] = oneforall['cellules_2g_congestionnees'] / oneforall['cellules_2g']
+    oneforall["taux_congestion_3g"] = oneforall['cellules_3g_congestionnees'] / oneforall['cellules_3g']
+    oneforall["taux_congestion_4g"] = oneforall['cellules_4g_congestionnees'] / oneforall['cellules_4g']
+    oneforall["taux_congestion_total"] =  oneforall["taux_congestion_2g"] + oneforall["taux_congestion_3g"] + oneforall["taux_congestion_4g"]
+
+
+    oneforall["taux_congestion_2g_v2"] = oneforall['cellules_congestionne_v2_2g'] / oneforall['cellules_v2_2g']
+    oneforall["taux_congestion_3g_v2"] = oneforall['cellules_congestionne_v2_3g'] / oneforall['cellules_v2_3g']
+    oneforall["taux_congestion_4g_v2"] = oneforall['cellules_congestionne_v2_4g'] / oneforall['cellules_v2_4g']
+    oneforall["taux_congestion_total_v2"] =  oneforall["taux_congestion_2g_v2"] + oneforall["taux_congestion_3g_v2"] + oneforall["taux_congestion_4g_v2"]
+
+
+    oneforall["recommandation"] = "Surveillance technique"
+    oneforall.loc[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
+
+    oneforall["recommandation_v2"] = "Surveillance technique"
+    oneforall.loc[(oneforall["taux_congestion_total_v2"]<=0.5), "recommandation_v2"] =  "Surveillance commerciale"
+    
+    oneforall["arpu"] = oneforall["ca_total"] / oneforall["parc_global"]
+    oneforall["segmentation_rentabilite"] = 'Unknown'
+    oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 1'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 2'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] >=0.15)),"segmentation_rentabilite"] = 'Seg 3'
+    oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g"] >= 0.15)),"segmentation_rentabilite"] = 'Seg 4'
+
+    oneforall["segmentation_rentabilite_v2"] = 'Unknown'
+    oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g_v2"] < 0.15)),"segmentation_rentabilite_v2"] = 'Seg 1'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g_v2"] < 0.15)),"segmentation_rentabilite_v2"] = 'Seg 2'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g_v2"] >=0.15)),"segmentation_rentabilite_v2"] = 'Seg 3'
+    oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g_v2"] >= 0.15)),"segmentation_rentabilite_v2"] = 'Seg 4'
+
+
+    oneforall["cssr_pondere_trafic_2g"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_2g']) / sum(oneforall["trafic_voix_2g"])) / 100
+    oneforall["cssr_pondere_trafic_3g"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_3g']) / sum(oneforall["trafic_voix_3g"])) / 100
+
+    oneforall["cssr_pondere_trafic_2g_v2"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_v2_2g']) / sum(oneforall["trafic_voix_v2_2g"])) / 100
+    oneforall["cssr_pondere_trafic_3g_v2"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_v2_3g']) / sum(oneforall["trafic_voix_v2_3g"])) / 100
+
+    # get thresold
+    interco = float(get_thresold("intercos")) /100 #CA-voix 
+    impot = float(get_thresold("impot_taxe"))/100 #CA
+    frais_dist = float( get_thresold("frais_distribution"))/100 #CA
+    seuil_renta = float(get_thresold("seuil_rentabilite"))/100
+
+
+    oneforall["interco"] = oneforall["ca_voix"]*interco
+    oneforall["impot"] = oneforall["ca_total"]*impot
+    oneforall["frais_dist"] = oneforall["ca_total"]*frais_dist
+    oneforall["opex"] = oneforall['opex_itn'] + oneforall["interco"] + oneforall["impot"] + oneforall["frais_dist"]
+    oneforall["autre_opex"] = oneforall["opex"] - oneforall["opex_itn"]
+    oneforall["ebitda"] = oneforall["ca_total"] - oneforall["opex"]
+    oneforall["marge_ca"] = oneforall["ebitda"]/oneforall["ca_total"]
+    oneforall["rentable"] = (oneforall["marge_ca"])>seuil_renta
    
-    data = data.groupby(["mois","code_site", "techno"]).sum(["trafic_voix","trafic_data"])
-    data = data.unstack()
-    data.columns = ["_".join(d) for d in data.columns]
-    save_minio(endpoint, accesskey, secretkey, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+    oneforall["niveau_rentabilite"] = "NEGATIF"
+    oneforall.loc[(oneforall["marge_ca"])>0, "niveau_rentabilite"] = "NON RENTABLE"
+    oneforall.loc[(oneforall["marge_ca"])>=seuil_renta, "niveau_rentabilite"] = "RENTABLE"
 
-
-def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
-    """
-     cleaning call drop
-    """
-    client = Minio( endpoint,
-        access_key= accesskey,
-        secret_key= secretkey,
-        secure=False)
-    objet_2g = [d for d in CONFIG["tables"] if "Call_drop_2" in d["name"] ][0]
-    objet_3g = [d for d in CONFIG["tables"] if "Call_drop_3" in d["name"] ][0]
-    if not client.bucket_exists(objet_2g["bucket"]):
-            raise OSError(f"bucket {objet_2g['bucket']} don\'t exits")
+    logging.info("add NUR") 
     
-    filenames = getfilesnames(endpoint, accesskey, secretkey, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}")
-    filenames.extend(getfilesnames(endpoint, accesskey, secretkey, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date.split('-')[0]}/{date.split('-')[1]}"))
-    data = pd.DataFrame()
-    for filename in filenames:
-        try:
-                
-                df_ = pd.read_csv(f"s3://{objet_2g['bucket']}/{filename}",
-                    storage_options={
-                        "key": accesskey,
-                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                }
-                        )
-        except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
-        df_.columns = df_.columns.str.lower()
-        data = pd.concat([data, df_])
-    cols_to_trim = ["code_site"]
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.astype("str"))
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
-    data.loc[data["drop_after_tch_assign"].isna(),"drop_after_tch_assign"] = data.loc[data["number_of_call_drop_3g"].notna(), "number_of_call_drop_3g"]
-    data.date_jour = data.date_jour.astype("str")
-    data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-" )
-    data = data.loc[:, ["mois","code_site", "techno", "drop_after_tch_assign"]]
-    data = data.groupby(["mois","code_site", "techno"]).sum(["drop_after_tch_assign"])
-    
-    data = data.unstack()
-    data.columns = ["_".join(d) for d in data.columns]
-    save_minio(endpoint, accesskey, secretkey, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, data)
 
+    oneforall["days"] = oneforall["mois"].apply(get_number_days)
+
+    oneforall["nur_2g"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_2g") )
+    oneforall["nur_3g"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_3g") )
+    oneforall["nur_4g"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_4g") )
+
+
+    oneforall["nur_2g_v2"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_2g") )
+    oneforall["nur_3g_v2"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_3g") )
+    oneforall["nur_4g_v2"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_4g") )
+    
+    oneforall["nur_total"] =  oneforall["nur_2g"] +  oneforall["nur_3g"] +  oneforall["nur_4g"]
+
+    oneforall["nur_total_v2"] =  oneforall["nur_2g_v2"] +  oneforall["nur_3g_v2"] +  oneforall["nur_4g_v2"]
+
+    oneforall["previous_segment"] = None
+    oneforall.reset_index(drop=True,inplace=True)
+    if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
+        last = datetime.strptime(date, CONFIG["date_format"]) - timedelta(weeks=4)
+        last_filename = get_latest_file(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
+        logging.info(f"read {last_filename}")
+        lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+        
+        for idx, row in oneforall.iterrows():
+            previos_segment = lastoneforall.loc[lastoneforall.code_oci==row["code_oci"], "segment"].values
+            print(previos_segment)
+            oneforall.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
+            print(oneforall.loc[idx, ["code_oci","previous_segment"]])
+    return oneforall
+
+
+def get_last_ofa(client, endpoint: str, accesskey: str, secretkey: str, date: str):
+    """ """
+    # get files
+    date_parts = date.split("-")
+    filename = get_latest_file(client, bucket="oneforall", prefix=f"{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+
+   
+    try:
+                    
+        df_ = pd.read_csv(f"s3://oneforall/{filename}",
+                        storage_options={
+                            "key": accesskey,
+                            "secret": secretkey,
+                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                                    }
+                            )
+    except Exception as error:
+            raise OSError(f"{filename} don't exists in bucket") from error
+    
+    return df_
