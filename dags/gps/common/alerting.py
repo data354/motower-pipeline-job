@@ -21,7 +21,7 @@ def send_email(host, port, user, receivers, subject, content):
     """
      function to send email
     """
-    logging.info(f"Sending mail ... ")
+    logging.info("Sending mail ... ")
     for receiver in receivers:
         smtp_server = smtplib.SMTP(host, port)
         smtp_server.sendmail(user, receiver, f"Subject: {subject}\n{content}") # sending the mail
@@ -33,11 +33,9 @@ def alert_failure(**kwargs):
         send mail on failure
     
     """
-    # log_url = context.get("task_instance").log_url
-    #task_id = context['task'].task_id
+   
     task_id = kwargs["task_id"]
     dag_id = kwargs["dag_id"]
-    #dag_id = context['task'].dag_id
 
     exec_date = kwargs["exec_date"]
     exception = kwargs["exception"]
@@ -60,9 +58,7 @@ def alert_failure(**kwargs):
 
             """
     # send email for alerting
-    reponse = requests.get(CONFIG["api_mails"], timeout=500).content
-    #validation_receivers  = [rec["email"] for rec in reponse if rec["typeFichier"] == kwargs["type_fichier"]]
-    validation_receivers = CONFIG['airflow_receivers']
-    logging.info(f"send alert mail to {', '.join(validation_receivers)}")
+    receivers = CONFIG['airflow_receivers']
+    logging.info(f"send alert mail to {', '.join(receivers)}")
     subject = "Rapport d'erreur sur GPS"
-    send_email(kwargs["host"],kwargs["port"], kwargs["user"], validation_receivers, subject, email_content)
+    send_email(kwargs["host"],kwargs["port"], kwargs["user"], receivers, subject, email_content)

@@ -48,7 +48,7 @@ CLIENT = Minio( MINIO_ENDPOINT,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
 
-def extract_trafic_V2(**kwargs):
+def extract_trafic_v2(**kwargs):
     """
     """
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
@@ -57,7 +57,7 @@ def extract_trafic_V2(**kwargs):
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
-    save_minio(CLIENT, kwargs["bucket"], kwargs["folder"] , kwargs["ingest_date"], data)
+    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"])
 
 def on_failure(context):
     """
@@ -105,7 +105,7 @@ def gen_oneforall(**kwargs):
         kwargs["start_date"],
     )
     if not data.empty:
-        save_minio(client=CLIENT, bucket="oneforall", folder=None, date=kwargs["date"], data=data)
+        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
 
@@ -164,7 +164,7 @@ with DAG(
         extract_trafic_deux = PythonOperator(
                 task_id="extract_trafic_deux",
                 provide_context=True,
-                python_callable=extract_trafic_V2,
+                python_callable=extract_trafic_v2,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],

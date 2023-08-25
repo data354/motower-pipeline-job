@@ -1,9 +1,9 @@
 """ CLEANING COMMON"""
 import logging
 from copy import deepcopy
+import calendar
 import pandas as pd
 from copy import deepcopy
-import calendar
 from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
@@ -79,7 +79,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
     df_ = df_.loc[(df_["statut"].str.lower() == "service") & (df_["position site"].str.lower().isin(["localité", "localié"])), table_obj["columns"] + ["code oci id", "mois"]]
      # Save cleaned data to minio
     logging.info("Saving data to minio")
-    save_minio(client, table_obj["bucket"], f"{table_obj['folder']}-cleaned", date, df_)
+    save_minio(client, table_obj["bucket"], date, df_, f"{table_obj['folder']}-cleaned")
 
 
 def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
@@ -165,7 +165,7 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     data["mois"] = date_parts[0]+"-"+date_parts[1]
     data = clean_dataframe(data, cols_to_trim, subset_unique, subset_na)
     logging.info("Saving to minio")
-    save_minio(client, objet["bucket"], f'OPEX_ESCO-cleaned', date, data)
+    save_minio(client, objet["bucket"], date, data, "OPEX_ESCO-cleaned")
 
 
 
@@ -266,7 +266,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
     data_final["maintenance passive preventive"] = ratio["maintenance passive preventive"].values * data_final["month_total"]
     data_final["gardes de securite"] = ratio["gardes de securite"].values * data_final["month_total"]
     logging.info("save to minio")
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
+    save_minio(client, objet["bucket"], date, data_final,f'{objet["folder"]}-cleaned')
 
 
 
@@ -312,7 +312,7 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
           "parc_other": 'last'})
     data.reset_index(drop=False, inplace=True)
     logging.info("Start to save data")
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+    save_minio(client, objet["bucket"], date, data, f'{objet["folder"]}-cleaned')
 
 
 
@@ -373,7 +373,7 @@ def cleaning_alarm(client, endpoint: str, accesskey: str, secretkey: str, date: 
     data_final.reset_index(drop=False, inplace= True)
     data_final = data_final.fillna(0)
      # Save the cleaned data to a new file in the same bucket
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data_final)
+    save_minio(client, objet["bucket"], date, data_final, f'{objet["folder"]}-cleaned')
 
 
 
@@ -428,7 +428,7 @@ def cleaning_traffic(client, endpoint: str, accesskey: str, secretkey: str, date
     data.columns = ["_".join(d) for d in data.columns]
     data.reset_index(drop=False, inplace=True)
      # Save the cleaned DataFrame to Minio
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, data)
+    save_minio(client, objet["bucket"], date, data, f'{objet["folder"]}-cleaned')
 
 def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, date: str):
     """
@@ -469,8 +469,7 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
         trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
         trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
     except AttributeError :
-        trafic["trafic_data_go"] = trafic["trafic_data_go"]
-        trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"]
+        pass
     trafic["mois"] = trafic["date_id"].str[:-3]
     trafic = trafic[["mois", "id_site", "trafic_data_go", "trafic_voix_erl", "nbre_cellule", "nbre_cellule_congestionne", "techno" ]]
     trafic = trafic.groupby(["mois", "id_site", "techno"]).sum()
@@ -478,7 +477,7 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
     trafic.columns = ["_".join(d) for d in trafic.columns]
     trafic.reset_index(drop=False, inplace=True)
      # Save the cleaned dataFrame to Minio
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, trafic)
+    save_minio(client, objet["bucket"], date, trafic, f'{objet["folder"]}-cleaned')
 
 # def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
 #     """
@@ -579,7 +578,7 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     cssr = cssr.groupby(["MOIS", "code_site"]).mean()
     cssr = cssr.reset_index(drop=False)
     logging.info("start to save data")
-    save_minio(client, objet_2g["bucket"], f'{objet_2g["bucket"]}-cleaned', date, cssr)
+    save_minio(client, objet_2g["bucket"], date, cssr, f'{objet_2g["bucket"]}-cleaned')
 
 
 # clean congestion
@@ -634,4 +633,4 @@ def cleaning_congestion(client, endpoint:str, accesskey:str, secretkey:str,  dat
     df_ = df_.groupby(["mois", "code_site"])["cellules_2g","cellules_2g_congestionnees","cellules_3g", "cellules_3g_congestionnees", "cellules_4g", "cellules_4g_congestionnees"].sum()
     df_[["cellules_4g_congestionnees", "cellules_2g_congestionnees", "cellules_3g_congestionnees"]] = df_[["cellules_4g_congestionnees", "cellules_2g_congestionnees", "cellules_3g_congestionnees"]].fillna(value=0)
     df_ = df_.reset_index(drop=False)
-    save_minio(client, objet["bucket"], f'{objet["folder"]}-cleaned', date, df_)
+    save_minio(client, objet["bucket"], date, df_, f'{objet["folder"]}-cleaned')
