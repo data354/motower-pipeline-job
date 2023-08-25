@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from pathlib import Path
 from minio import Minio
 from airflow.operators.python import PythonOperator
 from airflow.sensors.python import PythonSensor
@@ -9,11 +8,18 @@ from gps import CONFIG
 from gps.common.extract import extract_ftp, list_ftp_file
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email
+from gps.common.daily import motower_daily
+from gps.common.rwpg import write_pg
 
 
 FTP_HOST = Variable.get('ftp_host')
 FTP_USER = Variable.get('ftp_user')
 FTP_PASSWORD = Variable.get('ftp_password')
+
+PG_SAVE_HOST = Variable.get('pg_save_host')
+PG_SAVE_DB = Variable.get('pg_save_db')
+PG_SAVE_USER = Variable.get('pg_save_user')
+PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
 INGEST_FTP_DATE = "{{ macros.ds_add(ds, -2) }}"
 
@@ -60,6 +66,19 @@ def send_email_onfailure(**kwargs):
     subject = f"  Missing file {filename}"
     content = f"Missing file {filename}. please provide file asap"
     send_email(kwargs["host"], kwargs["port"], kwargs["users"], kwargs["receivers"], subject, content)
+
+def gen_motower_daily(**kwargs):
+    data = motower_daily(
+        CLIENT,
+        kwargs["endpoint"],
+        kwargs["accesskey"],
+        kwargs["secretkey"],
+        kwargs["date"]    )
+    if not data.empty:
+        write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily")
+    else:
+        raise RuntimeError(f"No data for {kwargs['date']}")
+
 with DAG(
         'daily',
         default_args={
@@ -73,7 +92,7 @@ with DAG(
         },
         description='daily job',
         schedule_interval="0 20 * * *",
-        start_date=datetime(2023, 7, 9, 6, 30, 0),
+        start_date=datetime(2023, 7, 2, 6, 30, 0),
         catchup=True
 ) as dag:
     check_file_sensor = PythonSensor(
@@ -119,5 +138,17 @@ with DAG(
                 },
                 dag=dag,
             )
+    motower_task = PythonOperator(
+            task_id="motower_task",
+            provide_context=True,
+            python_callable=gen_motower_daily,
+            op_kwargs={
+                "endpoint": MINIO_ENDPOINT,
+                "accesskey": MINIO_ACCESS_KEY,
+                "secretkey": MINIO_SECRET_KEY,
+                "date": INGEST_FTP_DATE,
+            },
+            dag=dag,
+        )
     check_file_sensor >> send_email_task 
-    check_file_sensor >> get_caparc
+    check_file_sensor >> get_caparc >> motower_task
