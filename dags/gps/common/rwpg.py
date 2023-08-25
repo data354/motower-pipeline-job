@@ -2,6 +2,7 @@
 
 import psycopg2
 from sqlalchemy import create_engine
+from datetime import datetime as dt
 
 def write_pg(host: str, database:str, user: str, password: str,
             data, table: str = None, port:str="5432"):
@@ -149,7 +150,7 @@ def write_pg(host: str, database:str, user: str, password: str,
             """
         
         if table == "motower_daily":
-            delete_query = f'DELETE FROM {table} WHERE date = {data.date.unique()[0]}'
+            delete_query = f'DELETE FROM {table} WHERE date = {dt.strptime(data.date.unique()[0]).date()}'
             create_query = f"""
                 CREATE TABLE {table} (
                 id SERIAL PRIMARY KEY,
