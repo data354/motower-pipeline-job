@@ -150,7 +150,7 @@ def write_pg(host: str, database:str, user: str, password: str,
             """
         
         if table == "motower_daily":
-            delete_query = f'DELETE FROM {table} WHERE jour = {dt.strptime(data.jour.unique()[0], "%Y-%m-%d").date()}'
+            delete_query = f'DELETE FROM {table} WHERE jour = {dt.strptime(data.jour.unique()[0], "%Y-%m-%d").date().isoformat()}'
             create_query = f"""
                 CREATE TABLE {table} (
                 id SERIAL PRIMARY KEY,
