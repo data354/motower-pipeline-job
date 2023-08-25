@@ -24,7 +24,7 @@ SQL_QUERIES = {
     "ks_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_TDB_RADIO_DRSI" where "DATE_ID" = %s ;
     ''' ,
     "ks_hebdo_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_TDB_RADIO_DRSI" where "DATE_ID" = %s ''', 
-    
+
     "Taux_succes_2g": """select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,
     MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
     MAX(CAST(cssr_cs AS DECIMAL)) AS max_cssr_cs, AVG(CAST(cssr_cs AS DECIMAL)) AS avg_cssr_cs,
@@ -169,7 +169,7 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     # Add "month_id" columns
     new_trafic_names = {'trafic_data': 'trafic_data_in',
                     'trafic_voix': 'trafic_voix_in'}
-    df_.rename(columns=new_trafic_names)
+    df_.rename(columns=new_trafic_names, inplace=True)
     try:
         logging.info("add column")
         df_["day_id"] = df_["day_id"].astype(str)
