@@ -155,6 +155,7 @@ def write_pg(host: str, database:str, user: str, password: str,
                 id SERIAL PRIMARY KEY,
                 jour date,
                 code_oci varchar,
+                code_oci_id  varchar,
                 autre_code VARCHAR,
                 clutter VARCHAR,
                 commune VARCHAR,
@@ -216,3 +217,8 @@ def write_pg(host: str, database:str, user: str, password: str,
     conn.close()
 
     data.to_sql(table, engine, index=False, if_exists = 'append')
+
+
+
+
+
