@@ -101,6 +101,8 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
     if table in SQL_QUERIES:
         if table == "ks_tdb_radio_drsi":
             return execute_query([conn, date[:-2]+"01", SQL_QUERIES[table]])
+        if table == "ks_hebdo_tdb_radio_drsi":
+            return execute_query([conn, date, SQL_QUERIES[table]])
         if table != "faitalarme":
             return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )
         return execute_query([conn, date, SQL_QUERIES[table]] )
