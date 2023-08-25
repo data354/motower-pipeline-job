@@ -53,7 +53,7 @@ def gen_congestion(**kwargs):
 
 
 with DAG(
-    "enrich",
+    "weekly",
     default_args={
         "depends_on_past": False,
         "email": CONFIG["airflow_receivers"],
@@ -62,7 +62,7 @@ with DAG(
         "max_active_run": 1,
         "retries": 0,
     },
-    description="clean monthly data",
+    description="weekly data",
     schedule_interval=timedelta(weeks=1),
     start_date=datetime(2023, 7, 3, 20, 0, 0),
     catchup=True,
