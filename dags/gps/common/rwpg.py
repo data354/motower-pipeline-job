@@ -22,7 +22,7 @@ def write_pg(host: str, database:str, user: str, password: str,
         information_schema.tables WHERE table_name = '{table}');""")
     table_exists = cur.fetchone()[0]
     if not table_exists:
-        if table == "motower_daily":
+        if table == "motower_monthly":
             #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
             delete_query = f'DELETE FROM {table} WHERE mois = {data.mois.unique()[0]}'
             create_query = f"""
