@@ -25,7 +25,6 @@ def write_pg(host: str, database:str, user: str, password: str,
     if not table_exists:
         if table == "motower_monthly":
             #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
-            delete_query = f"DELETE FROM {table} WHERE mois = '{data.mois.unique()[0]}'"
             create_query = f"""
                 CREATE TABLE {table} (
                 id SERIAL PRIMARY KEY,
@@ -150,8 +149,7 @@ def write_pg(host: str, database:str, user: str, password: str,
             """
         
         if table == "motower_daily":
-            date = data.loc[0, "jour"]
-            delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
+       
             create_query = f"""
                 CREATE TABLE {table} (
                 id SERIAL PRIMARY KEY,
@@ -189,6 +187,20 @@ def write_pg(host: str, database:str, user: str, password: str,
             );
             """
         
+        if table == "congestion":
+            create_query = f"""
+            CREATE TABLE {table} (
+                id SERIAL PRIMARY KEY,
+                jour date,
+                id_site  VARCHAR,
+                cellules_2g  INTEGER,
+                cellules_3g  INTEGER,
+                cellules_4g  INTEGER,
+                cellules_congestionnees_2g  INTEGER,
+                cellules_congestionnees_3g  INTEGER,
+                cellules_congestionnees_4g  INTEGER,
+            );
+            """
 
         cur.execute(create_query)
     if table == "motower_daily":
@@ -196,6 +208,8 @@ def write_pg(host: str, database:str, user: str, password: str,
     if table == "motower_monthly":
         #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
         delete_query = f"DELETE FROM {table} WHERE mois = '{data.mois.unique()[0]}'"
+    if table == "congestion":
+        delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
     cur.execute(delete_query)
     conn.commit()
     cur.close()

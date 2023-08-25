@@ -23,7 +23,7 @@ SQL_QUERIES = {
 
     "ks_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_TDB_RADIO_DRSI" where "DATE_ID" = %s ;
     ''' ,
-    "ks_hebdo_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_TDB_RADIO_DRSI" where "DATE_ID" = %s ''', 
+    "ks_hebdo_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_HEBDO_TDB_RADIO_DRSI" where "DATE_ID" = %s ''', 
 
     "Taux_succes_2g": """select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,
     MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
