@@ -33,6 +33,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
                            })
     except Exception as error:
         raise ValueError(f"{filename} does not exist in bucket.") from error
+    df_.columns = df_.columns.str.lower()
     df_ = df_.loc[:,["date_id", "id_site", "nbre_cellule", "nbre_cellule_congestionne", "techno"]]
     df_.columns = ["jour", "id_site", "cellules", "cellules_congestionnees", "techno"]
     df_ = df_.loc[df_.techno != "TDD", :]
