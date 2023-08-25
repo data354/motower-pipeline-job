@@ -78,7 +78,8 @@ with DAG(
 ) as dag:
     check_file_sensor = PythonSensor(
         task_id= "sensor_ca",
-        mode=None,
+        mode="reschedule",
+        retries=0,
         python_callable= check_file,
         op_kwargs={
         #     'hostname': FTP_HOST,
