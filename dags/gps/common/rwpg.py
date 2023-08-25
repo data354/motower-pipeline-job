@@ -25,7 +25,7 @@ def write_pg(host: str, database:str, user: str, password: str,
     if not table_exists:
         if table == "motower_monthly":
             #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
-            delete_query = f'DELETE FROM {table} WHERE mois = {data.mois.unique()[0]}'
+            delete_query = f"DELETE FROM {table} WHERE mois = '{data.mois.unique()[0]}'"
             create_query = f"""
                 CREATE TABLE {table} (
                 id SERIAL PRIMARY KEY,
@@ -150,7 +150,8 @@ def write_pg(host: str, database:str, user: str, password: str,
             """
         
         if table == "motower_daily":
-            delete_query = f'DELETE FROM {table} WHERE jour = {data.jour.unique()[0]}'
+            date = data.loc[0, "jour"]
+            delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
             create_query = f"""
                 CREATE TABLE {table} (
                 id SERIAL PRIMARY KEY,
