@@ -46,7 +46,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     logging.info("merge bdd and CA")
     bdd_ca = bdd.merge(ca, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     logging.info("prepare final daily data")
-    df_final = bdd_ca.loc[["day_id", "code oci", "autre code", "clutter", "commune", "departement", "type du site", "type geolocalite", "gestionnaire",
+    df_final = bdd_ca.loc[:,["day_id", "code oci", "autre code", "clutter", "commune", "departement", "type du site", "type geolocalite", "gestionnaire",
                            "latitude", "longitude", "localisation", "partenaires", "proprietaire", "position site", "site", "statut", "projet", "region",
                            "ca_data", "ca_voix", "ca_total", "parc", "parc_data", "parc_2g", "parc_3g", "parc_4g", "parc_5g", "parc_other", "trafic_data_in",
                            "trafic_voix_in"]]
