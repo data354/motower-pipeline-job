@@ -39,7 +39,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
     df_ = df_.loc[df_.techno != "TDD", :]
     df_ = df_.groupby(["jour",	"id_site","techno"	]).sum()
     df_ = df_.unstack()
-    df_.columns = ["_".join(d.lower()) for d in df_.columns]
+    df_.columns = ["_".join(d) for d in df_.columns.str.lower()]
     
     df_ = df_.reset_index(drop=False)
     return df_
