@@ -92,7 +92,7 @@ with DAG(
         },
         description='daily job',
         schedule_interval="0 20 * * *",
-        start_date=datetime(2023, 7, 2, 6, 30, 0),
+        start_date=datetime(2023, 7, 3, 6, 30, 0),
         catchup=True
 ) as dag:
     check_file_sensor = PythonSensor(
