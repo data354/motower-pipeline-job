@@ -54,6 +54,6 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
                            "latitude", "longitude", "localisation", "partenaires", "proprietaire", "position_site", "site", "statut", "projet", "region",
                            "ca_data", "ca_voix", "ca_total", "parc_global", "parc_data", "parc_2g", "parc_3g", "parc_4g", "parc_5g", "autre_parc", "trafic_data_in_ko",
                            "trafic_voix_in_minute"]
-    df_final["date"] = pd.to_datetime(df_final["date"])
+    df_final["date"] = pd.to_datetime(df_final["date"], format="%Y%m%d", yearfirst= True)
     return df_final
     
