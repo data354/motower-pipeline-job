@@ -19,7 +19,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     logging.info("Reading %s", filename)
      # Read file from minio
     try:
-        bdd = pd.read_excel(f"s3://{table_obj['bucket']}/{filename}",
+        bdd = pd.read_csv(f"s3://{table_obj['bucket']}/{filename}",
                            storage_options={
                                "key": accesskey,
                                "secret": secretkey,
@@ -34,7 +34,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     filename = f"{table_obj['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}.csv"
     logging.info("Reading %s", filename)
     try:
-        ca = pd.read_excel(f"s3://{table_obj['bucket']}/{filename}",
+        ca = pd.read_csv(f"s3://{table_obj['bucket']}/{filename}",
                            storage_options={
                                "key": accesskey,
                                "secret": secretkey,
