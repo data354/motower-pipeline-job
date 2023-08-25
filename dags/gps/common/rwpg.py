@@ -198,7 +198,7 @@ def write_pg(host: str, database:str, user: str, password: str,
                 cellules_4g  INTEGER,
                 cellules_congestionnees_2g  INTEGER,
                 cellules_congestionnees_3g  INTEGER,
-                cellules_congestionnees_4g  INTEGER,
+                cellules_congestionnees_4g  INTEGER
             );
             """
 
