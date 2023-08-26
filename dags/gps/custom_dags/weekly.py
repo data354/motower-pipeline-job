@@ -71,7 +71,7 @@ with DAG(
     extract_congestion_task = PythonOperator(
                 task_id="extract_congestion",
                 provide_context=True,
-                python_callable=extract_congestion,
+                python_callable=extract_v2,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
