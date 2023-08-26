@@ -42,5 +42,5 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
     df_.columns = ["_".join(d) for d in df_.columns]
     
     df_ = df_.reset_index(drop=False)
-    df_.columns = ["jour", "id_site", "cellules_2g", "cellules_3g", "cellules_4g", "cellules_2g_congestionnees", "cellules_3g_congestionnees", "cellules_2g_congestionnees"]
+    df_.columns = ["jour", "id_site", "cellules_2g", "cellules_3g", "cellules_4g", "cellules_2g_congestionnees", "cellules_3g_congestionnees", "cellules_4g_congestionnees"]
     return df_
