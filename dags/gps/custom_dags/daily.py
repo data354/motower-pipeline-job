@@ -10,7 +10,7 @@ from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email
 from gps.common.daily import motower_daily
 from gps.common.rwpg import write_pg
-from gps.custom_dags.extract import extract_job
+from gps.custom_dags.weekly import extract_v2
 
 
 FTP_HOST = Variable.get('ftp_host')
@@ -143,7 +143,7 @@ with DAG(
     extract_trafic = PythonOperator(
                 task_id="extract_trafic",
                 provide_context=True,
-                python_callable=extract_job,
+                python_callable=extract_v2,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],

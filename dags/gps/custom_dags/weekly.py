@@ -33,7 +33,7 @@ CLIENT = Minio( MINIO_ENDPOINT,
 
 DATE = "{{ds}}"
 
-def extract_congestion(**kwargs):
+def extract_v2(**kwargs):
     """
     """
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
