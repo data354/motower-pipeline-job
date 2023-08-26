@@ -183,8 +183,14 @@ def write_pg(host: str, database:str, user: str, password: str,
                 parc_4g INTEGER,
                 parc_5g INTEGER,
                 autre_parc INTEGER,
-                trafic_data_in_ko  FLOAT,
-                trafic_voix_in_minute FLOAT               
+                trafic_data_in  FLOAT,
+                trafic_voix_in FLOAT,
+                trafic_data_2g  FLOAT, 
+                trafic_data_3g  FLOAT,
+                trafic_data_4g  FLOAT,
+                trafic_voix_2g  FLOAT, 
+                trafic_voix_3g  FLOAT, 
+                trafic_voix_4g  FLOAT             
             );
             """
         
@@ -197,9 +203,9 @@ def write_pg(host: str, database:str, user: str, password: str,
                 cellules_2g  INTEGER,
                 cellules_3g  INTEGER,
                 cellules_4g  INTEGER,
-                cellules_congestionnees_2g  INTEGER,
-                cellules_congestionnees_3g  INTEGER,
-                cellules_congestionnees_4g  INTEGER
+                cellules_2g_congestionnees  INTEGER,
+                cellules_3g_congestionnees  INTEGER,
+                cellules_4g_congestionnees  INTEGER
             );
             """
 

@@ -37,10 +37,10 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
     df_ = df_.loc[:,["date_id", "id_site", "nbre_cellule", "nbre_cellule_congestionne", "techno"]]
     df_.columns = ["jour", "id_site", "cellules", "cellules_congestionnees", "techno"]
     df_ = df_.loc[df_.techno != "TDD", :]
-    df_["techno"] = df_["techno"].str.lower()
     df_ = df_.groupby(["jour",	"id_site","techno"	]).sum()
     df_ = df_.unstack()
     df_.columns = ["_".join(d) for d in df_.columns]
     
     df_ = df_.reset_index(drop=False)
+    df_.columns = ["jour", "id_site", "cellules_2g", "cellules_3g", "cellules_4g", "cellules_2g_congestionnees", "cellules_3g_congestionnees", "cellules_2g_congestionnees"]
     return df_
