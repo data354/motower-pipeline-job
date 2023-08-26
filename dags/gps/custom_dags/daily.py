@@ -8,7 +8,7 @@ from gps import CONFIG
 from gps.common.extract import extract_ftp, list_ftp_file
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email
-from gps.common.daily import motower_daily
+from gps.common.daily import motower_daily, cleaning_daily_trafic
 from gps.common.rwpg import write_pg
 from gps.custom_dags.weekly import extract_v2
 
@@ -153,6 +153,20 @@ with DAG(
                 },
                 dag=dag,
             )
+    clean_trafic_task = PythonOperator(
+            task_id="clean_trafic_task",
+            provide_context=True,
+            python_callable=cleaning_daily_trafic,
+            op_kwargs={
+                "client": CLIENT,
+                "endpoint": MINIO_ENDPOINT,
+                "accesskey": MINIO_ACCESS_KEY,
+                "secretkey": MINIO_SECRET_KEY,
+                "date": INGEST_DATE,
+            },
+            # on_failure_callback=on_failure,
+            dag=dag,
+        )
     motower_task = PythonOperator(
             task_id="motower_task",
             provide_context=True,
@@ -165,5 +179,5 @@ with DAG(
             },
             dag=dag,
         )
-    [check_file_sensor >> send_email_task , extract_trafic ]
-    [check_file_sensor >> get_caparc , extract_trafic] >> motower_task
+    [check_file_sensor >> send_email_task , extract_trafic >> clean_trafic_task]
+    [check_file_sensor >> get_caparc , extract_trafic>> clean_trafic_task] >> motower_task
