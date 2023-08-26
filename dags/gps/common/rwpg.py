@@ -222,3 +222,6 @@ def write_pg(host: str, database:str, user: str, password: str,
 
 
 
+
+
+ 

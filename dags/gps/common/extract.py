@@ -25,6 +25,8 @@ SQL_QUERIES = {
     ''' ,
     "ks_hebdo_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_HEBDO_TDB_RADIO_DRSI" where "DATE_ID" = %s ''', 
 
+    "ks_daily_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_DAILY_TDB_RADIO_DRSI" where "DATE_ID" = %s ''',
+
     "Taux_succes_2g": """select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,
     MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
     MAX(CAST(cssr_cs AS DECIMAL)) AS max_cssr_cs, AVG(CAST(cssr_cs AS DECIMAL)) AS avg_cssr_cs,
@@ -101,7 +103,7 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
     if table in SQL_QUERIES:
         if table == "ks_tdb_radio_drsi":
             return execute_query([conn, date[:-2]+"01", SQL_QUERIES[table]])
-        if table == "ks_hebdo_tdb_radio_drsi":
+        if table in ["ks_hebdo_tdb_radio_drsi", "ks_daily_tdb_radio_drsi" ]:
             return execute_query([conn, date, SQL_QUERIES[table]])
         if table != "faitalarme":
             return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )

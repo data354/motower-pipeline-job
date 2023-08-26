@@ -10,6 +10,7 @@ from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email
 from gps.common.daily import motower_daily
 from gps.common.rwpg import write_pg
+from gps.custom_dags.extract import extract_job
 
 
 FTP_HOST = Variable.get('ftp_host')
@@ -21,7 +22,7 @@ PG_SAVE_DB = Variable.get('pg_save_db')
 PG_SAVE_USER = Variable.get('pg_save_user')
 PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
-INGEST_FTP_DATE = "{{ macros.ds_add(ds, -2) }}"
+INGEST_DATE = "{{ macros.ds_add(ds, -2) }}"
 
 MINIO_ENDPOINT = Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
@@ -104,7 +105,7 @@ with DAG(
         #     'hostname': FTP_HOST,
         #     'user': FTP_USER,
         #     'password': FTP_PASSWORD,
-              'ingest_date': INGEST_FTP_DATE,
+              'ingest_date': INGEST_DATE,
         #     'smtp_host': SMTP_HOST,
         #     'smtp_user': SMTP_USER,
         #     'smtp_port': SMTP_PORT,
@@ -117,7 +118,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'ingest_date': INGEST_FTP_DATE,
+            'ingest_date': INGEST_DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -134,7 +135,21 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'ingest_date': INGEST_FTP_DATE
+                    'ingest_date': INGEST_DATE
+                },
+                dag=dag,
+            )
+    table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
+    extract_trafic = PythonOperator(
+                task_id="extract_trafic",
+                provide_context=True,
+                python_callable=extract_job,
+                op_kwargs={
+                    'thetable': table_config["name"],
+                    'bucket': table_config["bucket"],
+                    'folder': table_config["folder"],
+                    'table': table_config["table"],
+                    'ingest_date': INGEST_DATE
                 },
                 dag=dag,
             )
@@ -146,9 +161,9 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": INGEST_FTP_DATE,
+                "date": INGEST_DATE,
             },
             dag=dag,
         )
-    check_file_sensor >> send_email_task 
-    check_file_sensor >> get_caparc >> motower_task
+    [check_file_sensor >> send_email_task , extract_trafic ]
+    [check_file_sensor >> get_caparc , extract_trafic] >> motower_task
