@@ -93,7 +93,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     # get daily data
     # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
     exec_date = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
-    exec_week = exec_date.isocalendar().week
+    exec_week = exec_date.isocalendar()[1]
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
     sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s AND jour <= %s"
     mois = int(thedate.split('-')[1])
