@@ -123,4 +123,5 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
             for idx, row in weekly_f.iterrows():
                 previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].dt.day == str(row["jour"].day)), "segment"].values
                 weekly_f.loc[idx, "previous_segment"] = previos_segment
-    return weekly_f.drop(columns=["id"], inplace=True)
+    weekly_f = weekly_f.drop(columns=["id"])
+    return weekly_f
