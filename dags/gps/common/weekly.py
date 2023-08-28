@@ -105,7 +105,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
 
     lmonth = int((datetime.strptime(thedate, "%Y-%m-%d") - timedelta(weeks=4)).month)
     sql_query =  "select * from motower_daily where  EXTRACT(MONTH FROM jour) = %s"
-    last_month = pd.read_sql_query(sql_query, conn, params=(lmonth))
+    last_month = pd.read_sql_query(sql_query, conn, params=(lmonth,))
 
     weekly["previous_segment"] = None
     weekly["previous_segment"] = last_month.loc[(last_month["code_oci"] == weekly["code_oci"]) & last_month["jour"].str.split("-").str[-1] == weekly["jour"].str.split("-").str[-1] ]
