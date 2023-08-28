@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import timedelta, datetime
 import psycopg2
+import logging
 from gps import CONFIG
 from gps.common.rwminio import get_latest_file
 
@@ -93,6 +94,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     
 
     # add CA MTD
+    logging.info()
     dayofmonth = int(thedate.split("-")[-1])
     weekly["ca_mtd"] = sum(weekly["ca_total"]) * 30 / dayofmonth
 
@@ -111,6 +113,6 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     if last_month.shape[0] > 0:
         for idx, row in weekly.iterrows():
             print(type(row["jour"]))
-            previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].str.split("-").str[-1] == str(row["jour"].day)), "segment"].values
+            previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].dt.day == str(row["jour"].day)), "segment"].values
             weekly.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
     return weekly
