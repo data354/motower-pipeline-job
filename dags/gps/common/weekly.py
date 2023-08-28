@@ -106,12 +106,13 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
 
 
     lmonth = (datetime.strptime(thedate, "%Y-%m-%d") - relativedelta.relativedelta(months=1)).month
-    sql_query =  "select * from motower_weekly where  EXTRACT(MONTH FROM jour) = %s"
-    last_month = pd.read_sql_query(sql_query, conn, params=(lmonth,))
+    if lmonth!=6:
+        sql_query =  "select * from motower_weekly where  EXTRACT(MONTH FROM jour) = %s"
+        last_month = pd.read_sql_query(sql_query, conn, params=(lmonth,))
 
-    weekly["previous_segment"] = None
-    if last_month.shape[0] > 0:
-        for idx, row in weekly.iterrows():
-            previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].dt.day == str(row["jour"].day)), "segment"].values
-            weekly.loc[idx, "previous_segment"] = previos_segment 
+        weekly["previous_segment"] = None
+        if last_month.shape[0] > 0:
+            for idx, row in weekly.iterrows():
+                previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].dt.day == str(row["jour"].day)), "segment"].values
+                weekly.loc[idx, "previous_segment"] = previos_segment 
     return weekly
