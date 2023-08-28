@@ -87,7 +87,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     daily["code_oci"] = daily["code_oci"].astype("str")
     weekly = daily.merge(congestion, left_on =["code_oci"], right_on = ["id_site"], how="left")
     weekly = weekly.drop(columns=["jour_y"])
-    weekly = weekly.rename({"jour_x":"jour"})
+    weekly.rename(columns={"jour":"jour_x"}, inplace=True)
     print(weekly.columns)
 
 
