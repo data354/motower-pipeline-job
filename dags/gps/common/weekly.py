@@ -113,4 +113,4 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
             print(type(row["jour"]))
             previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].str.split("-").str[-1] == str(row["jour"].day)), "segment"].values
             weekly.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
-        return weekly
+    return weekly
