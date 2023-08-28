@@ -94,7 +94,6 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     
 
     # add CA MTD
-    logging.info()
     dayofmonth = int(thedate.split("-")[-1])
     weekly["ca_mtd"] = sum(weekly["ca_total"]) * 30 / dayofmonth
 
