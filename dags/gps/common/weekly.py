@@ -101,7 +101,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     daily_month_df["code_oci"] = daily_month_df["code_oci"].astype("str")
     daily_month_df['code_oci_id'] = daily_month_df["code_oci"].str.replace('OCI', '')
     print(daily_month_df.info())
-    idx = pd.to_datetime(daily_month_df["jour"], "%Y-%m-%d").dt.week == exec_week
+    idx = pd.to_datetime(arg=daily_month_df["jour"], format="%Y-%m-%d").dt.week == exec_week
     daily_week_df = daily_month_df[idx]
     #
     # merge data
