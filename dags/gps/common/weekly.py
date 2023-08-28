@@ -86,7 +86,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     mois = int(thedate.split('-')[1])
     jour = int(thedate.split('-')[-1])
     daily = pd.read_sql_query(sql_query, conn, params=(mois, jour))
-
+    #
     # merge data
     congestion["id_site"] = congestion["id_site"].astype("str")
     daily["code_oci"] = daily["code_oci"].astype("str")
@@ -99,29 +99,31 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
 
     # add CA MTD
     dayofmonth = int(thedate.split("-")[-1])
-    weekly_i = weekly.groupby(["code_oci"]).agg(ca_sum = ('ca_total', 'sum'))
-    weekly_i = weekly_i.reset_index(drop=False)
-    weekly_i["ca_mtd"] = weekly_i["ca_sum"] * 30 / dayofmonth
-    weekly_i["jour"] = thedate
+    for idx, row in weekly.iterrows():
+        data = weekly.loc[weekly["code_oci"] == row["code_oci"], :]
+        ca_mtd = (data["ca_total"].sum()) * 30 / dayofmonth
+        weekly.loc[(weekly["code_oci"] == row["code_oci"]) & (weekly["jour"] == thedate), "ca_mtd"] = ca_mtd
 
-    weekly_f = weekly.merge(weekly_i, left_on =["code_oci", "jour"], right_on = ["code_oci", "jour"], how="left")
+
+    
+
     #add segment
-    weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & (weekly_f.ca_mtd>=20000000)) | ((weekly_f.localisation.str.lower()=="intérieur") & (weekly_f.ca_mtd>=10000000)),["segment"]] = "PREMIUM"
-    weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & ((weekly_f.ca_mtd>=10000000) & (weekly_f.ca_mtd<20000000) )) | ((weekly_f.localisation.str.lower()=="intérieur") & ((weekly_f.ca_mtd>=4000000) & (weekly_f.ca_mtd<10000000))),["segment"]] = "NORMAL"
-    weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & (weekly_f.ca_mtd<10000000)) | ((weekly_f.localisation.str.lower()=="intérieur") & (weekly_f.ca_mtd<4000000)),["segment"]] = "A DEVELOPPER"
-    weekly_f["trafic_data_in"] = weekly_f["trafic_data_in"] / 1000
-    print(weekly_f.columns)
-    weekly_f.drop(columns=["ca_sum"], inplace=True)
+    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_mtd>=20000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_mtd>=10000000)),["segment"]] = "PREMIUM"
+    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & ((weekly.ca_mtd>=10000000) & (weekly.ca_mtd<20000000) )) | ((weekly.localisation.str.lower()=="intérieur") & ((weekly.ca_mtd>=4000000) & (weekly.ca_mtd<10000000))),["segment"]] = "NORMAL"
+    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_mtd<10000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_mtd<4000000)),["segment"]] = "A DEVELOPPER"
+    weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
+    print(weekly.columns)
+    weekly.drop(columns=["ca_sum"], inplace=True)
 
     lmonth = (datetime.strptime(thedate, "%Y-%m-%d") - relativedelta.relativedelta(months=1)).month
     if lmonth!=6:
         sql_query =  "select * from motower_weekly where  EXTRACT(MONTH FROM jour) = %s"
         last_month = pd.read_sql_query(sql_query, conn, params=(lmonth,))
 
-        weekly_f["previous_segment"] = None
+        weekly["previous_segment"] = None
         if last_month.shape[0] > 0:
-            for idx, row in weekly_f.iterrows():
+            for idx, row in weekly.iterrows():
                 previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].dt.day == str(row["jour"].day)), "segment"].values
-                weekly_f.loc[idx, "previous_segment"] = previos_segment
-    weekly_f = weekly_f.drop(columns=["id"])
-    return weekly_f
+                weekly.loc[idx, "previous_segment"] = previos_segment
+    weekly = weekly.drop(columns=["id"])
+    return weekly
