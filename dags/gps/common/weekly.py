@@ -79,8 +79,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
     # end = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  f"select * from motower_daily where to_char(jour, 'YYYY-MM-DD') like '{thedate.split[0]}-{thedate.split[1]}-%'"
-    daily = pd.read_sql_query(sql_query, conn, params=())
+    sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s "
+    mois = int(thedate.split('-')[1])
+    daily = pd.read_sql_query(sql_query, conn, params=(mois,))
     # merge data
     congestion["id_site"] = congestion["id_site"].astype("str")
     daily["code_oci"] = daily["code_oci"].astype("str")
@@ -102,9 +103,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
 
 
-    lmonth = str((datetime.strptime(thedate, "%Y-%m-%d") - timedelta(weeks=4)).year) + '-'+str((datetime.strptime(thedate, "%Y-%m-%d") - timedelta(weeks=4)).month)
-    sql_query =  f"select * from motower_daily where to_char(jour, 'YYYY-MM-DD') like '{lmonth}-%'"
-    last_month = pd.read_sql_query(sql_query, conn, params=())
+    lmonth = mois-1
+    sql_query =  "select * from motower_daily where  EXTRACT(MONTH FROM jour) = %s"
+    last_month = pd.read_sql_query(sql_query, conn, params=(lmonth))
 
     weekly["previous_segment"] = None
     weekly["previous_segment"] = last_month.loc[(last_month["code_oci"] == weekly["code_oci"]) & last_month["jour"].str.split("-").str[-1] == weekly["jour"].str.split("-").str[-1] ]
