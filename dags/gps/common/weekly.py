@@ -52,7 +52,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
 
 
 
-def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedate: str, pghost, pguser, pgpwd, pgdb):
+def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedate: str, pghost, pguser, pgpwd, pgdb, startdate):
     """
     """
     # get   congestion 
@@ -108,8 +108,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     last_month = pd.read_sql_query(sql_query, conn, params=(lmonth,))
 
     weekly["previous_segment"] = None
-    for idx, row in weekly.iterrows():
-        print(type(row["jour"]))
-        previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].str.split("-").str[-1] == str(row["jour"].day)), "segment"].values
-        weekly.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
-    return weekly
+    if last_month.shape[0] > 0:
+        for idx, row in weekly.iterrows():
+            print(type(row["jour"]))
+            previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].str.split("-").str[-1] == str(row["jour"].day)), "segment"].values
+            weekly.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
+        return weekly
