@@ -96,7 +96,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
 
     # add CA MTD
     dayofmonth = int(thedate.split("-")[-1])
-    weekly_i = weekly.groupby(["code_oci"]).agg({'ca_total': 'sum'})
+    weekly_i = weekly.groupby(["code_oci"]).agg(ca_sum = ('ca_total', 'sum'))
     weekly_i = weekly_i.reset_index(drop=False)
     weekly_i["ca_mtd"] = sum(weekly_i["ca_total"]) * 30 / dayofmonth
     weekly_i["jour"] = thedate
@@ -107,7 +107,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & ((weekly_f.ca_mtd>=10000000) & (weekly_f.ca_mtd<20000000) )) | ((weekly_f.localisation.str.lower()=="intérieur") & ((weekly_f.ca_mtd>=4000000) & (weekly_f.ca_mtd<10000000))),["segment"]] = "NORMAL"
     weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & (weekly_f.ca_mtd<10000000)) | ((weekly_f.localisation.str.lower()=="intérieur") & (weekly_f.ca_mtd<4000000)),["segment"]] = "A DEVELOPPER"
     weekly_f["trafic_data_in"] = weekly_f["trafic_data_in"] / 1000
-    weekly_f.drop("ca_total_k", inplace=True)
+    weekly_f.drop("ca_sum", inplace=True)
 
     lmonth = (datetime.strptime(thedate, "%Y-%m-%d") - relativedelta.relativedelta(months=1)).month
     if lmonth!=6:
