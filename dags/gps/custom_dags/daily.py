@@ -22,7 +22,7 @@ PG_SAVE_DB = Variable.get('pg_save_db')
 PG_SAVE_USER = Variable.get('pg_save_user')
 PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
-INGEST_DATE = "{{ macros.ds_add(ds, -2) }}"
+INGEST_DATE = "{{ macros.ds_add(ds, -1) }}"
 
 MINIO_ENDPOINT = Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
@@ -93,7 +93,7 @@ with DAG(
         },
         description='daily job',
         schedule_interval="0 20 * * *",
-        start_date=datetime(2023, 7, 3, 6, 30, 0),
+        start_date=datetime(2023, 7, 2, 6, 30, 0),
         catchup=True
 ) as dag:
     check_file_sensor = PythonSensor(

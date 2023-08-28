@@ -10,6 +10,7 @@ from gps.common.extract import extract_pg
 from gps.common.rwminio import save_minio
 from gps.common.weekly import cleaning_congestion
 from gps.common.rwpg import write_pg
+from gps.common.weekly import motower_weekly
 
 
 PG_HOST = Variable.get('pg_host')
@@ -49,9 +50,15 @@ def gen_congestion(**kwargs):
     data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"]+"-cleaning")
+    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"]+"-cleaned")
 
-
+def gen_motower_weekly(**kwargs):
+    """
+    """
+    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"], PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
+    if  data.empty:
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_weekly")
 with DAG(
     "weekly",
     default_args={
@@ -86,13 +93,24 @@ with DAG(
             provide_context=True,
             python_callable=gen_congestion,
             op_kwargs={
-                "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                'thetable': table_config["name"],
+                'bucket': table_config["bucket"],
+                'folder': table_config["folder"],
+                'table': table_config["table"],
+                'ingest_date': DATE
             },
             #on_failure_callback=on_failure,
             dag=dag,
         )
-    extract_congestion_task >> gen_congestion_task
+    gen_motower_task =  PythonOperator(
+            task_id="gen_congestion_task",
+            provide_context=True,
+            python_callable=gen_congestion,
+            op_kwargs={
+                
+                "date": DATE
+            },
+            #on_failure_callback=on_failure,
+            dag=dag,
+        )
+    extract_congestion_task >> gen_congestion_task >> gen_motower_task
