@@ -99,9 +99,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly_i = weekly.groupby(["code_oci"]).agg({'ca_total': 'sum'})
     weekly_i = weekly_i.reset_index(drop=False)
     weekly_i["ca_mtd"] = sum(weekly_i["ca_total"]) * 30 / dayofmonth
+    weekly_i["jour"] = thedate
 
-
-    weekly_f = weekly.merge(weekly_i, left_on =["code_oci"], right_on = ["code_oci"], how="left")
+    weekly_f = weekly.merge(weekly_i, left_on =["code_oci", "jour"], right_on = ["code_oci", "jour"], how="left")
     #add segment
     weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & (weekly_f.ca_mtd>=20000000)) | ((weekly_f.localisation.str.lower()=="intérieur") & (weekly_f.ca_mtd>=10000000)),["segment"]] = "PREMIUM"
     weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & ((weekly_f.ca_mtd>=10000000) & (weekly_f.ca_mtd<20000000) )) | ((weekly_f.localisation.str.lower()=="intérieur") & ((weekly_f.ca_mtd>=4000000) & (weekly_f.ca_mtd<10000000))),["segment"]] = "NORMAL"
