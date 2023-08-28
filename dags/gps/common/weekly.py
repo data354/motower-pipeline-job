@@ -86,7 +86,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     congestion["id_site"] = congestion["id_site"].astype("str")
     daily["code_oci"] = daily["code_oci"].astype("str")
     weekly = daily.merge(congestion, left_on =["code_oci"], right_on = ["id_site"], how="left")
-    weekly = weekly.drop(columns=["jour.y"])
+    #weekly = weekly.drop(columns=["jour.y"])
 
 
     # add CA MTD
