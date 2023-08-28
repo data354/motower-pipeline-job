@@ -103,7 +103,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
 
 
-    lmonth = mois-1
+    lmonth = int((datetime.strptime(thedate, "%Y-%m-%d") - timedelta(weeks=4)).month)
     sql_query =  "select * from motower_daily where  EXTRACT(MONTH FROM jour) = %s"
     last_month = pd.read_sql_query(sql_query, conn, params=(lmonth))
 
