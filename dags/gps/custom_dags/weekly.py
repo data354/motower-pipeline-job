@@ -49,7 +49,7 @@ def gen_congestion(**kwargs):
     data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "congestion")
+    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"]+"-cleaning")
 
 
 with DAG(
@@ -64,7 +64,7 @@ with DAG(
     },
     description="weekly data",
     schedule_interval=timedelta(weeks=1),
-    start_date=datetime(2023, 7, 3, 20, 0, 0),
+    start_date=datetime(2023, 7, 3, 12, 0, 0),
     catchup=True,
 ) as dag:
     table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
