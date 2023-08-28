@@ -52,7 +52,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
 
 
 
-def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedate: str, pghost, pguser, pgpwd, pgdb, startdate):
+def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedate: str, pghost, pguser, pgpwd, pgdb):
     """
     """
     # get   congestion 
