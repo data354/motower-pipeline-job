@@ -108,5 +108,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     last_month = pd.read_sql_query(sql_query, conn, params=(lmonth,))
 
     weekly["previous_segment"] = None
-    weekly["previous_segment"] = last_month.loc[(last_month["code_oci"] == weekly["code_oci"]) & last_month["jour"].str.split("-").str[-1] == weekly["jour"].str.split("-").str[-1] ]
+    for idx, row in weekly.iterrows():
+        previos_segment = last_month.loc[(last_month.code_oci==row["code_oci"]) & (last_month["jour"].str.split("-").str[-1]==row["jour"].str.split("-").str[-1]), "segment"].values
+        weekly.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
     return weekly
