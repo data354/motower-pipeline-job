@@ -119,7 +119,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         code_oci = row["code_oci"]
         date_row = row["jour"]
         loc_row = row["localisation"]
-        mtd_rows = daily_month_df.loc[(weekly["code_oci"] == code_oci) & (weekly["jour"] == date_row), :]
+        mtd_rows = daily_month_df.loc[(daily_month_df["code_oci"] == code_oci) & (daily_month_df["jour"] == date_row), :]
         ca_mtd = mtd_rows["ca_total"].sum()
         ca_norm = ca_mtd * 30 / date_row.day
         segment = compute_segment(ca_norm, loc_row)
