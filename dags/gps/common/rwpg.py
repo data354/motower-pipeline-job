@@ -275,7 +275,7 @@ def write_pg(host: str, database:str, user: str, password: str,
     if table == "motower_monthly":
         #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
         delete_query = f"DELETE FROM {table} WHERE mois = '{data.mois.unique()[0]}'"
-    if table == "congestion":
+    if table == "motower_daily":
         delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
     cur.execute(delete_query)
     conn.commit()
