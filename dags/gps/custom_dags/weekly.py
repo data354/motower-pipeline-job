@@ -105,7 +105,7 @@ with DAG(
     gen_motower_task =  PythonOperator(
             task_id="gen_motower_task",
             provide_context=True,
-            python_callable=gen_congestion,
+            python_callable=gen_motower_weekly,
             op_kwargs={
                 
                 "date": DATE
@@ -113,4 +113,4 @@ with DAG(
             #on_failure_callback=on_failure,
             dag=dag,
         )
-    extract_congestion_task >> gen_congestion_task >> gen_motower_task
+    extract_congestion_task >> gen_congestion_task >> gen_motower_task  
