@@ -67,6 +67,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
      # Split the date into parts
     date_parts = thedate.split("-")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    logging.info(f"reading {filename}")
     try:
         congestion = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                            storage_options={
@@ -81,9 +82,11 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
     # end = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s "
+    sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s AND EXTRACT(DAY FROM jour) < %s"
     mois = int(thedate.split('-')[1])
-    daily = pd.read_sql_query(sql_query, conn, params=(mois,))
+    jour = int(thedate.split('-')[-1])
+    daily = pd.read_sql_query(sql_query, conn, params=(mois, jour))
+
     # merge data
     congestion["id_site"] = congestion["id_site"].astype("str")
     daily["code_oci"] = daily["code_oci"].astype("str")
