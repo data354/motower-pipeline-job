@@ -79,7 +79,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
     end = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily where jour between '%s' and '%s'"
+    sql_query =  "select * from motower_daily where jour between %s and %s"
     daily = pd.read_sql_query(sql_query, conn, params=(start,end))
 
     # merge data
