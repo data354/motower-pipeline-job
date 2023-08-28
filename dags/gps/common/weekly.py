@@ -108,7 +108,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly_f.loc[((weekly_f.localisation.str.lower()=="abidjan") & (weekly_f.ca_mtd<10000000)) | ((weekly_f.localisation.str.lower()=="intérieur") & (weekly_f.ca_mtd<4000000)),["segment"]] = "A DEVELOPPER"
     weekly_f["trafic_data_in"] = weekly_f["trafic_data_in"] / 1000
     print(weekly_f.columns)
-    weekly_f.drop(columns=["ca_sum"], inplace=True)
+    
 
     lmonth = (datetime.strptime(thedate, "%Y-%m-%d") - relativedelta.relativedelta(months=1)).month
     if lmonth!=6:
