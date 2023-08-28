@@ -76,12 +76,11 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         raise ValueError(f"{filename} does not exist in bucket.") from error
     
     # get daily data
-    start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
-    end = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
+    # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
+    # end = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily where jour between %s and %s"
-    daily = pd.read_sql_query(sql_query, conn, params=(start.strftime("%Y-%m-%d"),end.strftime("%Y-%m-%d")))
-
+    sql_query =  f"select * from motower_daily where to_char(jour, 'YYYY-MM-DD') like '{thedate.split[0]}-{thedate.split[1]}-%'"
+    daily = pd.read_sql_query(sql_query, conn, params=())
     # merge data
     congestion["id_site"] = congestion["id_site"].astype("str")
     daily["code_oci"] = daily["code_oci"].astype("str")
@@ -90,16 +89,23 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly = weekly.drop(columns=["jour_y"])
     weekly.rename(columns={"jour_x":"jour"}, inplace=True)
     print(weekly.columns)
-
+    
 
     # add CA MTD
     dayofmonth = int(thedate.split("-")[-1])
-    weekly["ca_mtd"] = weekly["ca_total"] * 30 / dayofmonth
+    weekly["ca_mtd"] = sum(weekly["ca_total"]) * 30 / dayofmonth
 
     #add segment
-    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_total>=20000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_total>=10000000)),["segment"]] = "PREMIUM"
-    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & ((weekly.ca_total>=10000000) & (weekly.ca_total<20000000) )) | ((weekly.localisation.str.lower()=="intérieur") & ((weekly.ca_total>=4000000) & (weekly.ca_total<10000000))),["segment"]] = "NORMAL"
-    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_total<10000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_total<4000000)),["segment"]] = "A DEVELOPPER"
+    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_mtd>=20000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_mtd>=10000000)),["segment"]] = "PREMIUM"
+    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & ((weekly.ca_mtd>=10000000) & (weekly.ca_mtd<20000000) )) | ((weekly.localisation.str.lower()=="intérieur") & ((weekly.ca_mtd>=4000000) & (weekly.ca_mtd<10000000))),["segment"]] = "NORMAL"
+    weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_mtd<10000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_mtd<4000000)),["segment"]] = "A DEVELOPPER"
     weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
 
+
+    lmonth = str((datetime.strptime(thedate, "%Y-%m-%d") - timedelta(weeks=4)).year) + '-'+str((datetime.strptime(thedate, "%Y-%m-%d") - timedelta(weeks=4)).month)
+    sql_query =  f"select * from motower_daily where to_char(jour, 'YYYY-MM-DD') like '{lmonth}-%'"
+    last_month = pd.read_sql_query(sql_query, conn, params=())
+
+    weekly["previous_segment"] = None
+    weekly["previous_segment"] = last_month.loc[(last_month["code_oci"] == weekly["code_oci"]) & last_month["jour"].str.split("-").str[-1] == weekly["jour"].str.split("-").str[-1] ]
     return weekly
