@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, datetime
 import psycopg2
 from gps import CONFIG
 from gps.common.rwminio import get_latest_file
@@ -76,8 +76,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         raise ValueError(f"{filename} does not exist in bucket.") from error
     
     # get daily data
-    start = thedate - timedelta(days=7)
-    end = thedate - timedelta(days=1)
+    start = datetime.strptime(thedate, format="%Y-%m-%d") - timedelta(days=7)
+    end = datetime.strptime(thedate, format="%Y-%m-%d") - timedelta(days=1)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
     sql_query =  "select * from motower_daily where jour between '%s' and '%s'"
     daily = pd.read_sql_query(sql_query, conn, params=(start,end))
