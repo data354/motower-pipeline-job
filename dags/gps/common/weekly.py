@@ -113,8 +113,6 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly.loc[((weekly.localisation.str.lower()=="abidjan") & (weekly.ca_mtd<10000000)) | ((weekly.localisation.str.lower()=="intérieur") & (weekly.ca_mtd<4000000)),["segment"]] = "A DEVELOPPER"
     weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
     print(weekly.columns)
-    weekly.drop(columns=["ca_sum"], inplace=True)
-
     lmonth = (datetime.strptime(thedate, "%Y-%m-%d") - relativedelta.relativedelta(months=1)).month
     if lmonth!=6:
         sql_query =  "select * from motower_weekly where  EXTRACT(MONTH FROM jour) = %s"
