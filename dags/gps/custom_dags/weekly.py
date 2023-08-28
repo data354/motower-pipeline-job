@@ -47,7 +47,7 @@ def extract_v2(**kwargs):
 def gen_congestion(**kwargs):
     """
     """
-    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"])
+    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["ingest_date"])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"]+"-cleaned")
