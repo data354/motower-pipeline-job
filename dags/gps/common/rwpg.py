@@ -263,8 +263,8 @@ def write_pg(host: str, database:str, user: str, password: str,
                 cellules_4g_congestionnees  INTEGER,
                 cellules_totales  INTEGER,
                 cellules_congestionnees_totales  INTEGER,
-                ca_sum FLOAT,
                 ca_mtd   FLOAT,
+                ca_norm   FLOAT, 
                 segment  VARCHAR,
                 previous_segment  VARCHAR
 
