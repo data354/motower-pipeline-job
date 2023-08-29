@@ -82,6 +82,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     """
 
     logging.info("get last modified bdd sites cleaned")
+    exec_date = datetime.strptime(date, CONFIG["date_format"])
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
     if not table_obj:
         raise ValueError("Table BASE_SITES not found.")
@@ -141,8 +142,8 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     logging.info("add trafic")
     bdd_ca_trafic = bdd_ca.merge(trafic, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     logging.info("prepare final daily data")
-
-    bdd_ca_trafic["jour"] = date
+    
+    bdd_ca_trafic["jour"] = exec_date
     df_final = bdd_ca_trafic.loc[:,["jour", "code oci", "code oci id", "autre code", "clutter", "commune", "departement", "type du site", "type geolocalite", "gestionnaire",
                            "latitude", "longitude", "localisation", "partenaires", "proprietaire", "position site", "site", "statut", "projet", "region",
                            "ca_data", "ca_voix", "ca_total", "parc", "parc_data", "parc_2g", "parc_3g", "parc_4g", "parc_5g", "parc_other", "trafic_data_in",
@@ -165,7 +166,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     # GET DATA MONTH TO DAY
     if date != first_date:
         logging.info("GET DATA MONTH TO DAY")
-        exec_date = datetime.strptime(date, CONFIG["date_format"])
+        
         mois = exec_date.month
         conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
         sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
