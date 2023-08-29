@@ -164,7 +164,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     df_final["previous_segment"] = None
 
     # GET DATA MONTH TO DAY
-    if date != first_date:
+    if date > first_date:
         logging.info("GET DATA MONTH TO DAY")
         
         mois = exec_date.month
