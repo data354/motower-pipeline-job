@@ -81,7 +81,7 @@ def gen_motower_daily(**kwargs):
         kwargs["date"],
         PG_SAVE_HOST, 
         PG_SAVE_USER, 
-        PG_SAVE_PASSWORD, PG_SAVE_DB        )
+        PG_SAVE_PASSWORD, PG_SAVE_DB , kwargs["first_date"]       )
     if not data.empty:
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily")
     else:
@@ -206,6 +206,7 @@ with DAG(
             on_failure_callback=on_failure,
             op_kwargs={
                 "date": INGEST_DATE,
+                "first_date" :  "2023-07-03"
             },
             dag=dag,
         )

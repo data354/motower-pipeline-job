@@ -76,7 +76,7 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     
     
     
-def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: str, pghost, pguser, pgpwd, pgdb):
+def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: str, pghost, pguser, pgpwd, pgdb, first_date):
     """
         create motower daily structure
     """
@@ -163,37 +163,38 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     df_final["previous_segment"] = None
 
     # GET DATA MONTH TO DAY
-    logging.info("GET DATA MONTH TO DAY")
-    exec_date = datetime.strptime(date, CONFIG["date_format"]) 
-    mois = exec_date.month
-    conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
-    daily_month_df = pd.read_sql_query(sql_query, conn, params=(mois, date))
-    
-    logging.info("ADD CA_MTD AND SEGMENT")
-    if daily_month_df.shape[0]>0:
-        month_data = pd.concat([daily_month_df, df_final])
-        for idx, row in df_final.iterrows():
-            code_oci = row["code_oci"]
-            date_row = row["jour"]
-            loc_row = row["localisation"]
-            mtd_rows = month_data.loc[month_data["code_oci"] == code_oci, :]
-            ca_mtd = mtd_rows["ca_total"].sum()
-            ca_norm = ca_mtd * 30 / date_row.day
-            segment = compute_segment(ca_norm, loc_row)
-            df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
-  
-    logging.info("ADD PREVIOUS SEGMENT")
-    lmonth = exec_date - relativedelta.relativedelta(months=1)
-    if lmonth!=6:
-        sql_query =  "select * from motower_weekly where  EXTRACT(MONTH FROM jour) = %s and EXTRACT(DAY FROM jour) = %s "
-        last_month = pd.read_sql_query(sql_query, conn, params=(lmonth.month,exec_date.day))
-        if last_month.shape[0] > 0:
+    if date != first_date:
+        logging.info("GET DATA MONTH TO DAY")
+        exec_date = datetime.strptime(date, CONFIG["date_format"])
+        mois = exec_date.month
+        conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
+        sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
+        daily_month_df = pd.read_sql_query(sql_query, conn, params=(mois, date))
+        
+        logging.info("ADD CA_MTD AND SEGMENT")
+        if daily_month_df.shape[0]>0:
+            month_data = pd.concat([daily_month_df, df_final])
             for idx, row in df_final.iterrows():
                 code_oci = row["code_oci"]
                 date_row = row["jour"]
-                previos_segment = last_month.loc[last_month.code_oci==code_oci, "segment"].values
-                print(previos_segment)
-                df_final.loc[idx, "previous_segment"] = previos_segment
+                loc_row = row["localisation"]
+                mtd_rows = month_data.loc[month_data["code_oci"] == code_oci, :]
+                ca_mtd = mtd_rows["ca_total"].sum()
+                ca_norm = ca_mtd * 30 / date_row.day
+                segment = compute_segment(ca_norm, loc_row)
+                df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
+    
+        logging.info("ADD PREVIOUS SEGMENT")
+        lmonth = exec_date - relativedelta.relativedelta(months=1)
+        if lmonth!=6:
+            sql_query =  "select * from motower_weekly where  EXTRACT(MONTH FROM jour) = %s and EXTRACT(DAY FROM jour) = %s "
+            last_month = pd.read_sql_query(sql_query, conn, params=(lmonth.month,exec_date.day))
+            if last_month.shape[0] > 0:
+                for idx, row in df_final.iterrows():
+                    code_oci = row["code_oci"]
+                    date_row = row["jour"]
+                    previos_segment = last_month.loc[last_month.code_oci==code_oci, "segment"].values
+                    print(previos_segment)
+                    df_final.loc[idx, "previous_segment"] = previos_segment
     return df_final
     
