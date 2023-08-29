@@ -9,6 +9,7 @@ def write_pg(host: str, database:str, user: str, password: str,
     """"
      write data in pg
     """
+    # create table if not exists
     conn = psycopg2.connect(
         host=host,
         database=database,
@@ -16,8 +17,6 @@ def write_pg(host: str, database:str, user: str, password: str,
         password=password,
         port = port
         )
-    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
-    engine = create_engine(db_uri)
     cur = conn.cursor()
     cur.execute(f"""SELECT EXISTS (SELECT FROM
         information_schema.tables WHERE table_name = '{table}');""")
@@ -192,24 +191,14 @@ def write_pg(host: str, database:str, user: str, password: str,
                 trafic_voix_3g  FLOAT, 
                 trafic_voix_4g  FLOAT
                 trafic_data_total FLOAT,
-                trafic_voix_total FLOAT             
+                trafic_voix_total FLOAT,
+                ca_mtd   FLOAT,
+                ca_norm   FLOAT, 
+                segment  VARCHAR,
+                previous_segment  VARCHAR             
             );
             """
         
-        if table == "congestion":
-            create_query = f"""
-            CREATE TABLE {table} (
-                id SERIAL PRIMARY KEY,
-                jour date,
-                id_site  VARCHAR,
-                cellules_2g  INTEGER,
-                cellules_3g  INTEGER,
-                cellules_4g  INTEGER,
-                cellules_2g_congestionnees  INTEGER,
-                cellules_3g_congestionnees  INTEGER,
-                cellules_4g_congestionnees  INTEGER
-            );
-            """
         if table == "motower_weekly":
             create_query = f"""
                 CREATE TABLE {table} (
@@ -272,18 +261,22 @@ def write_pg(host: str, database:str, user: str, password: str,
             """
 
         cur.execute(create_query)
-    # if table == "motower_daily":
-    #     delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
-    # if table == "motower_monthly":
-    #     #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
-    #     delete_query = f"DELETE FROM {table} WHERE mois = '{data.mois.unique()[0]}'"
-    # if table == "motower_weekly":
-    #     delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
-    #cur.execute(delete_query)
+
+    # delete data if already exists
+    if table in ["motower_daily", "motower_weekly"]:
+        delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
+    if table == "motower_monthly":
+        #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
+        delete_query = f"DELETE FROM {table} WHERE mois = '{data.mois.unique()[0]}'"
+
+    cur.execute(delete_query)
     conn.commit()
     cur.close()
     conn.close()
 
+    # append data in table
+    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
+    engine = create_engine(db_uri)
     data.to_sql(table, engine, index=False, if_exists = 'append')
 
 
