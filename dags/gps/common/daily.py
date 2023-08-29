@@ -11,7 +11,7 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
         - endpoint: Minio endpoint
         - accesskey: Minio access key
         - secretkey: Minio secret key
-        - date: execution date (provided by airflow)
+        - date: execution date (provided by airflow %Y-%m-%d)
     Return:
         None
     """
@@ -37,12 +37,14 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
     trafic.columns = trafic.columns.str.lower()
-    trafic = trafic.loc[trafic.techno != "4G_TDD", :]
+    trafic = trafic.loc[trafic.techno in ["2G", "3G", "4G"], :]
     try:
+        trafic["trafic_data_go"] = trafic["trafic_data_go"].astype("float")
+        trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].astype("float")
+    except AttributeError :
         trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
         trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
-    except AttributeError :
-        pass
+
     trafic = trafic[["date_id", "id_site", "trafic_data_go", "trafic_voix_erl", "techno" ]]
     trafic = trafic.groupby(["date_id", "id_site", "techno"]).sum()
     trafic = trafic.unstack()
@@ -56,7 +58,9 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     
     
 def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: str):
-
+    """
+        create motower daily structure
+    """
 
     logging.info("get last modified bdd sites cleaned")
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
@@ -78,6 +82,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
                            })
     except Exception as error:
         raise ValueError(f"{filename} does not exist in bucket.") from error
+    
     
     logging.info(f"get caparc of the day {date}")
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
@@ -117,15 +122,18 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     logging.info("add trafic")
     bdd_ca_trafic = bdd_ca.merge(trafic, left_on=["code oci id"], right_on = ["id_site" ], how="left")
     logging.info("prepare final daily data")
+
     bdd_ca_trafic["jour"] = date
     df_final = bdd_ca_trafic.loc[:,["jour", "code oci", "code oci id", "autre code", "clutter", "commune", "departement", "type du site", "type geolocalite", "gestionnaire",
                            "latitude", "longitude", "localisation", "partenaires", "proprietaire", "position site", "site", "statut", "projet", "region",
                            "ca_data", "ca_voix", "ca_total", "parc", "parc_data", "parc_2g", "parc_3g", "parc_4g", "parc_5g", "parc_other", "trafic_data_in",
                            "trafic_voix_in", "trafic_data_2g", "trafic_data_3g", "trafic_data_4g", "trafic_voix_2g", "trafic_voix_3g", "trafic_voix_4g"]]
+    
     df_final.columns = ["jour", "code_oci","code_oci_id", "autre_code", "clutter", "commune", "departement", "type_du_site", "type_geolocalite", "gestionnaire",
                            "latitude", "longitude", "localisation", "partenaires", "proprietaire", "position_site", "site", "statut", "projet", "region",
                            "ca_data", "ca_voix", "ca_total", "parc_global", "parc_data", "parc_2g", "parc_3g", "parc_4g", "parc_5g", "autre_parc", "trafic_data_in",
                            "trafic_voix_in", "trafic_data_2g", "trafic_data_3g", "trafic_data_4g", "trafic_voix_2g", "trafic_voix_3g", "trafic_voix_4g"]
+    
     df_final["trafic_data_total"] = df_final["trafic_data_2g"] + df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
     df_final["trafic_voix_total"] = df_final["trafic_voix_2g"] + df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
 
