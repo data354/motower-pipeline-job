@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from minio import Minio
 from airflow.operators.python import PythonOperator
 from airflow.sensors.python import PythonSensor
@@ -7,11 +7,12 @@ from airflow import DAG
 from gps import CONFIG
 from gps.common.extract import extract_ftp, list_ftp_file
 from gps.common.rwminio import save_minio
-from gps.common.alerting import send_email
+from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.daily import motower_daily, cleaning_daily_trafic
 from gps.common.rwpg import write_pg
 from gps.custom_dags.weekly import extract_v2
 
+# get variables
 
 FTP_HOST = Variable.get('ftp_host')
 FTP_USER = Variable.get('ftp_user')
@@ -63,10 +64,13 @@ def send_email_onfailure(**kwargs):
     """
     send email if sensor failed
     """
-    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
+    date_parts = kwargs["date"].split("-")
+    filename = f"{kwargs['code']}_{date_parts[0]}{date_parts[1]}.xlsx"
     subject = f"  Missing file {filename}"
     content = f"Missing file {filename}. please provide file asap"
-    send_email(kwargs["host"], kwargs["port"], kwargs["users"], kwargs["receivers"], subject, content)
+    receivers = get_receivers(code=kwargs["code"])
+     
+    send_email(kwargs["host"], kwargs["port"], kwargs["users"], receivers, subject, content)
 
 def gen_motower_daily(**kwargs):
     data = motower_daily(
@@ -79,6 +83,30 @@ def gen_motower_daily(**kwargs):
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily")
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
+
+def on_failure(context):
+    """
+    Function to handle task failure
+    """
+    params = {
+        "host": SMTP_HOST,
+        "port": SMTP_PORT,
+        "user": SMTP_USER,
+        "task_id": context["task"].task_id,
+        "dag_id": context["task"].dag_id,
+        "exec_date": context.get("ts"),
+        "exception": context.get("exception"),
+    }
+    # if "cleaning_bdd" in params["task_id"]:
+    #     params["type_fichier"] = "BASE_SITES"
+    # elif "cleaning_esco" in params["task_id"]:
+    #     params["type_fichier"] = "OPEX_ESCO"
+    # elif "cleaning_ihs" in params["task_id"]:
+    #     params["type_fichier"] = "OPEX_IHS"
+    # else:
+    #     raise RuntimeError("Can't get file type")
+    alert_failure(**params)
+
 
 with DAG(
         'daily',
@@ -102,9 +130,7 @@ with DAG(
         retries=0,
         python_callable= check_file,
         op_kwargs={
-        #     'hostname': FTP_HOST,
-        #     'user': FTP_USER,
-        #     'password': FTP_PASSWORD,
+      
               'ingest_date': INGEST_DATE,
         #     'smtp_host': SMTP_HOST,
         #     'smtp_user': SMTP_USER,
@@ -122,7 +148,7 @@ with DAG(
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
-            'receivers': CONFIG["airflow_receivers"]
+            'code': ' '  # renvoie le mail de JEAN LOUIS
         }
     )
     table_config = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
@@ -130,6 +156,7 @@ with DAG(
                 task_id= "get_caparc",
                 provide_context=True,
                 python_callable=extract_ftp_job,
+                on_failure_callback=on_failure,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
@@ -144,6 +171,7 @@ with DAG(
                 task_id="extract_trafic",
                 provide_context=True,
                 python_callable=extract_v2,
+                on_failure_callback=on_failure,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
@@ -157,6 +185,7 @@ with DAG(
             task_id="clean_trafic_task",
             provide_context=True,
             python_callable=cleaning_daily_trafic,
+            on_failure_callback=on_failure,
             op_kwargs={
                 "client": CLIENT,
                 "endpoint": MINIO_ENDPOINT,
@@ -171,6 +200,7 @@ with DAG(
             task_id="motower_task",
             provide_context=True,
             python_callable=gen_motower_daily,
+            on_failure_callback=on_failure,
             op_kwargs={
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
