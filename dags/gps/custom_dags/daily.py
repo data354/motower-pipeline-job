@@ -75,10 +75,13 @@ def send_email_onfailure(**kwargs):
 def gen_motower_daily(**kwargs):
     data = motower_daily(
         CLIENT,
-        kwargs["endpoint"],
-        kwargs["accesskey"],
-        kwargs["secretkey"],
-        kwargs["date"]    )
+        MINIO_ENDPOINT,
+        MINIO_ACCESS_KEY,
+        MINIO_SECRET_KEY,
+        kwargs["date"],
+        PG_SAVE_HOST, 
+        PG_SAVE_USER, 
+        PG_SAVE_PASSWORD, PG_SAVE_DB        )
     if not data.empty:
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily")
     else:
@@ -202,9 +205,6 @@ with DAG(
             python_callable=gen_motower_daily,
             on_failure_callback=on_failure,
             op_kwargs={
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
                 "date": INGEST_DATE,
             },
             dag=dag,
