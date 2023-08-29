@@ -37,7 +37,7 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
     trafic.columns = trafic.columns.str.lower()
-    trafic = trafic.loc[trafic.techno.isin["2G", "3G", "4G"], :]
+    trafic = trafic.loc[trafic.techno.isin(["2G", "3G", "4G"]), :]
     try:
         trafic["trafic_data_go"] = trafic["trafic_data_go"].astype("float")
         trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].astype("float")
