@@ -164,6 +164,16 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
     df_final["previous_segment"] = None
 
     # GET DATA MONTH TO DAY
+    if date == first_date:
+        for idx, row in df_final.iterrows():
+                code_oci = row["code_oci"]
+                date_row = row["jour"]
+                loc_row = row["localisation"]
+                ca_mtd = row["ca_total"]
+                ca_norm = ca_mtd * 30 
+                segment = compute_segment(ca_norm, loc_row)
+                df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
+        
     if date > first_date:
         logging.info("GET DATA MONTH TO DAY")
         
