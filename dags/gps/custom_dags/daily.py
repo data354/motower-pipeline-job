@@ -114,7 +114,7 @@ def on_failure(context):
 with DAG(
         'daily',
         default_args={
-            'depends_on_past': False,
+            'depends_on_past': True,
             'wait_for_downstream': False,
             'email': CONFIG["airflow_receivers"],
             'email_on_failure': True,
