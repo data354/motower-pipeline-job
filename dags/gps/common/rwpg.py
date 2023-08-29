@@ -189,7 +189,7 @@ def write_pg(host: str, database:str, user: str, password: str,
                 trafic_data_4g  FLOAT,
                 trafic_voix_2g  FLOAT, 
                 trafic_voix_3g  FLOAT, 
-                trafic_voix_4g  FLOAT
+                trafic_voix_4g  FLOAT,
                 trafic_data_total FLOAT,
                 trafic_voix_total FLOAT,
                 ca_mtd   FLOAT,
