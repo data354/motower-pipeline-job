@@ -206,7 +206,7 @@ with DAG(
             on_failure_callback=on_failure,
             op_kwargs={
                 "date": INGEST_DATE,
-                "first_date" :  "2023-07-03"
+                "first_date" :  "2023-07-01"
             },
             dag=dag,
         )
