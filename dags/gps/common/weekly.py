@@ -6,7 +6,7 @@ from dateutil import relativedelta
 from gps import CONFIG
 from gps.common.rwminio import get_latest_file
 
-def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, date: str):
+def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, edate: str):
     """
     Cleans traffic files
     Args:
@@ -19,7 +19,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
         None
     """
      # Find the required object in the CONFIG dictionary
-    date = str(date.date())
+    exec_date = str(edate.date())
     objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
     if not objet:
         raise ValueError("Table ks_hebdo_tdb_radio_drsi not found.")
@@ -27,7 +27,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
     if not client.bucket_exists(objet["bucket"]):
         raise ValueError(f"Bucket {objet['bucket']} does not exist.")
      # Split the date into parts
-    date_parts = date.split("-")
+    date_parts = exec_date.split("-")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     try:
         df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
@@ -66,7 +66,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     if not client.bucket_exists(objet["bucket"]):
         raise ValueError(f"Bucket {objet['bucket']} does not exist.")
      # Split the date into parts
-    date_parts = thedate.split("-")
+    date_str = str(thedate.date())
+    date_parts = date_str.split("-")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     logging.info(f"reading {filename}")
     try:
@@ -82,7 +83,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     # get daily data
     # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
     logging.info("GET LAST WEEK DAILY DATA")
-    exec_date = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
+    exec_date = datetime.strptime(date_str, "%Y-%m-%d") - timedelta(days=1)
     exec_week = exec_date.isocalendar()[1]
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
     sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s"

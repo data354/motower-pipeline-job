@@ -37,6 +37,7 @@ DATE = "{{ data_interval_end }}"
 def extract_v2(**kwargs):
     """
     """
+    ingest_date = str(kwargs["ingest_date"].date())
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
     if  data.empty:
