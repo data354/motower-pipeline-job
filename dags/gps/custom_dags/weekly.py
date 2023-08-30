@@ -58,7 +58,7 @@ def gen_motower_weekly(**kwargs):
     """
     """
     ingest_date = kwargs["ingest_date"].split("T")[0]
-    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date], PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
+    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date, PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
     if  data.empty:
         raise RuntimeError(f"No data for {ingest_date}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_weekly")
