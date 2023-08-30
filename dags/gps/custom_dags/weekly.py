@@ -48,7 +48,8 @@ def extract_v2(**kwargs):
 def gen_congestion(**kwargs):
     """
     """
-    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["ingest_date"])
+    ingest_date = kwargs["ingest_date"].split("T")[0]
+    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date)
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"]+"-cleaned")
@@ -56,9 +57,10 @@ def gen_congestion(**kwargs):
 def gen_motower_weekly(**kwargs):
     """
     """
-    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"], PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
+    ingest_date = kwargs["ingest_date"].split("T")[0]
+    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date], PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+        raise RuntimeError(f"No data for {ingest_date}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_weekly")
 with DAG(
     "weekly",
