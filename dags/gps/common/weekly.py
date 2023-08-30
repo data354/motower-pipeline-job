@@ -88,7 +88,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     daily_week_df = pd.read_sql_query(sql_query, conn, params=(exec_week-1,))
     daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("str")
     daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
-    
+    logging.info("MERGE DATA")
     # merge data
     congestion["id_site"] = congestion["id_site"].astype("str")
     weekly = daily_week_df.merge(congestion, left_on =["code_oci_id"], right_on = ["id_site"], how="left")

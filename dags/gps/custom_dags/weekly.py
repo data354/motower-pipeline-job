@@ -43,7 +43,7 @@ def extract_v2(**kwargs):
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
-    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"])
+    save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"])
 
 def gen_congestion(**kwargs):
     """
@@ -52,7 +52,7 @@ def gen_congestion(**kwargs):
     data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date)
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"]+"-cleaned")
+    save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"]+"-cleaned")
 
 def gen_motower_weekly(**kwargs):
     """
