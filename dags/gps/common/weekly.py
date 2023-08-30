@@ -19,6 +19,7 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
         None
     """
      # Find the required object in the CONFIG dictionary
+    date = str(date.date())
     objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
     if not objet:
         raise ValueError("Table ks_hebdo_tdb_radio_drsi not found.")
