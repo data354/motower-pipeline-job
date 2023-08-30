@@ -86,12 +86,15 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
     sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s"
     daily_week_df = pd.read_sql_query(sql_query, conn, params=(exec_week-1,))
+    print(congestion.shape)
+    print(daily_week_df.shape)
     daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("str")
     daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
     logging.info("MERGE DATA")
     # merge data
     congestion["id_site"] = congestion["id_site"].astype("str")
     weekly = daily_week_df.merge(congestion, left_on =["code_oci_id"], right_on = ["id_site"], how="left")
+    print(weekly.shape)
     weekly = weekly.drop(columns=["jour_y"])
     weekly.rename(columns={"jour_x":"jour"}, inplace=True)
     weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
