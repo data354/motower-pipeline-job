@@ -12,8 +12,8 @@ def get_receivers(code: str):
     """
     objets = requests.get(CONFIG["api_mails"], timeout=15).json()
     objet =  next((obj for obj in objets if obj["typeFichier"] == code), None)
-    if not objet:
-        raise ValueError("thresold of type %s not available", code)
+    if objet is None:
+        raise ValueError("emails of type %s not available", code)
     return objet.get("email", ['jean-louis.gbadi@orange.com'])
 
 

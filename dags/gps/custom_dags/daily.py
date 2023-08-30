@@ -81,7 +81,7 @@ def gen_motower_daily(**kwargs):
         kwargs["date"],
         PG_SAVE_HOST, 
         PG_SAVE_USER, 
-        PG_SAVE_PASSWORD, PG_SAVE_DB , kwargs["first_date"]       )
+        PG_SAVE_PASSWORD, PG_SAVE_DB)
     if not data.empty:
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily")
     else:
@@ -131,6 +131,7 @@ with DAG(
         task_id= "sensor_ca",
         mode="reschedule",
         retries=0,
+        timeout=10,
         python_callable= check_file,
         op_kwargs={
       
@@ -205,8 +206,7 @@ with DAG(
             python_callable=gen_motower_daily,
             on_failure_callback=on_failure,
             op_kwargs={
-                "date": INGEST_DATE,
-                "first_date" :  "2023-07-01"
+                "date": INGEST_DATE
             },
             dag=dag,
         )
