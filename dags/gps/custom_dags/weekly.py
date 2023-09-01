@@ -65,7 +65,8 @@ def gen_motower_weekly(**kwargs):
 with DAG(
     "weekly",
     default_args={
-        "depends_on_past": False,
+        'depends_on_past': True,
+        'wait_for_downstream': False,
         "email": CONFIG["airflow_receivers"],
         "email_on_failure": True,
         "email_on_retry": False,
