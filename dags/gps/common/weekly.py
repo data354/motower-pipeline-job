@@ -85,7 +85,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     exec_week = exec_date.isocalendar()[1]
     print(exec_week)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s"
+    sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %d"
     daily_week_df = pd.read_sql_query(sql_query, conn, params=(exec_week-1,))
     print(congestion.shape)
     print(daily_week_df.shape)

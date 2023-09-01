@@ -148,7 +148,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'ingest_date': INGEST_DATE,
+            'date': INGEST_DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -212,3 +212,14 @@ with DAG(
         )
     [check_file_sensor >> send_email_task , extract_trafic >> clean_trafic_task]
     [check_file_sensor >> get_caparc , extract_trafic>> clean_trafic_task] >> motower_task
+
+
+
+
+
+
+
+
+
+
+    
