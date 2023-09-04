@@ -116,6 +116,6 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     weekly.rename(columns={"jour_x":"jour"}, inplace=True)
     weekly["trafic_data_in"] = weekly["trafic_data_in"] / 1000
 
-    
+    weekly = weekly.drop(columns=["id"])
     return weekly
 
