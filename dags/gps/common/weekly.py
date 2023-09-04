@@ -5,6 +5,21 @@ import logging
 from dateutil import relativedelta
 from gps import CONFIG
 from gps.common.rwminio import get_latest_file
+from gps.common.extract import get_connection
+
+
+
+
+# def get_trafic(host: str, database: str, user: str, password: str, date):
+#     """
+#     """
+
+#     exec_week = date.isocalendar()[1]
+#     conn = get_connection(host, database, user, password)
+#     sql_query = '''select * from "ENERGIE"."KS_DAILY_TDB_RADIO_DRSI" where EXTRACT(WEEK FROM "DATE_ID") = %d AND EXTRACT(YEAR FROM "DATE_ID" ) = %d'''
+#     logging.info(f"get data to date {date}")
+#     df_ = pd.read_sql_query(sql_query, conn, params=(exec_week,))
+
 
 def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, date: str):
     """
@@ -81,12 +96,13 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     # get daily data
     # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
     logging.info("GET LAST WEEK DAILY DATA")
-    exec_date = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=1)
+    exec_date = datetime.strptime(thedate, "%Y-%m-%d") 
     exec_week = exec_date.isocalendar()[1]
+    exec_year = exec_date.isocalendar()[0]
     print(exec_week)
     conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %d"
-    daily_week_df = pd.read_sql_query(sql_query, conn, params=(exec_week-1,))
+    sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s and EXTRACT(YEAR FROM jour) = %s "
+    daily_week_df = pd.read_sql_query(sql_query, conn, params=(str(exec_week), str(exec_year)))
     print(congestion.shape)
     print(daily_week_df.shape)
     daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("str")
