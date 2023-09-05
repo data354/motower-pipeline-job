@@ -32,7 +32,7 @@ CLIENT = Minio( MINIO_ENDPOINT,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
 
-DATE = "{{ data_interval_end }}"
+DATE = "{{data_interval_end}}"
 
 def extract_v2(**kwargs):
     """
@@ -75,7 +75,7 @@ with DAG(
     },
     description="weekly data",
     schedule_interval=timedelta(weeks=1),
-    start_date=datetime(2023, 6, 26, 12, 0, 0),
+    start_date=datetime(2023, 6, 19, 12, 0, 0),
     catchup=True,
 ) as dag:
     table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
@@ -118,3 +118,10 @@ with DAG(
             dag=dag,
         )
     extract_congestion_task >> gen_congestion_task >> gen_motower_task  
+
+
+    if __name__ == "__main__":
+        from airflow.utils.state import State
+
+        dag.clear()
+        dag.run()

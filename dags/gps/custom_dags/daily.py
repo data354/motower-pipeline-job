@@ -123,8 +123,8 @@ with DAG(
             'retries': 0
         },
         description='daily job',
-        schedule_interval="0 20 * * *",
-        start_date=datetime(2023, 7, 2, 6, 30, 0),
+        schedule_interval="0 6 * * *",
+        start_date=datetime(2023, 7, 2, 6, 0, 0),
         catchup=True
 ) as dag:
     check_file_sensor = PythonSensor(
@@ -200,6 +200,7 @@ with DAG(
             # on_failure_callback=on_failure,
             dag=dag,
         )
+    
     motower_task = PythonOperator(
             task_id="motower_task",
             provide_context=True,

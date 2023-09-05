@@ -42,7 +42,8 @@ PG_V2_DB = Variable.get('pg_v2_db')
 PG_V2_USER = Variable.get('pg_v2_user')
 PG_V2_PASSWORD = Variable.get('pg_v2_password')
 
-DATE = "{{data_interval_start.strftime('%Y-%m-%d')}}"
+DATE = "{{data_interval_start}}"
+
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
         secret_key= MINIO_SECRET_KEY,
@@ -191,8 +192,8 @@ with DAG(
         check_bdd_sensor =  PythonSensor(
             task_id= "check_bdd_sensor",
             mode='poke',
-            poke_interval= 24* 60 *60,
-            timeout = 144 * 60 * 60,
+            poke_interval= 24* 60 *60, # 1 jour
+            timeout = 144 * 60 * 60,    # 6 jours
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
