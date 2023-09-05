@@ -72,7 +72,8 @@ def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, d
 def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedate: str, pghost, pguser, pgpwd, pgdb):
     """
     """
-    if thedate >= datetime(2023, 7, 3):
+    exec_date = datetime.strptime(thedate, "%Y-%m-%d") 
+    if exec_date >= datetime(2023, 7, 3):
         
     # get   congestion 
         objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
@@ -98,7 +99,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         # get daily data
         # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
         logging.info("GET LAST WEEK DAILY DATA")
-        exec_date = datetime.strptime(thedate, "%Y-%m-%d") 
+        
         exec_week = exec_date.isocalendar()[1]
         exec_year = exec_date.isocalendar()[0]
         print(exec_week)
