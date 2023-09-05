@@ -73,6 +73,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
     """
     """
     exec_date = datetime.strptime(thedate, "%Y-%m-%d") 
+    exec_week = exec_date.isocalendar()[1]
+    exec_year = exec_date.isocalendar()[0]
     if exec_date >= datetime(2023, 7, 3):
         
     # get   congestion 
@@ -100,9 +102,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
         logging.info("GET LAST WEEK DAILY DATA")
         
-        exec_week = exec_date.isocalendar()[1]
-        exec_year = exec_date.isocalendar()[0]
-        print(exec_week)
+        
         conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
         sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s and EXTRACT(YEAR FROM jour) = %s "
         daily_week_df = pd.read_sql_query(sql_query, conn, params=(str(exec_week), str(exec_year)))
