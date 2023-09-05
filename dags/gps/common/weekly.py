@@ -128,6 +128,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         print(daily_week_df.shape)
         daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("str")
         daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
+        daily_week_df = daily_week_df.drop(columns=["id"])
         return daily_week_df
     
 
