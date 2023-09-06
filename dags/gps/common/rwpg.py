@@ -266,7 +266,7 @@ def write_pg(host: str, database:str, user: str, password: str,
     if table in ["motower_daily"]:
         delete_query = f"DELETE FROM {table} WHERE jour = '{data.jour.unique()[0]}'"
     if table == "motower_weekly":
-        exec_date = dt.strptime(data.jour.unique()[0], "%Y-%m-%d")
+        exec_date = data.jour.unique()[0]
         delete_query = f"DELETE FROM {table} WHERE EXTRACT(WEEK FROM jour) = {exec_date.isocalendar()[1]} and EXTRACT(YEAR FROM jour) = {exec_date.isocalendar()[0]} "
     if table == "motower_monthly":
         #delete_query = "DELETE FROM "+table+ " WHERE mois = %s;", (data.mois.unique()[0],)
