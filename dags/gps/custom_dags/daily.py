@@ -214,7 +214,7 @@ with DAG(
             python_callable=gen_motower_daily,
             on_failure_callback=on_failure,
             op_kwargs={
-                "date": INGEST_DATE
+                "ingest_date": INGEST_DATE
             },
             dag=dag,
         )
