@@ -218,8 +218,8 @@ with DAG(
             },
             dag=dag,
         )
-    
-    [check_file_sensor >> send_email_task  ]>>motower_task
+    check_file_sensor >> send_email_task  
+    check_file_sensor >> ingest_caparc >>motower_task
     tasks
 
 
