@@ -155,7 +155,7 @@ with DAG(
         on_failure_callback = on_failure,
         op_kwargs={
       
-              'date': INGEST_DATE,
+              'ingest_date': INGEST_DATE,
         },
 
     )
@@ -164,7 +164,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': INGEST_DATE,
+            'ingest_date': INGEST_DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -174,7 +174,7 @@ with DAG(
 
     tasks = []
     for table_config in CONFIG["tables"]:
-        if table_config["name"] in ["faitalarme", "hourly_datas_radio_prod",  "Taux_succes_2g", "Taux_succes_3g"]:
+        if table_config["name"] in ["hourly_datas_radio_prod",  "Taux_succes_2g", "Taux_succes_3g"]:
             task_id = f'ingest_{table_config["name"]}'
             callable_fn = extract_job 
             task = PythonOperator(
