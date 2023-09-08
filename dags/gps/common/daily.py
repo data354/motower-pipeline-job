@@ -83,7 +83,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
                            "ca_data", "ca_voix", "ca_total", "parc_global", "parc_data", "parc_2g", "parc_3g", "parc_4g", "parc_5g", "autre_parc", "trafic_data_in",
                            "trafic_voix_in"]
     
-    df_final["trafic_data_in_mo"] = df_final["trafic_data_in_mo"]  / 1000
+    df_final["trafic_data_in_mo"] = df_final["trafic_data_in"]  / 1000
     
     # df_final["trafic_data_total"] = df_final["trafic_data_2g"] + df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
     # df_final["trafic_voix_total"] = df_final["trafic_voix_2g"] + df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
