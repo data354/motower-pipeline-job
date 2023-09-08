@@ -119,7 +119,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'date': DATE
+                    'ingest_date': DATE
                 },
                 dag=dag,
             )
@@ -133,7 +133,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "ingest_date": DATE,
             },
             # on_failure_callback=on_failure,
             dag=dag,
