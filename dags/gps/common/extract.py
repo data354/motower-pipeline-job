@@ -6,6 +6,7 @@ from functools import lru_cache
 from unidecode import unidecode
 import pandas as pd
 import psycopg2
+from datetime import datetime
 from gps import CONFIG
 
 # Define SQL queries for different tables
@@ -25,7 +26,7 @@ SQL_QUERIES = {
     ''' ,
     "ks_hebdo_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_HEBDO_TDB_RADIO_DRSI" where "DATE_ID" = %s ''', 
 
-    "ks_daily_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_DAILY_TDB_RADIO_DRSI" where "DATE_ID" = %s ''',
+    "ks_daily_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_DAILY_TDB_RADIO_DRSI" where EXTRACT(WEEK FROM "DATE_ID") = %s AND EXTRACT(YEAR FROM "DATE_ID" ) = %s ''',
 
     "Taux_succes_2g": """select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,
     MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
@@ -77,6 +78,12 @@ def execute_query(args):
     Return:
         pandas DataFrame
     """
+    if len(args) == 4:
+        conn, week, year, sql_query = args
+        logging.info(f"get data to date {week}date and year {year}")
+        df_ = pd.read_sql_query(sql_query, conn, params=(week,year))
+        return df_
+
     conn, date, sql_query = args
     logging.info(f"get data to date {date}")
     df_ = pd.read_sql_query(sql_query, conn, params=(date,))
@@ -105,6 +112,10 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
             return execute_query([conn, date[:-2]+"01", SQL_QUERIES[table]])
         if table in ["ks_hebdo_tdb_radio_drsi", "ks_daily_tdb_radio_drsi" ]:
             return execute_query([conn, date, SQL_QUERIES[table]])
+        if table in ["ks_daily_tdb_radio_drsi" ]:
+            exec_date = datetime.strptime(date, CONFIG["date_format"])
+            exec_week, exec_year = exec_date.isocalendar()[1], exec_week = exec_date.isocalendar()[0]
+            return execute_query([conn, exec_week, exec_year, SQL_QUERIES[table]])
         if table != "faitalarme":
             return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )
         return execute_query([conn, date, SQL_QUERIES[table]] )

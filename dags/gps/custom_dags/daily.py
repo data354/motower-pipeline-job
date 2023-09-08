@@ -11,7 +11,6 @@ from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.daily import motower_daily
 from gps.common.rwpg import write_pg
-from gps.custom_dags.weekly import extract_v2
 
 # get variables
 
@@ -223,36 +222,7 @@ with DAG(
     tasks
 
 
-    #table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
-    # extract_trafic = PythonOperator(
-    #             task_id="extract_trafic",
-    #             provide_context=True,
-    #             python_callable=extract_v2,
-    #             on_failure_callback=on_failure,
-    #             op_kwargs={
-    #                 'thetable': table_config["name"],
-    #                 'bucket': table_config["bucket"],
-    #                 'folder': table_config["folder"],
-    #                 'table': table_config["table"],
-    #                 'date': DATE
-    #             },
-    #             dag=dag,
-    #         )
-    # clean_trafic_task = PythonOperator(
-    #         task_id="clean_trafic_task",
-    #         provide_context=True,
-    #         python_callable=cleaning_daily_trafic,
-    #         on_failure_callback=on_failure,
-    #         op_kwargs={
-    #             "client": CLIENT,
-    #             "endpoint": MINIO_ENDPOINT,
-    #             "accesskey": MINIO_ACCESS_KEY,
-    #             "secretkey": MINIO_SECRET_KEY,
-    #             "date": DATE,
-    #         },
-    #         # on_failure_callback=on_failure,
-    #         dag=dag,
-    #     )
+    
     
     
     

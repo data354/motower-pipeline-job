@@ -11,6 +11,9 @@ from gps.common.rwminio import save_minio
 from gps.common.weekly import cleaning_congestion
 from gps.common.rwpg import write_pg
 from gps.common.weekly import motower_weekly
+from gps.common.alerting import alert_failure
+from gps.common.weekly import cleaning_daily_trafic
+
 
 
 PG_HOST = Variable.get('pg_host')
@@ -27,12 +30,39 @@ PG_SAVE_DB = Variable.get('pg_save_db')
 PG_SAVE_USER = Variable.get('pg_save_user')
 PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
+SMTP_HOST = Variable.get('smtp_host')
+SMTP_PORT = Variable.get('smtp_port')
+SMTP_USER = Variable.get('smtp_user')
+
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
 
 DATE = "{{data_interval_start}}"
+
+def on_failure(context):
+    """
+    Function to handle task failure
+    """
+    params = {
+        "host": SMTP_HOST,
+        "port": SMTP_PORT,
+        "user": SMTP_USER,
+        "task_id": context["task"].task_id,
+        "dag_id": context["task"].dag_id,
+        "exec_date": context.get("ts"),
+        "exception": context.get("exception"),
+    }
+    # if "cleaning_bdd" in params["task_id"]:
+    #     params["type_fichier"] = "BASE_SITES"
+    # elif "cleaning_esco" in params["task_id"]:
+    #     params["type_fichier"] = "OPEX_ESCO"
+    # elif "cleaning_ihs" in params["task_id"]:
+    #     params["type_fichier"] = "OPEX_IHS"
+    # else:
+    #     raise RuntimeError("Can't get file type")
+    alert_failure(**params)
 
 def extract_v2(**kwargs):
     """
@@ -78,6 +108,36 @@ with DAG(
     start_date=datetime(2023, 6, 26, 12, 0, 0),
     catchup=True,
 ) as dag:
+    table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
+    extract_trafic = PythonOperator(
+                task_id="extract_trafic",
+                provide_context=True,
+                python_callable=extract_v2,
+                on_failure_callback=on_failure,
+                op_kwargs={
+                    'thetable': table_config["name"],
+                    'bucket': table_config["bucket"],
+                    'folder': table_config["folder"],
+                    'table': table_config["table"],
+                    'date': DATE
+                },
+                dag=dag,
+            )
+    clean_trafic_task = PythonOperator(
+            task_id="clean_trafic_task",
+            provide_context=True,
+            python_callable=cleaning_daily_trafic,
+            on_failure_callback=on_failure,
+            op_kwargs={
+                "client": CLIENT,
+                "endpoint": MINIO_ENDPOINT,
+                "accesskey": MINIO_ACCESS_KEY,
+                "secretkey": MINIO_SECRET_KEY,
+                "date": DATE,
+            },
+            # on_failure_callback=on_failure,
+            dag=dag,
+        )
     table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
     extract_congestion_task = PythonOperator(
                 task_id="extract_congestion",
