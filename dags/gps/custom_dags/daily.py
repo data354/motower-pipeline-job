@@ -45,16 +45,16 @@ def extract_ftp_job(**kwargs):
     extract ftp files callable
  
     """
-    data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
+    data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["date"])
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, kwargs["folder"])
+        raise RuntimeError(f"No data for {kwargs['date']}")
+    save_minio(CLIENT, kwargs["bucket"], kwargs["date"], data, kwargs["folder"])
 
 def check_file(**kwargs):
     """
         check if file exists
     """
-    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
+    filename = f"extract_vbm_{kwargs['date'].replace('-', '')}.csv"
     liste = list_ftp_file(FTP_HOST, FTP_USER, FTP_PASSWORD)
     if filename in liste:
         return True
@@ -171,7 +171,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'ingest_date': DATE
+                    'date': DATE
                 },
                 dag=dag,
             )
@@ -186,7 +186,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'ingest_date': DATE
+                    'date': DATE
                 },
                 dag=dag,
             )
