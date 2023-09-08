@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import partial
 from minio import Minio
 from airflow.operators.python import PythonOperator
 from airflow.sensors.python import PythonSensor
@@ -23,7 +24,7 @@ PG_SAVE_DB = Variable.get('pg_save_db')
 PG_SAVE_USER = Variable.get('pg_save_user')
 PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
-date = "{{ macros.ds_add(ds, -1) }}"
+DATE = "{{ macros.ds_add(ds, -1) }}"
 
 MINIO_ENDPOINT = Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
@@ -44,16 +45,16 @@ def extract_ftp_job(**kwargs):
     extract ftp files callable
  
     """
-    data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["date"])
+    data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['date']}")
-    save_minio(CLIENT, kwargs["bucket"], kwargs["date"], data, kwargs["folder"])
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, kwargs["folder"])
 
 def check_file(**kwargs):
     """
         check if file exists
     """
-    filename = f"extract_vbm_{kwargs['date'].replace('-', '')}.csv"
+    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
     liste = list_ftp_file(FTP_HOST, FTP_USER, FTP_PASSWORD)
     if filename in liste:
         return True
@@ -152,7 +153,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': date,
+            'date': DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -170,7 +171,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'date': date
+                    'ingest_date': DATE
                 },
                 dag=dag,
             )
@@ -185,7 +186,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'date': date
+                    'ingest_date': DATE
                 },
                 dag=dag,
             )
@@ -199,7 +200,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": date,
+                "date": DATE,
             },
             # on_failure_callback=on_failure,
             dag=dag,
@@ -211,7 +212,7 @@ with DAG(
             python_callable=gen_motower_daily,
             on_failure_callback=on_failure,
             op_kwargs={
-                "date": date
+                "date": DATE
             },
             dag=dag,
         )
