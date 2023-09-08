@@ -137,7 +137,7 @@ with DAG(
         on_failure_callback = partial(send_email_onfailure, {'date': DATE, 'host': SMTP_HOST,
             'port':SMTP_PORT,
             'users': SMTP_USER,
-            'code': ' ' }),
+            'code': 'CA_SITES' }),
         op_kwargs={
       
               'date': DATE,

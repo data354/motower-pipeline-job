@@ -14,7 +14,10 @@ def get_receivers(code: str):
     objet =  next((obj for obj in objets if obj["typeFichier"] == code), None)
     if objet is None:
         raise ValueError("emails of type %s not available", code)
-    return objet.get("email", ['jean-louis.gbadi@orange.com'])
+    email = objet.get("email", ['jean-louis.gbadi@orange.com'])
+    if len(email) == 0:
+        email = ['jean-louis.gbadi@orange.com']
+    return email
 
 
 def send_email(host, port, user, receivers, subject, content):
