@@ -220,8 +220,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         print(trafic["jour"].unique())
         trafic["id_site"] = trafic["id_site"].astype("str")
         #  MERGE DATA
-        print(daily_week_df["code_oci_id"].unique[0])
-        print(trafic["id_site"].unique[0])
+        print(daily_week_df["code_oci_id"].unique()[0:5])
+        print(trafic["id_site"].unique()[0:5])
         weekly_f = daily_week_df.merge(trafic, left_on =["code_oci_id", "jour"], right_on = ["id_site", "jour"], how="left")
         #weekly_f = weekly_f.drop(columns=["jour_y"])
         #weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
