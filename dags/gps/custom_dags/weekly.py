@@ -140,7 +140,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "ingest_date": DATE,
             },
             # on_failure_callback=on_failure,
             dag=dag,
