@@ -71,9 +71,16 @@ def extract_v2(**kwargs):
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= ingest_date)
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+        raise RuntimeError(f"No data for {ingest_date}")
     
     save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"])
+
+def clean_trafic(**kwargs):
+    ingest_date = kwargs["ingest_date"].split("T")[0]
+    data = cleaning_daily_trafic(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date)
+    if  data.empty:
+        raise RuntimeError(f"No data for {ingest_date}")
+    save_minio(CLIENT, kwargs["bucket"], ingest_date, data, f'{kwargs["folder"]}-cleaned')
 
 def gen_congestion(**kwargs):
     """
@@ -81,7 +88,7 @@ def gen_congestion(**kwargs):
     ingest_date = kwargs["ingest_date"].split("T")[0]
     data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date)
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+        raise RuntimeError(f"No data for {ingest_date}")
     save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"]+"-cleaned")
 
 def gen_motower_weekly(**kwargs):

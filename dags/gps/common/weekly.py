@@ -58,7 +58,7 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     trafic.reset_index(drop=False, inplace=True)
     trafic.columns = ["jour", "id_site", "trafic_data_2g", "trafic_data_3g", "trafic_data_4g", "trafic_voix_2g", "trafic_voix_3g", "trafic_voix_4g" ]
      # Save the cleaned dataFrame to Minio
-    save_minio(client, objet["bucket"], date, trafic, f'{objet["folder"]}-cleaned')
+    return trafic
     
 def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, date: str):
     """
