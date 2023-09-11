@@ -183,9 +183,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         weekly = weekly.drop(columns=["jour_y"])
         weekly.rename(columns={"jour_x":"jour"}, inplace=True)
 
-        weekly_f = weekly.merge(trafic, left_on =["id_site"], right_on = ["id_site"], how="left")
-        weekly_f = weekly_f.drop(columns=["jour_y"])
-        weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
+        weekly_f = weekly.merge(trafic, left_on =["id_site", "jour"], right_on = ["id_site", "jour"], how="left")
+        # weekly_f = weekly_f.drop(columns=["jour_y"])
+        # weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
         return weekly_f
     else:
@@ -218,9 +218,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
             raise ValueError(f"{filename} does not exist in bucket.") from error
         trafic["id_site"] = trafic["id_site"].astype("str")
         #  MERGE DATA
-        weekly_f = daily_week_df.merge(trafic, left_on =["code_oci_id"], right_on = ["id_site"], how="left")
-        weekly_f = weekly_f.drop(columns=["jour_y"])
-        weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
+        weekly_f = daily_week_df.merge(trafic, left_on =["code_oci_id", "jour"], right_on = ["id_site", "jour"], how="left")
+        #weekly_f = weekly_f.drop(columns=["jour_y"])
+        #weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
 
         return weekly_f

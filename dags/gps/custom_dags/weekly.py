@@ -182,6 +182,7 @@ with DAG(
             #on_failure_callback=on_failure,
             dag=dag,
         )
+    extract_trafic >> clean_trafic_task
     extract_congestion_task >> gen_congestion_task >> gen_motower_task  
 
 
