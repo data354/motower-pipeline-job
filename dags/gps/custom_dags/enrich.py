@@ -115,7 +115,7 @@ def gen_oneforall(**kwargs):
     )
     
     if not data.empty:
-        save_minio(client=CLIENT, bucket="motower_monthly", date=kwargs["date"], data=data)
+        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
 
@@ -134,7 +134,7 @@ def save_in_pg(**kwargs):
             user=PG_SAVE_USER,
             password=PG_SAVE_PASSWORD,
             data=data,
-            table="oneforall"
+            table="motower_monthly"
         )
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
