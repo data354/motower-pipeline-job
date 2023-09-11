@@ -42,7 +42,7 @@ PG_V2_DB = Variable.get('pg_v2_db')
 PG_V2_USER = Variable.get('pg_v2_user')
 PG_V2_PASSWORD = Variable.get('pg_v2_password')
 
-DATE = "{{data_interval_start}}".split("T")[0]
+DATE = "{{data_interval_start}}"
 
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
@@ -143,8 +143,7 @@ def send_email_onfailure(**kwargs):
     """
     send email if sensor failed
     """
-    ingest_date = kwargs["date"].split("T")[0]
-    date_parts = ingest_date.split("-")
+    date_parts = kwargs["date"].split("-")
     filename = f"{kwargs['code']}_{date_parts[0]}{date_parts[1]}.xlsx"
     subject = f"  Missing file {filename}"
     content = f"Missing file {filename}. please provide file asap"
@@ -181,7 +180,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'date': DATE
+                    'date': DATE.split("T")[0]
                 },
                 dag=dag,
             )
@@ -194,7 +193,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             on_failure_callback=on_failure,
             dag=dag,
@@ -208,7 +207,7 @@ with DAG(
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'BASE_SITES',
-                  'date': DATE,
+                  'date': DATE.split("T")[0],
             #     'smtp_host': SMTP_HOST,
             #     'smtp_user': SMTP_USER,
             #     'smtp_port': SMTP_PORT,
@@ -220,7 +219,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': DATE,
+            'date': DATE.split("T")[0],
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -237,7 +236,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             on_failure_callback=on_failure,
             dag=dag,
@@ -251,7 +250,7 @@ with DAG(
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'OPEX_ESCO',
-                  'date': DATE,
+                  'date': DATE.split("T")[0],
             #     'smtp_host': SMTP_HOST,
             #     'smtp_user': SMTP_USER,
             #     'smtp_port': SMTP_PORT,
@@ -268,7 +267,7 @@ with DAG(
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'ANNEXE_OPEX_ESCO',
-                  'date': DATE,
+                  'date': DATE.split("T")[0],
             #     'smtp_host': SMTP_HOST,
             #     'smtp_user': SMTP_USER,
             #     'smtp_port': SMTP_PORT,
@@ -280,7 +279,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': DATE,
+            'date': DATE.split("T")[0],
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -297,7 +296,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             on_failure_callback=on_failure,
             dag=dag,
@@ -311,7 +310,7 @@ with DAG(
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'OPEX_IHS',
-                  'date': DATE,
+                  'date': DATE.split("T")[0],
             #     'smtp_host': SMTP_HOST,
             #     'smtp_user': SMTP_USER,
             #     'smtp_port': SMTP_PORT,
@@ -322,7 +321,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': DATE,
+            'date': DATE.split("T")[0],
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -338,7 +337,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             on_failure_callback=on_failure,
             dag=dag,
@@ -374,7 +373,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             dag=dag,
         )
@@ -388,7 +387,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             dag=dag,
         )
@@ -414,7 +413,7 @@ with DAG(
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'CONGESTION',
-                  'date': DATE,
+                  'date': DATE.split("T")[0],
             #     'smtp_host': SMTP_HOST,
             #     'smtp_user': SMTP_USER,
             #     'smtp_port': SMTP_PORT,
@@ -429,7 +428,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             dag=dag,
         )
@@ -438,7 +437,7 @@ with DAG(
             python_callable=send_email_onfailure,
             trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
             op_kwargs={
-                'date': DATE,
+                'date': DATE.split("T")[0],
                 'host': SMTP_HOST, 
                 'port':SMTP_PORT,
                 'users': SMTP_USER,
@@ -468,7 +467,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
                 "start_date": "2023-01-06",
             },
             dag=dag,
@@ -481,7 +480,7 @@ with DAG(
                 "endpoint": MINIO_ENDPOINT,
                 "accesskey": MINIO_ACCESS_KEY,
                 "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
+                "date": DATE.split("T")[0],
             },
             dag=dag,
         )
