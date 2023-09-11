@@ -172,20 +172,20 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         daily_week_df = pd.read_sql_query(sql_query, conn, params=(str(exec_week), str(exec_year)))
         print(congestion.shape)
         print(daily_week_df.shape)
-        daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("str")
-        daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
+        daily_week_df["code_oci_id"] = daily_week_df["code_oci"].astype("float")
+        # daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
         logging.info("MERGE DATA")
         # merge data
-        congestion["id_site"] = congestion["id_site"].astype("str")
-        trafic["id_site"] = trafic["id_site"].astype("str")
+        congestion["id_site"] = congestion["id_site"].astype("float")
+        trafic["id_site"] = trafic["id_site"].astype("float")
         weekly = daily_week_df.merge(congestion, left_on =["code_oci_id"], right_on = ["id_site"], how="left")
         print(weekly.shape)
         weekly = weekly.drop(columns=["jour_y"])
         weekly.rename(columns={"jour_x":"jour"}, inplace=True)
 
-        weekly_f = weekly.merge(trafic, left_on =["id_site", "jour"], right_on = ["id_site", "jour"], how="left")
-        # weekly_f = weekly_f.drop(columns=["jour_y"])
-        # weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
+        weekly_f = weekly.merge(trafic, left_on =["code_oci_id", "jour"], right_on = ["id_site", "jour"], how="left")
+        weekly_f = weekly_f.drop(columns=["id_site_y"])
+        weekly_f.rename(columns={"id_site_x":"id_site"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
         return weekly_f
     else:
@@ -193,8 +193,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s and EXTRACT(YEAR FROM jour) = %s "
         daily_week_df = pd.read_sql_query(sql_query, conn, params=(str(exec_week), str(exec_year)))
         print(daily_week_df.shape)
-        daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("str")
-        daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
+        daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("float")
+        #daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
 
         logging.info("get  trafic")
         objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
@@ -218,7 +218,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
             raise ValueError(f"{filename} does not exist in bucket.") from error
         print(trafic.shape)
         print(trafic["jour"].unique())
-        trafic["id_site"] = trafic["id_site"].astype("str")
+        trafic["id_site"] = trafic["id_site"].astype("float")
         #  MERGE DATA
         print(daily_week_df["code_oci_id"].unique()[0:5])
         print(trafic["id_site"].unique()[0:5])
@@ -226,6 +226,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         #weekly_f = weekly_f.drop(columns=["jour_y"])
         #weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
+        print(weekly_f.columns)
 
         return weekly_f
     
