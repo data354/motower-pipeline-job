@@ -235,21 +235,21 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise OSError(f"{filename} don't exists in bucket") from error
 
     # get congestion
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
-    if objet is None:
-        raise ValueError("Table 'CONGESTION' not found in configuration")
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    try:
-        logging.info("read %s", filename)
-        cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    # objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
+    # if objet is None:
+    #     raise ValueError("Table 'CONGESTION' not found in configuration")
+    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    # try:
+    #     logging.info("read %s", filename)
+    #     cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
 
 
     # merging
@@ -278,8 +278,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     #bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add congestion")
-    bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
-
+    #bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco
     logging.info("add trafic")
     bdd_ca_ihs_esco_cong_trafic = bdd_ca_ihs_esco_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
@@ -302,7 +302,13 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_2G"] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_3G"] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_4G"] = 0
-
+    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_2g_congestionnees'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_3g_congestionnees']= 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_4g_congestionnees'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_2g'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_3g'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_4g'] = 0
+    
 
 
     df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',

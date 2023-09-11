@@ -478,7 +478,7 @@ with DAG(
     check_bdd_sensor >> clean_base_site >> section_oneforall
     [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
-    check_congestion_sensor >>  clean_congestion >> section_oneforall
+    #check_congestion_sensor >>  clean_congestion >> section_oneforall
     #[clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
     [clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
     #section_cleaning >> section_oneforall
