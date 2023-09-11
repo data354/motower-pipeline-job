@@ -39,7 +39,7 @@ CLIENT = Minio( MINIO_ENDPOINT,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
 
-DATE = "{{data_interval_start}}".split("T")[0]
+DATE = "{{data_interval_start | ds}}"
 
 def on_failure(context):
     """
