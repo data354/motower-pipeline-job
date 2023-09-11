@@ -219,7 +219,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': DATE.split("T")[0],
+            'date': DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
