@@ -110,7 +110,7 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
     if table in SQL_QUERIES:
         if table == "ks_tdb_radio_drsi":
             return execute_query([conn, date[:-2]+"01", SQL_QUERIES[table]])
-        if table in ["ks_hebdo_tdb_radio_drsi", "ks_daily_tdb_radio_drsi" ]:
+        if table in ["ks_hebdo_tdb_radio_drsi"]:
             return execute_query([conn, date, SQL_QUERIES[table]])
         if table in ["ks_daily_tdb_radio_drsi" ]:
             exec_date = datetime.strptime(date, CONFIG["date_format"])
