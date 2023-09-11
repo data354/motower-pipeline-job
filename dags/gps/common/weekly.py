@@ -172,7 +172,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         daily_week_df = pd.read_sql_query(sql_query, conn, params=(str(exec_week), str(exec_year)))
         print(congestion.shape)
         print(daily_week_df.shape)
-        daily_week_df["code_oci_id"] = daily_week_df["code_oci"].astype("float")
+        daily_week_df["code_oci_id"] = daily_week_df["code_oci_id"].astype("float")
         # daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
         logging.info("MERGE DATA")
         # merge data
@@ -193,7 +193,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         sql_query =  "select * from motower_daily where EXTRACT(WEEK FROM jour) = %s and EXTRACT(YEAR FROM jour) = %s "
         daily_week_df = pd.read_sql_query(sql_query, conn, params=(str(exec_week), str(exec_year)))
         print(daily_week_df.shape)
-        daily_week_df["code_oci"] = daily_week_df["code_oci"].astype("float")
+        daily_week_df["code_oci_id"] = daily_week_df["code_oci_id"].astype("float")
         #daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
 
         logging.info("get  trafic")
