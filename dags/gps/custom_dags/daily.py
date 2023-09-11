@@ -150,6 +150,7 @@ with DAG(
         mode="reschedule",
         retries=0,
         timeout=10,
+        ignore_depends_on_past= True,
         python_callable= check_file,
         on_failure_callback = on_failure,
         op_kwargs={
@@ -180,6 +181,7 @@ with DAG(
                 task_id=task_id,
                 provide_context=True,
                 python_callable=callable_fn,
+                ignore_depends_on_past= True,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
@@ -197,6 +199,7 @@ with DAG(
                 task_id=task_id,
                 provide_context=True,
                 python_callable=callable_fn,
+                ignore_depends_on_past= True,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
