@@ -137,9 +137,9 @@ with DAG(
             on_failure_callback=on_failure,
             op_kwargs={
                 "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
+                'bucket': table_config["bucket"],
+                'folder': table_config["folder"],
+                'table': table_config["table"],
                 "ingest_date": DATE,
             },
             # on_failure_callback=on_failure,
