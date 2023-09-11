@@ -477,7 +477,8 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
     trafic.columns = ["_".join(d) for d in trafic.columns]
     trafic.reset_index(drop=False, inplace=True)
      # Save the cleaned dataFrame to Minio
-    save_minio(client, objet["bucket"], date, trafic, f'{objet["folder"]}-cleaned')
+    return trafic
+    #save_minio(client, objet["bucket"], date, trafic, f'{objet["folder"]}-cleaned')
 
 # def cleaning_call_drop(endpoint:str, accesskey:str, secretkey:str,  date: str):
 #     """

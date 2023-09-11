@@ -39,7 +39,7 @@ CLIENT = Minio( MINIO_ENDPOINT,
         secret_key= MINIO_SECRET_KEY,
         secure=False)
 
-DATE = "{{data_interval_start}}"
+DATE = "{{data_interval_start}}".split("T")[0]
 
 def on_failure(context):
     """
@@ -67,37 +67,35 @@ def on_failure(context):
 def extract_v2(**kwargs):
     """
     """
-    ingest_date = kwargs["ingest_date"].split("T")[0]
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= ingest_date)
+            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
     if  data.empty:
-        raise RuntimeError(f"No data for {ingest_date}")
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
-    save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"])
+    save_minio(CLIENT, kwargs["bucket"] , kwargs['ingest_date'], data, kwargs["folder"])
 
 def clean_trafic(**kwargs):
-    ingest_date = kwargs["ingest_date"].split("T")[0]
-    data = cleaning_daily_trafic(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date)
+    """
+    """
+    data = cleaning_daily_trafic(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['ingest_date'])
     if  data.empty:
-        raise RuntimeError(f"No data for {ingest_date}")
-    save_minio(CLIENT, kwargs["bucket"], ingest_date, data, f'{kwargs["folder"]}-cleaned')
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    save_minio(CLIENT, kwargs["bucket"], kwargs['ingest_date'], data, f'{kwargs["folder"]}-cleaned')
 
 def gen_congestion(**kwargs):
     """
     """
-    ingest_date = kwargs["ingest_date"].split("T")[0]
-    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date)
+    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['ingest_date'])
     if  data.empty:
-        raise RuntimeError(f"No data for {ingest_date}")
-    save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"]+"-cleaned")
+        raise RuntimeError(f"No data for {kwargs['date']}")
+    save_minio(CLIENT, kwargs["bucket"] , kwargs['date'], data, kwargs["folder"]+"-cleaned")
 
 def gen_motower_weekly(**kwargs):
     """
     """
-    ingest_date = kwargs["date"].split("T")[0]
-    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, ingest_date, PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
+    data = motower_weekly(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['date'], PG_SAVE_HOST, PG_SAVE_USER, PG_SAVE_PASSWORD, PG_SAVE_DB )
     if  data.empty:
-        raise RuntimeError(f"No data for {ingest_date}")
+        raise RuntimeError(f"No data for {kwargs['date']}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_weekly")
 with DAG(
     "weekly",

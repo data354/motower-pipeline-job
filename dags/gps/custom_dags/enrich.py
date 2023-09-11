@@ -42,7 +42,7 @@ PG_V2_DB = Variable.get('pg_v2_db')
 PG_V2_USER = Variable.get('pg_v2_user')
 PG_V2_PASSWORD = Variable.get('pg_v2_password')
 
-DATE = "{{data_interval_start}}"
+DATE = "{{data_interval_start}}".split("T")[0]
 
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
@@ -52,14 +52,20 @@ CLIENT = Minio( MINIO_ENDPOINT,
 def extract_trafic_v2(**kwargs):
     """
     """
-    ingest_date = kwargs["date"].split("T")[0]
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= ingest_date)
+            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs["date"])
     print(data.shape)
     if  data.empty:
-        raise RuntimeError(f"No data for {ingest_date}")
+        raise RuntimeError(f"No data for {kwargs['date']}")
     
-    save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"])
+    save_minio(CLIENT, kwargs["bucket"] , kwargs["date"], data, kwargs["folder"])
+
+def clean_trafic_v2(**kwargs):
+    data = cleaning_trafic_v2(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["ingest_date"])
+    if  data.empty:
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, f'{kwargs["folder"]}-cleaned')
+
 
 def on_failure(context):
     """
@@ -88,41 +94,38 @@ def check_file(**kwargs ):
     """
     check if file exists
     """
-    ingest_date = kwargs["date"].split("T")[0]
-    if (kwargs['table_type'] == 'OPEX_IHS') and (ingest_date.split('-')[1] not in ["01", "04", "07", "10"]):
+    if (kwargs['table_type'] == 'OPEX_IHS') and (kwargs["date"].split('-')[1] not in ["01", "04", "07", "10"]):
         return True
     
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
-    date_parts = ingest_date.split("-")
+    date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
     if filename is None:
         return False
     return True
 
 def gen_oneforall(**kwargs):
-    ingest_date = kwargs["date"].split("T")[0]
     data = oneforall(
         CLIENT,
         kwargs["endpoint"],
         kwargs["accesskey"],
         kwargs["secretkey"],
-        ingest_date,
+        kwargs["date"],
         kwargs["start_date"],
     )
     
     if not data.empty:
-        save_minio(client=CLIENT, bucket="oneforall", date=ingest_date, data=data)
+        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
     else:
-        raise RuntimeError(f"No data for {ingest_date}")
+        raise RuntimeError(f"No data for {kwargs['date']}")
 
 def save_in_pg(**kwargs):
-    ingest_date = kwargs["date"].split("T")[0]
     data = get_last_ofa(
         CLIENT,
         kwargs["endpoint"],
         kwargs["accesskey"],
         kwargs["secretkey"],
-        ingest_date,
+        kwargs["date"],
     )
     if not data.empty:
         write_pg(
@@ -134,7 +137,7 @@ def save_in_pg(**kwargs):
             table="oneforall"
         )
     else:
-        raise RuntimeError(f"No data for {ingest_date}")
+        raise RuntimeError(f"No data for {kwargs['date']}")
 
 def send_email_onfailure(**kwargs):
     """
@@ -185,7 +188,7 @@ with DAG(
         clean_trafic_deux = PythonOperator(
             task_id="cleaning_trafic_deux",
             provide_context=True,
-            python_callable=cleaning_trafic_v2,
+            python_callable=clean_trafic_v2,
             op_kwargs={
                 "client": CLIENT,
                 "endpoint": MINIO_ENDPOINT,
