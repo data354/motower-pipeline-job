@@ -189,10 +189,9 @@ with DAG(
             provide_context=True,
             python_callable=clean_trafic_v2,
             op_kwargs={
-                "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
+                'thetable': table_config["name"],
+                'bucket': table_config["bucket"],
+                'folder': table_config["folder"],
                 "date": DATE,
             },
             on_failure_callback=on_failure,
