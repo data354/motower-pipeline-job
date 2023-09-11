@@ -26,7 +26,7 @@ SQL_QUERIES = {
     ''' ,
     "ks_hebdo_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_HEBDO_TDB_RADIO_DRSI" where "DATE_ID" = %s ''', 
 
-    "ks_daily_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_DAILY_TDB_RADIO_DRSI" where EXTRACT(WEEK FROM "DATE_ID") = %s AND EXTRACT(YEAR FROM "DATE_ID" ) = %s ''',
+    "ks_daily_tdb_radio_drsi": ''' select * from "ENERGIE"."KS_DAILY_TDB_RADIO_DRSI" where EXTRACT(WEEK FROM TO_DATE("DATE_ID", 'YYYY-MM-DD')) = %s AND EXTRACT(YEAR FROM TO_DATE("DATE_ID", 'YYYY-MM-DD') ) = %s ''',
 
     "Taux_succes_2g": """select date_jour, SPLIT_PART(bcf_name,'_',1) AS code_site,
     MIN(CAST(cssr_cs AS DECIMAL)) AS min_cssr_cs,
