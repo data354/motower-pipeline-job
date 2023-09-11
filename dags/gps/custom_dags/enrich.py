@@ -115,7 +115,7 @@ def gen_oneforall(**kwargs):
     )
     
     if not data.empty:
-        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
+        save_minio(client=CLIENT, bucket="motower_monthly", date=kwargs["date"], data=data)
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
 
