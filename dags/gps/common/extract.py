@@ -114,7 +114,7 @@ def extract_pg(host: str, database: str, user: str, password: str, table: str = 
             return execute_query([conn, date, SQL_QUERIES[table]])
         if table in ["ks_daily_tdb_radio_drsi" ]:
             exec_date = datetime.strptime(date, CONFIG["date_format"])
-            exec_week, exec_year = exec_date.isocalendar()[1], exec_week = exec_date.isocalendar()[0]
+            exec_week, exec_year = exec_date.isocalendar()[1], exec_date.isocalendar()[0]
             return execute_query([conn, exec_week, exec_year, SQL_QUERIES[table]])
         if table != "faitalarme":
             return execute_query([conn, date.replace("-",""), SQL_QUERIES[table]] )
