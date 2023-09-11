@@ -183,7 +183,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         weekly = weekly.drop(columns=["jour_y"])
         weekly.rename(columns={"jour_x":"jour"}, inplace=True)
 
-        weekly_f = weekly.merge(trafic, left_on =["code_oci_id"], right_on = ["id_site"], how="left")
+        weekly_f = weekly.merge(trafic, left_on =["id_site"], right_on = ["id_site"], how="left")
         weekly_f = weekly_f.drop(columns=["jour_y"])
         weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
