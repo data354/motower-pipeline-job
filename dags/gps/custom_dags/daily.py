@@ -150,7 +150,6 @@ with DAG(
         mode="reschedule",
         retries=0,
         timeout=10,
-        ignore_depends_on_past= True,
         python_callable= check_file,
         on_failure_callback = on_failure,
         op_kwargs={
