@@ -133,7 +133,7 @@ with DAG(
     clean_trafic_task = PythonOperator(
             task_id="clean_trafic_task",
             provide_context=True,
-            python_callable=cleaning_daily_trafic,
+            python_callable=clean_trafic,
             on_failure_callback=on_failure,
             op_kwargs={
                 "client": CLIENT,
