@@ -132,7 +132,7 @@ def on_failure(context):
 with DAG(
         'daily',
         default_args={
-            'depends_on_past': True,
+            'depends_on_past': False,
             'wait_for_downstream': False,
             'email': CONFIG["airflow_receivers"],
             'email_on_failure': True,
@@ -175,12 +175,11 @@ with DAG(
     for table_config in CONFIG["tables"]:
         if table_config["name"] in ["hourly_datas_radio_prod",  "Taux_succes_2g", "Taux_succes_3g"]:
             task_id = f'ingest_{table_config["name"]}'
-            callable_fn = extract_job 
+            callable_fn = extract_job
             task = PythonOperator(
                 task_id=task_id,
                 provide_context=True,
                 python_callable=callable_fn,
-                ignore_depends_on_past= True,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
@@ -198,7 +197,6 @@ with DAG(
                 task_id=task_id,
                 provide_context=True,
                 python_callable=callable_fn,
-                ignore_depends_on_past= True,
                 op_kwargs={
                     'thetable': table_config["name"],
                     'bucket': table_config["bucket"],
@@ -214,6 +212,7 @@ with DAG(
             provide_context=True,
             python_callable=gen_motower_daily,
             on_failure_callback=on_failure,
+            depends_on_past= True,
             op_kwargs={
                 "ingest_date": INGEST_DATE
             },
