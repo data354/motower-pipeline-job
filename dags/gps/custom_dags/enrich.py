@@ -52,13 +52,14 @@ CLIENT = Minio( MINIO_ENDPOINT,
 def extract_trafic_v2(**kwargs):
     """
     """
+    ingest_date = kwargs["date"].split("T")[0]
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
+            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= ingest_date)
     print(data.shape)
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+        raise RuntimeError(f"No data for {ingest_date}")
     
-    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"])
+    save_minio(CLIENT, kwargs["bucket"] , ingest_date, data, kwargs["folder"])
 
 def on_failure(context):
     """
@@ -87,36 +88,41 @@ def check_file(**kwargs ):
     """
     check if file exists
     """
-    if (kwargs['table_type'] == 'OPEX_IHS') and (kwargs["date"].split('-')[1] not in ["01", "04", "07", "10"]):
+    ingest_date = kwargs["date"].split("T")[0]
+    if (kwargs['table_type'] == 'OPEX_IHS') and (ingest_date.split('-')[1] not in ["01", "04", "07", "10"]):
         return True
+    
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
-    date_parts = kwargs["date"].split("-")
+    date_parts = ingest_date.split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
     if filename is None:
         return False
     return True
 
 def gen_oneforall(**kwargs):
+    ingest_date = kwargs["date"].split("T")[0]
     data = oneforall(
         CLIENT,
         kwargs["endpoint"],
         kwargs["accesskey"],
         kwargs["secretkey"],
-        kwargs["date"],
+        ingest_date,
         kwargs["start_date"],
     )
+    
     if not data.empty:
-        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
+        save_minio(client=CLIENT, bucket="oneforall", date=ingest_date, data=data)
     else:
-        raise RuntimeError(f"No data for {kwargs['date']}")
+        raise RuntimeError(f"No data for {ingest_date}")
 
 def save_in_pg(**kwargs):
+    ingest_date = kwargs["date"].split("T")[0]
     data = get_last_ofa(
         CLIENT,
         kwargs["endpoint"],
         kwargs["accesskey"],
         kwargs["secretkey"],
-        kwargs["date"],
+        ingest_date,
     )
     if not data.empty:
         write_pg(
@@ -128,13 +134,14 @@ def save_in_pg(**kwargs):
             table="oneforall"
         )
     else:
-        raise RuntimeError(f"No data for {kwargs['date']}")
+        raise RuntimeError(f"No data for {ingest_date}")
 
 def send_email_onfailure(**kwargs):
     """
     send email if sensor failed
     """
-    date_parts = kwargs["date"].split("-")
+    ingest_date = kwargs["date"].split("T")[0]
+    date_parts = ingest_date.split("-")
     filename = f"{kwargs['code']}_{date_parts[0]}{date_parts[1]}.xlsx"
     subject = f"  Missing file {filename}"
     content = f"Missing file {filename}. please provide file asap"
@@ -171,7 +178,7 @@ with DAG(
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
-                    'ingest_date': DATE
+                    'date': DATE
                 },
                 dag=dag,
             )
@@ -424,17 +431,19 @@ with DAG(
             dag=dag,
         )
         send_email_congestion_task = PythonOperator(
-        task_id='send_email_congestion',
-        python_callable=send_email_onfailure,
-        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
-        op_kwargs={
-            'date': DATE,
-            'host': SMTP_HOST, 
-            'port':SMTP_PORT,
-            'users': SMTP_USER,
-            'code': "CONGESTION"
-        }
-        )
+            task_id='send_email_congestion',
+            python_callable=send_email_onfailure,
+            trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+            op_kwargs={
+                'date': DATE,
+                'host': SMTP_HOST, 
+                'port':SMTP_PORT,
+                'users': SMTP_USER,
+                'code': "CONGESTION",
+            },
+            dag=dag,
+            )
+        
         extract_trafic_deux >> clean_trafic_deux 
         check_bdd_sensor >> send_email_bdd_task 
         check_bdd_sensor >> clean_base_site
