@@ -61,10 +61,10 @@ def extract_trafic_v2(**kwargs):
     save_minio(CLIENT, kwargs["bucket"] , kwargs["date"], data, kwargs["folder"])
 
 def clean_trafic_v2(**kwargs):
-    data = cleaning_trafic_v2(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["ingest_date"])
+    data = cleaning_trafic_v2(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"])
     if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, f'{kwargs["folder"]}-cleaned')
+        raise RuntimeError(f"No data for {kwargs['date']}")
+    save_minio(CLIENT, kwargs["bucket"], kwargs["date"], data, f'{kwargs["folder"]}-cleaned')
 
 
 def on_failure(context):
