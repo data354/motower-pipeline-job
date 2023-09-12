@@ -160,7 +160,6 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         
 
 
-        trafic["jour"] = pd.to_datetime(trafic["jour"])
         print(trafic.head())
         # get daily data
         # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
@@ -220,7 +219,6 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         except Exception as error:
             raise ValueError(f"{filename} does not exist in bucket.") from error
         print(trafic.shape)
-        trafic["jour"] = pd.to_datetime(trafic["jour"])
         print(trafic["jour"].unique())
         trafic["id_site"] = trafic["id_site"].astype("float")
         #  MERGE DATA
