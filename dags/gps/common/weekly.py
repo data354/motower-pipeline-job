@@ -177,8 +177,9 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         # merge data
         congestion["id_site"] = congestion["id_site"].astype("float")
         trafic["id_site"] = trafic["id_site"].astype("float")
-        weekly = daily_week_df.merge(congestion, left_on =["code_oci_id"], right_on = ["id_site"], how="left")
+        weekly = daily_week_df.merge(trafic, left_on =["jour","code_oci_id" ], right_on = ["jour","id_site"], how="left")
         print(weekly.shape)
+        print(weekly.head())
         weekly = weekly.drop(columns=["jour_y"])
         weekly.rename(columns={"jour_x":"jour"}, inplace=True)
 
