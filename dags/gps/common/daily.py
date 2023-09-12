@@ -135,7 +135,7 @@ def motower_daily(client, endpoint: str, accesskey: str, secretkey: str, date: s
                 for idx, row in df_final.iterrows():
                     code_oci = row["code_oci"]
                     date_row = row["jour"]
-                    previos_segment = last_month.loc[last_month.code_oci==code_oci, "segment"].values
+                    previos_segment = last_month.loc[last_month.code_oci==code_oci, "segment"].values[0]
                     print(previos_segment)
                     df_final.loc[idx, "previous_segment"] = previos_segment
     return df_final
