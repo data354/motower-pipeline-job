@@ -160,7 +160,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         
 
 
-
+        trafic["jour"] = pd.to_datetime(trafic["jour"])
         print(trafic.head())
         # get daily data
         # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
@@ -183,7 +183,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         weekly = weekly.drop(columns=["jour_y"])
         weekly.rename(columns={"jour_x":"jour"}, inplace=True)
 
-        weekly_f = weekly.merge(trafic, left_on =["code_oci_id", "jour"], right_on = ["id_site", "jour"], how="left")
+        weekly_f = weekly.merge(trafic, left_on =["jour","code_oci_id" ], right_on = ["jour","id_site"], how="left")
+        print(weekly_f.loc[0:20, ["code_oci_id", "id_site", "jour","trafic_data_2g"]])
         weekly_f = weekly_f.drop(columns=["id_site_y"])
         weekly_f.rename(columns={"id_site_x":"id_site"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
@@ -219,12 +220,13 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         except Exception as error:
             raise ValueError(f"{filename} does not exist in bucket.") from error
         print(trafic.shape)
+        trafic["jour"] = pd.to_datetime(trafic["jour"])
         print(trafic["jour"].unique())
         trafic["id_site"] = trafic["id_site"].astype("float")
         #  MERGE DATA
         print(daily_week_df["code_oci_id"].unique()[0:5])
         print(trafic["id_site"].unique()[0:5])
-        weekly_f = daily_week_df.merge(trafic, left_on =["code_oci_id", "jour"], right_on = ["id_site", "jour"], how="left")
+        weekly_f = daily_week_df.merge(trafic, left_on =["jour","code_oci_id"], right_on = ["jour","id_site"], how="left")
         #weekly_f = weekly_f.drop(columns=["jour_y"])
         #weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
