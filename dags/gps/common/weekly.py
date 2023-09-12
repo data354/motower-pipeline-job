@@ -161,7 +161,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
 
 
 
-
+        print(trafic.head())
         # get daily data
         # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
         logging.info("GET LAST WEEK DAILY DATA")
@@ -187,6 +187,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         weekly_f = weekly_f.drop(columns=["id_site_y"])
         weekly_f.rename(columns={"id_site_x":"id_site"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
+        print(weekly_f.shape)
         print(weekly_f.loc[0:20, ["code_oci_id", "id_site", "jour","trafic_data_2g"]])
         return weekly_f
     else:
