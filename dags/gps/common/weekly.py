@@ -187,6 +187,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         weekly_f = weekly_f.drop(columns=["id_site_y"])
         weekly_f.rename(columns={"id_site_x":"id_site"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
+        print(weekly_f.loc[0:20, ["code_oci_id", "id_site", "jour","trafic_data_2g"]])
         return weekly_f
     else:
         conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
