@@ -159,7 +159,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
             raise ValueError(f"{filename} does not exist in bucket.") from error
         
 
-
+        trafic["jour"] = pd.to_datetime(trafic["jour"], format=CONFIG["date_format"])
         print(trafic.head())
         # get daily data
         # start = datetime.strptime(thedate, "%Y-%m-%d") - timedelta(days=7)
@@ -172,6 +172,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         print(congestion.shape)
         print(daily_week_df.shape)
         daily_week_df["code_oci_id"] = daily_week_df["code_oci_id"].astype("float")
+        daily_week_df["jour"] = pd.to_datetime(daily_week_df["jour"], format=CONFIG["date_format"])
         # daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
         logging.info("MERGE DATA")
         # merge data
@@ -198,7 +199,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         print(daily_week_df.shape)
         daily_week_df["code_oci_id"] = daily_week_df["code_oci_id"].astype("float")
         #daily_week_df['code_oci_id'] = daily_week_df["code_oci"].str.replace('OCI', '')
-
+        daily_week_df["jour"] = pd.to_datetime(daily_week_df["jour"], format=CONFIG["date_format"])
         logging.info("get  trafic")
         objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
         if not objet:
@@ -220,6 +221,7 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         except Exception as error:
             raise ValueError(f"{filename} does not exist in bucket.") from error
         print(trafic.shape)
+        trafic["jour"] = pd.to_datetime(trafic["jour"], format=CONFIG["date_format"])
         print(trafic["jour"].unique())
         trafic["id_site"] = trafic["id_site"].astype("float")
         #  MERGE DATA
