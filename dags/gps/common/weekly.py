@@ -191,6 +191,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         weekly_f = weekly_f.drop(columns=["id"])
         print(weekly_f.shape)
         print(weekly_f.loc[0:20, ["code_oci_id", "id_site", "jour","trafic_data_2g"]])
+        weekly_f["trafic_data_total"] = weekly_f["trafic_data_2g"] + weekly_f["trafic_data_3g"] + weekly_f["trafic_data_4g"]
+        weekly_f["trafic_voix_total"] = weekly_f["trafic_voix_2g"] + weekly_f["trafic_voix_3g"] + weekly_f["trafic_voix_4g"]
         return weekly_f
     else:
         conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
@@ -231,6 +233,8 @@ def motower_weekly(client, endpoint: str, accesskey: str, secretkey: str, thedat
         #weekly_f = weekly_f.drop(columns=["jour_y"])
         #weekly_f.rename(columns={"jour_x":"jour"}, inplace=True)
         weekly_f = weekly_f.drop(columns=["id"])
+        weekly_f["trafic_data_total"] = weekly_f["trafic_data_2g"] + weekly_f["trafic_data_3g"] + weekly_f["trafic_data_4g"]
+        weekly_f["trafic_voix_total"] = weekly_f["trafic_voix_2g"] + weekly_f["trafic_voix_3g"] + weekly_f["trafic_voix_4g"]
         print(weekly_f.columns)
 
         return weekly_f
