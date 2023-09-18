@@ -260,7 +260,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     logging.info("merge bdd and CA")
     bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
 
-    logging.info(f"CA après merging est de {sum(bdd_ca['total'])}")
+    logging.info(f"CA après merging est de {bdd_ca['total'].sum()}")
     
     logging.info("add opex")
     bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
