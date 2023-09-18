@@ -318,8 +318,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
-                                                           'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'parc', 'parc_data',"parc_2g",
-                                                         "parc_3g", "parc_4g", "parc_5g", "parc_other",
+                                                           'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'ca_total','parc', 'parc_data',"parc_2g",
+                                                         "parc_3g", "parc_4g", "parc_5g", "parc_other", 
                                                            'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
        'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
         
@@ -353,6 +353,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                                 'position_site',
                                 'ca_voix',
                                 'ca_data',
+                                'ca_total',
                                 'parc_global',
                                 'parc_data',
                                 "parc_2g",
@@ -395,7 +396,6 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     df_final["trafic_voix_total"] = df_final["trafic_voix_2g"]+df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
     df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
 
-    df_final["ca_total"] = df_final["ca_data"] + df_final["ca_voix"]
     df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total>=20000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total>=10000000)),["segment"]] = "PREMIUM"
     df_final.loc[((df_final.localisation.str.lower()=="abidjan") & ((df_final.ca_total>=10000000) & (df_final.ca_total<20000000) )) | ((df_final.localisation.str.lower()=="intérieur") & ((df_final.ca_total>=4000000) & (df_final.ca_total<10000000))),["segment"]] = "NORMAL"
     df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total<10000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total<4000000)),["segment"]] = "A DEVELOPPER"

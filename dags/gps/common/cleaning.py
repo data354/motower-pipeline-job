@@ -87,7 +87,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
     subset_na = subset_unique = ["code oci"]
     df_ = clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)
     df_["code oci id"] = df_["code oci"].str.replace("OCI", "").astype("float64")
-    df_ = df_.loc[(df_["statut"].str.lower() == "service") & (df_["position site"].str.lower().isin(["localité", "localié"])), table_obj["columns"] + ["code oci id", "mois"]]
+    #df_ = df_.loc[(df_["statut"].str.lower() == "service") & (df_["position site"].str.lower().isin(["localité", "localié"])), table_obj["columns"] + ["code oci id", "mois"]]
      # Save cleaned data to minio
     logging.info("Saving data to minio")
     save_minio(client, table_obj["bucket"], date, df_, f"{table_obj['folder']}-cleaned")
@@ -339,7 +339,10 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
           "parc_3g": 'last',
           "parc_4g": 'last',
           "parc_5g": 'last',
-          "parc_other": 'last'})
+          "parc_other": 'last',
+          "ca_total": 'sum',
+          "trafic_voix_in": 'sum',
+          "trafic_data_in": 'sum'})
     data.reset_index(drop=False, inplace=True)
     logging.info("Start to save data")
     save_minio(client, objet["bucket"], date, data, f'{objet["folder"]}-cleaned')
