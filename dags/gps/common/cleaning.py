@@ -8,6 +8,17 @@ from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
 
+def validate_column(df, col:str):
+    """
+        validate data 
+    """
+    thresolds = next((d[col] for d in CONFIG["thresold"] if d["name"] == "OPEX_ESCO"), None)
+    df_not_valid = df[~((df[col] >= thresolds["min"]) & (df[col] <= thresolds["max"]) )]
+    if df_not_valid.shape[0]:
+        message = f"These dates have invalid {col}: {df_not_valid[:, col].to_string()}"
+        raise ValueError(message)
+
+
 def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
     """
       trim some cols, drop duplicates, dropna
@@ -305,6 +316,24 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
     cols_to_trim = ["id_site"]
     data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
     data = data.sort_values("day_id")
+
+    # DATA VALIDATION
+    logging.info("DATA VALIDATION")
+    df_for_validation = data.groupby("day_id").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'last', 'parc_data': 'last', "parc_2g": 'last',
+          "parc_3g": 'last',
+          "parc_4g": 'last',
+          "parc_5g": 'last',
+          "parc_other": 'last'})
+    df_for_validation["ca_total"] = df_for_validation["ca_voix"] + df_for_validation["ca_data"]
+    df_for_validation.reset_index(drop=False, inplace=True)
+
+    logging.info('DAILY KPI - {}'.format(df_for_validation.to_string()))
+    for col in ["ca_voix", "ca_data", "parc", "parc_data"]:
+        validate_column(df_for_validation, col)
+    logging.info("validations are ok.")
+    
+    # generate final data
+    logging.info("generate and save final data.")
     data = data.groupby(["id_site"]).aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'last', 'parc_data': 'last', "parc_2g": 'last',
           "parc_3g": 'last',
           "parc_4g": 'last',
