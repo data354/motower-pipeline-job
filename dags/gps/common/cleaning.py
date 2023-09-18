@@ -15,7 +15,7 @@ def validate_column(df, col:str):
     thresolds = next((d[col] for d in CONFIG["thresold"]), None)
     df_not_valid = df[~((df[col] >= thresolds["min"]) & (df[col] <= thresolds["max"]) )]
     if df_not_valid.shape[0]:
-        message = f"These dates have invalid {col}: {df_not_valid[:, col].to_string()}"
+        message = f"These dates have invalid {col}: {df_not_valid.loc[:, ['date_id', col]].to_string()}"
         raise ValueError(message)
 
 
@@ -328,6 +328,7 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
     df_for_validation.reset_index(drop=False, inplace=True)
 
     logging.info('DAILY KPI - {}'.format(df_for_validation.to_string()))
+    logging.info(f"Le CA mensuel est de {df_for_validation['ca_total'].sum()} ")
     for col in ["ca_voix", "ca_data", "parc", "parc_data"]:
         validate_column(df_for_validation, col)
     logging.info("validations are ok.")
