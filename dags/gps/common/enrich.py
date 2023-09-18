@@ -114,6 +114,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                             )
     except Exception as error:
         raise OSError(f"{filename} don't exists in bucket") from error
+    caparc["total"] = caparc["ca_voix"] + caparc["ca_data"] 
+    logging.info(f"Le CA recupéré du fichier cleaning est : {sum(caparc['total'])}")
     
     # get opex esco
 
@@ -257,6 +259,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     
     logging.info("merge bdd and CA")
     bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
+
+    logging.info(f"CA après merging est de {sum(bdd_ca['total'])}")
     
     logging.info("add opex")
     bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
