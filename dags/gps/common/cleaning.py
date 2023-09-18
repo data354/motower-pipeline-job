@@ -12,7 +12,7 @@ def validate_column(df, col:str):
     """
         validate data 
     """
-    thresolds = next((d[col] for d in CONFIG["thresold"] if d["name"] == "OPEX_ESCO"), None)
+    thresolds = next((d[col] for d in CONFIG["thresold"]), None)
     df_not_valid = df[~((df[col] >= thresolds["min"]) & (df[col] <= thresolds["max"]) )]
     if df_not_valid.shape[0]:
         message = f"These dates have invalid {col}: {df_not_valid[:, col].to_string()}"
