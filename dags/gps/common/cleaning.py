@@ -319,11 +319,11 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
 
     # DATA VALIDATION
     logging.info("DATA VALIDATION")
-    df_for_validation = data.groupby("day_id").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'last', 'parc_data': 'last', "parc_2g": 'last',
-          "parc_3g": 'last',
-          "parc_4g": 'last',
-          "parc_5g": 'last',
-          "parc_other": 'last'})
+    df_for_validation = data.groupby("day_id").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'sum', 'parc_data': 'sum', "parc_2g": 'sum',
+          "parc_3g": 'sum',
+          "parc_4g": 'sum',
+          "parc_5g": 'sum',
+          "parc_other": 'sum'})
     df_for_validation["ca_total"] = df_for_validation["ca_voix"] + df_for_validation["ca_data"]
     df_for_validation.reset_index(drop=False, inplace=True)
 
