@@ -185,7 +185,7 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     # DATA VALIDATION
     df_to_validate = trafic.groupby("date_id").aggregate({'trafic_data_go': 'sum', 'trafic_voix_erl': 'sum'})
     df_to_validate.reset_index(drop=False, inplace=True)
-    for col in ["trafic_voix", "trafic_data"]:
+    for col in ["trafic_data_go", "trafic_voix_erl"]:
         validate_column(df_to_validate, col, date=df_to_validate["date_id"].unique()[0])
 
     logging.info("prepare final data")
