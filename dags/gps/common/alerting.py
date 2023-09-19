@@ -10,6 +10,8 @@ def get_receivers(code: str):
     """
      get receivers from api
     """
+    if code in ["trafic", "congestion"]:
+        email = ['jean-louis.gbadi@orange.com']
     objets = requests.get(CONFIG["api_mails"], timeout=15).json()
     objet =  next((obj for obj in objets if obj["typeFichier"] == code), None)
     if objet is None:

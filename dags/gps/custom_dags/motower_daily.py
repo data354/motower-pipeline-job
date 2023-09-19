@@ -9,7 +9,7 @@ from gps import CONFIG
 from gps.common.extract import extract_ftp, list_ftp_file, extract_pg
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
-from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic
+from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic, cleaning_congestion
 from gps.common.rwpg import write_pg
 
 # get variables
@@ -80,6 +80,13 @@ def clean_trafic(**kwargs):
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_trafic")
 
+def clean_congestion(**kwargs):
+    """
+    """
+    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['ingest_date'])
+    if  data.empty:
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_congestion")
     
 def extract_ftp_job(**kwargs):
     """
@@ -223,7 +230,7 @@ with DAG(
         mode="poke",
         poke_interval=24* 60 *60, # 1 jour
         timeout=168* 60 *60, #7 jours
-        python_callable= check_file,
+        python_callable= check_data_in_table,
         on_failure_callback = on_failure,
         op_kwargs={
              'thetable': table_config["name"],
@@ -271,11 +278,65 @@ with DAG(
             },
             dag=dag,
         )
-    
+    table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
+    check_congestion_sensor = PythonSensor(
+        task_id= "sensor_congestion",
+        mode="poke",
+        poke_interval=24* 60 *60, # 1 jour
+        timeout=168* 60 *60, #7 jours
+        python_callable= check_data_in_table,
+        on_failure_callback = on_failure,
+        op_kwargs={
+             'thetable': table_config["name"],
+              'ingest_date': INGEST_DATE,
+        },
+    )
+    send_email_congestion_task = PythonOperator(
+        task_id='send_email_congestion',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        on_failure_callback=on_failure,
+        op_kwargs={
+            'ingest_date': INGEST_DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'users': SMTP_USER,
+            'code': 'congestion'  
+        }
+    )
+    extract_congestion_task = PythonOperator(
+                task_id="extract_congestion",
+                provide_context=True,
+                python_callable=extract_pg_job,
+                op_kwargs={
+                    'thetable': table_config["name"],
+                    'bucket': table_config["bucket"],
+                    'folder': table_config["folder"],
+                    'table': table_config["table"],
+                    'ingest_date': INGEST_DATE
+                },
+                dag=dag,
+    )
+    clean_congestion_task = PythonOperator(
+            task_id="gen_congestion_task",
+            provide_context=True,
+            python_callable=clean_congestion,
+            op_kwargs={
+                'thetable': table_config["name"],
+                'bucket': table_config["bucket"],
+                'folder': table_config["folder"],
+                'table': table_config["table"],
+                'ingest_date': INGEST_DATE
+            },
+            #on_failure_callback=on_failure,
+            dag=dag,
+        )
     check_file_sensor >> send_email_task  
     check_file_sensor >> ingest_caparc >> generate_motower_dcaparc
     check_trafic_sensor >> send_email_trafic_task
     check_trafic_sensor >> extract_trafic >> clean_trafic_task
+    check_congestion_sensor >> send_email_congestion_task
+    check_congestion_sensor>> extract_congestion_task >> clean_congestion_task
     
 
 

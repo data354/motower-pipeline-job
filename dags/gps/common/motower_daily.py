@@ -153,6 +153,7 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
         None
     """
      # Find the required object in the CONFIG dictionary
+     
     objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
     if not objet:
         raise ValueError("Table ks_daily_tdb_radio_drsi not found.")
@@ -197,4 +198,52 @@ def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str,
     trafic.columns = ["jour", "id_site", "trafic_data_2g", "trafic_data_3g", "trafic_data_4g", "trafic_voix_2g", "trafic_voix_3g", "trafic_voix_4g" ]
      # Save the cleaned dataFrame to Minio
     return trafic
+
+def cleaning_congestion(client, endpoint: str, accesskey: str, secretkey: str, date: str):
+    """
+    Cleans traffic files
+    Args:
+        - client: Minio client
+        - endpoint: Minio endpoint
+        - accesskey: Minio access key
+        - secretkey: Minio secret key
+        - date: execution date (provided by airflow)
+    Return:
+        None
+    """
+    exec_date = datetime.strptime(date, CONFIG["date_format"])
+     # Find the required object in the CONFIG dictionary
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_hebdo_tdb_radio_drsi"), None)
+    if not objet:
+        raise ValueError("Table ks_hebdo_tdb_radio_drsi not found.")
+     # Check if bucket exists
+    if not client.bucket_exists(objet["bucket"]):
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.")
+     # Split the date into parts
+    date_parts = date.split("-")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
+        df_ = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                           storage_options={
+                               "key": accesskey,
+                               "secret": secretkey,
+                               "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                           })
+    except Exception as error:
+        raise ValueError(f"{filename} does not exist in bucket.") from error
+    df_.columns = df_.columns.str.lower()
+    df_["date_id"] = exec_date
+    df_ = df_.loc[:,["date_id", "id_site", "nbre_cellule", "nbre_cellule_congestionne", "techno"]]
+    df_.columns = ["jour", "id_site", "cellules", "cellules_congestionnees", "techno"]
+    df_ = df_.loc[df_.techno != "TDD", :]
+    df_ = df_.groupby(["jour",	"id_site","techno"	]).sum()
+    df_ = df_.unstack()
+    df_.columns = ["_".join(d) for d in df_.columns]
+    df_ = df_.reset_index(drop=False)
+    df_.columns = ["jour", "id_site", "cellules_2g", "cellules_3g", "cellules_4g", "cellules_2g_congestionnees", "cellules_3g_congestionnees", "cellules_4g_congestionnees"]
+    df_["cellules_totales"] = df_["cellules_2g"] + df_["cellules_3g"] + df_["cellules_4g"]
+    df_["cellules_congestionnees_totales"] = df_["cellules_2g_congestionnees"] + df_["cellules_3g_congestionnees"] + df_["cellules_4g_congestionnees"]
+    
+    return df_
+
     
