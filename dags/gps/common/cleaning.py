@@ -7,16 +7,8 @@ from copy import deepcopy
 from unidecode import unidecode
 from gps import CONFIG
 from gps.common.rwminio import save_minio, get_latest_file, get_files
+from gps.common.data_validation import validate_column
 
-def validate_column(df, col:str):
-    """
-        validate data 
-    """
-    thresolds = next((d[col] for d in CONFIG["thresold"]), None)
-    df_not_valid = df[~((df[col] >= thresolds["min"]) & (df[col] <= thresolds["max"]) )]
-    if df_not_valid.shape[0]:
-        message = f"These dates have invalid {col}: {df_not_valid.loc[:, ['day_id', col]].to_string()}"
-        raise ValueError(message)
 
 
 def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
@@ -323,8 +315,8 @@ def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: 
           "parc_3g": 'sum',
           "parc_4g": 'sum',
           "parc_5g": 'sum',
-          "parc_other": 'sum'})
-    df_for_validation["ca_total"] = df_for_validation["ca_voix"] + df_for_validation["ca_data"]
+          "parc_other": 'sum', 
+          "ca_total": 'sum'})
     df_for_validation.reset_index(drop=False, inplace=True)
 
     logging.info('DAILY KPI - {}'.format(df_for_validation.to_string()))
