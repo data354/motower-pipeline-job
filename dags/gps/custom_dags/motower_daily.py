@@ -130,7 +130,7 @@ def on_failure(context):
 
 
 with DAG(
-        'daily',
+        'motower_daily',
         default_args={
             'depends_on_past': False,
             'wait_for_downstream': False,
