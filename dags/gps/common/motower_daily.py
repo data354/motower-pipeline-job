@@ -133,7 +133,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
     df_for_validation.reset_index(drop=False, inplace=True)
 
     logging.info('DAILY KPI - {}'.format(df_for_validation.to_string()))
-    for col in ["ca_total","ca_voix", "ca_data", "parc_global", "autre_parc"]:
+    for col in ["ca_total","ca_voix", "ca_data", "parc_global", "parc_data"]:
         validate_column(df_for_validation, col, date=date)
     
     return df_final
