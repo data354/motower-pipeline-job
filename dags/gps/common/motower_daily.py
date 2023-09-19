@@ -121,5 +121,20 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
                 ca_norm = ca_mtd * 30 / date_row.day
                 df_final.loc[idx, ["ca_mtd", "ca_norm"]] = [ca_mtd, ca_norm]
     
+
+    logging.info("DATA VALIDATION AFTER MERGING")
+    validate_site_actifs(df_final)
+    df_for_validation = df_final.groupby("jour").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'sum', 'parc_data': 'sum', "parc_2g": 'sum',
+          "parc_3g": 'sum',
+          "parc_4g": 'sum',
+          "parc_5g": 'sum',
+          "parc_other": 'sum', 
+          "ca_total": 'sum'})
+    df_for_validation.reset_index(drop=False, inplace=True)
+
+    logging.info('DAILY KPI - {}'.format(df_for_validation.to_string()))
+    for col in ["ca_total","ca_voix", "ca_data", "parc", "parc_data"]:
+        validate_column(df_for_validation, col, date=date)
+    
     return df_final
     
