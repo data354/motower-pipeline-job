@@ -124,6 +124,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
 
     logging.info("DATA VALIDATION AFTER MERGING")
     validate_site_actifs(df_final, col = "code_oci")
+    logging.info(f"NUMBER OF ACTIFS SITES WITH CA IS {df_final.loc[df_final['ca_total'].notnull,:].shape[0]}")
     df_for_validation = df_final.groupby("jour").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc_global': 'sum', 'parc_data': 'sum', "parc_2g": 'sum',
           "parc_3g": 'sum',
           "parc_4g": 'sum',
