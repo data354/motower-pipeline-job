@@ -21,7 +21,11 @@ def validate_site_actifs(df_bdd_site, col):
     logging.info("START VALIDATION ")
     thresolds = CONFIG["thresold"]["sites_actifs"]
     number = len(df_bdd_site[col].unique())
-    mois = df_bdd_site["mois"].unique()[0]
+    try:
+        mois = df_bdd_site["mois"].unique()[0]
+    except KeyError:
+        mois = df_bdd_site["jour"].unique()[0]
+  
     if not((number >= thresolds["min"]) & (number <= thresolds["max"])):
         message = f"BDD SITE FILE OF MONTH {mois} HAVE INVALID NUMBER OF ACTIFS SITES {number}"
         raise ValueError(message)
