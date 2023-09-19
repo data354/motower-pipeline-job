@@ -10,7 +10,7 @@ def validate_column(df, col:str, date = None): # just for monthly
     thresolds = CONFIG["thresold"][col]
     df_not_valid = df[~((df[col] >= thresolds["min"]) & (df[col] <= thresolds["max"]) )]
     if df_not_valid.shape[0]:
-        message = f"These dates have invalid {col}: {df_not_valid.loc[:, ['day_id', col]].to_string()}" if date is None else f" CA PARC FILE OF {date} have invalid {col}: {df_not_valid.loc[:, ['day_id', col]].to_string()}"
+        message = f"These dates have invalid {col}: {df_not_valid.loc[:, ['day_id', col]].to_string()}" if date is None else f"FILE OF {date} have invalid {col}: {df_not_valid.loc[:, ['day_id', col]].to_string()}"
         raise ValueError(message)
     logging.info("DATA OF COLUMN %s ARE VALID", col)
 

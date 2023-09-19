@@ -9,7 +9,7 @@ from gps import CONFIG
 from gps.common.extract import extract_ftp, list_ftp_file, extract_pg
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
-from gps.common.motower_daily import generate_daily_caparc
+from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic
 from gps.common.rwpg import write_pg
 
 # get variables
@@ -38,6 +38,12 @@ PG_DB = Variable.get('pg_db')
 PG_USER = Variable.get('pg_user')
 PG_PASSWORD = Variable.get('pg_password')
 
+PG_HOST = Variable.get('pg_host')
+PG_V2_DB = Variable.get('pg_v2_db')
+PG_V2_USER = Variable.get('pg_v2_user')
+PG_V2_PASSWORD = Variable.get('pg_v2_password')
+
+
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
         secret_key= MINIO_SECRET_KEY,
@@ -45,18 +51,36 @@ CLIENT = Minio( MINIO_ENDPOINT,
 
 
 
+################################### FUNCTIONS
 
-def extract_job(**kwargs):
-    data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
-            password= PG_PASSWORD , table= kwargs["thetable"] , date= kwargs["ingest_date"])
-    if kwargs["thetable"] == "hourly_datas_radio_prod" and data.empty:
-        data = extract_pg(host = PG_HOST, database= PG_DB, user= PG_USER,
-            password= PG_PASSWORD , table = "hourly_datas_radio_prod_archive" , date= kwargs["ingest_date"])
+def check_data_in_table(**kwargs):
+
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
+    if data.empty:
+        return False
+    return True
+
+
+def extract_pg_job(**kwargs):
+    """
+    """
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+            password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
-    save_minio(CLIENT, kwargs["bucket"] , kwargs["ingest_date"], data, kwargs["folder"])
+    save_minio(CLIENT, kwargs["bucket"] , kwargs['ingest_date'], data, kwargs["folder"])
 
+def clean_trafic(**kwargs):
+    """
+    """
+    data = cleaning_daily_trafic(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['ingest_date'])
+    if  data.empty:
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_trafic")
+
+    
 def extract_ftp_job(**kwargs):
     """
     extract ftp files callable
@@ -87,7 +111,6 @@ def send_email_onfailure(**kwargs):
     subject = f"  Missing file {filename}"
     content = f"Missing file {filename}. please provide file asap"
     receivers = get_receivers(code=kwargs["code"])
-     
     send_email(kwargs["host"], kwargs["port"], kwargs["users"], receivers, subject, content)
 
 def gen_motower_daily(**kwargs):
@@ -118,17 +141,11 @@ def on_failure(context):
         "exec_date": context.get("ts"),
         "exception": context.get("exception"),
     }
-    # if "cleaning_bdd" in params["task_id"]:
-    #     params["type_fichier"] = "BASE_SITES"
-    # elif "cleaning_esco" in params["task_id"]:
-    #     params["type_fichier"] = "OPEX_ESCO"
-    # elif "cleaning_ihs" in params["task_id"]:
-    #     params["type_fichier"] = "OPEX_IHS"
-    # else:
-    #     raise RuntimeError("Can't get file type")
     alert_failure(**params)
 
 
+
+######################################### DAG DEFINITIONS
 with DAG(
         'motower_daily',
         default_args={
@@ -147,7 +164,7 @@ with DAG(
 ) as dag:
     check_file_sensor = PythonSensor(
         task_id= "sensor_ca",
-        mode="reschedule",
+        mode="poke",
         retries=0,
         timeout=10,
         python_callable= check_file,
@@ -198,9 +215,67 @@ with DAG(
             },
             dag=dag,
     )
+
+    table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
+
+    check_trafic_sensor = PythonSensor(
+        task_id= "sensor_trafic",
+        mode="poke",
+        poke_interval=24* 60 *60, # 1 jour
+        timeout=168* 60 *60, #7 jours
+        python_callable= check_file,
+        on_failure_callback = on_failure,
+        op_kwargs={
+             'thetable': table_config["name"],
+              'ingest_date': INGEST_DATE,
+        },
+    )
+    send_email_trafic_task = PythonOperator(
+        task_id='send_email',
+        python_callable=send_email_onfailure,
+        trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
+        on_failure_callback=on_failure,
+        op_kwargs={
+            'ingest_date': INGEST_DATE,
+            'host': SMTP_HOST, 
+            'port':SMTP_PORT,
+            'users': SMTP_USER,
+            'code': 'trafic'  
+        }
+    )
+    extract_trafic = PythonOperator(
+                task_id="extract_trafic",
+                provide_context=True,
+                python_callable=extract_pg_job,
+                on_failure_callback=on_failure,
+                op_kwargs={
+                    'thetable': table_config["name"],
+                    'bucket': table_config["bucket"],
+                    'folder': table_config["folder"],
+                    'table': table_config["table"],
+                    'ingest_date': INGEST_DATE
+                },
+                dag=dag,
+            )
+    clean_trafic_task = PythonOperator(
+            task_id="clean_trafic_task",
+            provide_context=True,
+            python_callable=clean_trafic,
+            on_failure_callback=on_failure,
+            op_kwargs={
+                "client": CLIENT,
+                'bucket': table_config["bucket"],
+                'folder': table_config["folder"],
+                'table': table_config["table"],
+                "ingest_date": INGEST_DATE,
+            },
+            dag=dag,
+        )
     
     check_file_sensor >> send_email_task  
     check_file_sensor >> ingest_caparc >> generate_motower_dcaparc
+    check_trafic_sensor >> send_email_trafic_task
+    check_trafic_sensor >> extract_trafic >> clean_trafic_task
     
 
 

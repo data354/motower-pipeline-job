@@ -138,4 +138,63 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
         validate_column(df_for_validation, col, date=date)
     
     return df_final
+
+
+def cleaning_daily_trafic(client, endpoint: str, accesskey: str, secretkey: str, date: str):
+    """
+    Cleans traffic files
+    Args:
+        - client: Minio client
+        - endpoint: Minio endpoint
+        - accesskey: Minio access key
+        - secretkey: Minio secret key
+        - date: execution date (provided by airflow %Y-%m-%d)
+    Return:
+        None
+    """
+     # Find the required object in the CONFIG dictionary
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
+    if not objet:
+        raise ValueError("Table ks_daily_tdb_radio_drsi not found.")
+     # Check if bucket exists
+    if not client.bucket_exists(objet["bucket"]):
+        raise ValueError(f"Bucket {objet['bucket']} does not exist.")
+     # Split the date into parts
+    date_parts = date.split("-")
+    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    try:
+        logging.info("read %s", filename)
+        trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+                                storage_options={
+                                "key": accesskey,
+                                "secret": secretkey,
+                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+                }
+                    )
+    except Exception as error:
+        raise OSError(f"{filename} don't exists in bucket") from error
+    trafic.columns = trafic.columns.str.lower()
+    trafic = trafic.loc[trafic["techno"].isin(["2G", "3G", "4G"]), :]
+    try:
+        trafic["trafic_data_go"] = trafic["trafic_data_go"].astype("float")
+        trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].astype("float")
+    except AttributeError :
+        trafic["trafic_data_go"] = trafic["trafic_data_go"].str.replace(",", ".").astype("float")
+        trafic["trafic_voix_erl"] = trafic["trafic_voix_erl"].str.replace(",", ".").astype("float")
+    
+    # DATA VALIDATION
+    df_to_validate = trafic.groupby("date_id").aggregate({'trafic_data': 'sum', 'trafic_voix': 'sum'})
+    df_to_validate.reset_index(drop=False, inplace=True)
+    for col in ["trafic_voix", "trafic_data"]:
+        validate_column(df_to_validate, col, date=df_to_validate["date_id"].unique()[0])
+
+    logging.info("prepare final data")
+    trafic = trafic[["date_id", "id_site", "trafic_data_go", "trafic_voix_erl", "techno" ]]
+    trafic = trafic.groupby(["date_id", "id_site", "techno"]).sum()
+    trafic = trafic.unstack()
+    trafic.columns = ["_".join(d) for d in trafic.columns]
+    trafic.reset_index(drop=False, inplace=True)
+    trafic.columns = ["jour", "id_site", "trafic_data_2g", "trafic_data_3g", "trafic_data_4g", "trafic_voix_2g", "trafic_voix_3g", "trafic_voix_4g" ]
+     # Save the cleaned dataFrame to Minio
+    return trafic
     
