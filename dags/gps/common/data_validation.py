@@ -14,13 +14,13 @@ def validate_column(df, col:str, date = None): # just for monthly
         raise ValueError(message)
     logging.info("DATA OF COLUMN %s ARE VALID", col)
 
-def validate_site_actifs(df_bdd_site):
+def validate_site_actifs(df_bdd_site, col):
     """
         validate number of actifs sites from bdd site
     """
     logging.info("START VALIDATION ")
     thresolds = CONFIG["thresold"]["sites_actifs"]
-    number = len(df_bdd_site["code oci"].unique())
+    number = len(df_bdd_site[col].unique())
     mois = df_bdd_site["mois"].unique()[0]
     if not((number >= thresolds["min"]) & (number <= thresolds["max"])):
         message = f"BDD SITE FILE OF MONTH {mois} HAVE INVALID NUMBER OF ACTIFS SITES {number}"

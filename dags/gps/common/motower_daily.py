@@ -39,7 +39,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
         raise ValueError(f"{filename} does not exist in bucket.") from error
     
     # BDD SITE VALIDATION
-    validate_site_actifs(bdd)
+    validate_site_actifs(bdd, col="code oci")
 
     # CA PARC
     logging.info(f"GET CA PARC FILE OF THE DAY {date}")
@@ -123,7 +123,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
     
 
     logging.info("DATA VALIDATION AFTER MERGING")
-    validate_site_actifs(df_final)
+    validate_site_actifs(df_final, col = "code_oci")
     df_for_validation = df_final.groupby("jour").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'sum', 'parc_data': 'sum', "parc_2g": 'sum',
           "parc_3g": 'sum',
           "parc_4g": 'sum',
