@@ -231,7 +231,7 @@ with DAG(
         },
     )
     send_email_trafic_task = PythonOperator(
-        task_id='send_email',
+        task_id='send_email_trafic',
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         on_failure_callback=on_failure,
