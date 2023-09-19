@@ -101,7 +101,7 @@ def gen_motower_daily(**kwargs):
         PG_SAVE_USER, 
         PG_SAVE_PASSWORD, PG_SAVE_DB)
     if not data.empty:
-        write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily")
+        write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_caparc")
     else:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
