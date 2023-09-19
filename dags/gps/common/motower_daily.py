@@ -124,16 +124,16 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
 
     logging.info("DATA VALIDATION AFTER MERGING")
     validate_site_actifs(df_final, col = "code_oci")
-    df_for_validation = df_final.groupby("jour").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc': 'sum', 'parc_data': 'sum', "parc_2g": 'sum',
+    df_for_validation = df_final.groupby("jour").aggregate({'ca_voix': 'sum', 'ca_data': 'sum','parc_global': 'sum', 'parc_data': 'sum', "parc_2g": 'sum',
           "parc_3g": 'sum',
           "parc_4g": 'sum',
           "parc_5g": 'sum',
-          "parc_other": 'sum', 
+          "autre_parc": 'sum', 
           "ca_total": 'sum'})
     df_for_validation.reset_index(drop=False, inplace=True)
 
     logging.info('DAILY KPI - {}'.format(df_for_validation.to_string()))
-    for col in ["ca_total","ca_voix", "ca_data", "parc", "parc_data"]:
+    for col in ["ca_total","ca_voix", "ca_data", "parc_global", "autre_parc"]:
         validate_column(df_for_validation, col, date=date)
     
     return df_final
