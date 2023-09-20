@@ -259,7 +259,7 @@ def write_pg(host: str, database:str, user: str, password: str,
                 id SERIAL,
                 jour date,
                 code_oci varchar,
-                code_oci_id  varchar,
+                code_oci_id  FLOAT,
                 autre_code VARCHAR,
                 clutter VARCHAR,
                 commune VARCHAR,
@@ -301,7 +301,7 @@ def write_pg(host: str, database:str, user: str, password: str,
                 create table {table} (
                 id SERIAL,
                 jour date,
-                id_site	VARCHAR,
+                id_site	FLOAT,
                 cellules_2g	INTEGER,
                 cellules_3g	INTEGER,
                 cellules_4g	INTEGER,
@@ -320,13 +320,17 @@ def write_pg(host: str, database:str, user: str, password: str,
                 create table {table} (
                 id SERIAL,
                 jour date,
-                id_site VARCHAR,
+                id_site FLOAT,
                 trafic_data_2g	FLOAT,
                 trafic_data_3g	FLOAT,
                 trafic_data_4g	FLOAT,
                 trafic_voix_2g	FLOAT,
                 trafic_voix_3g	FLOAT,
                 trafic_voix_4g  FLOAT,
+                trafic_voix_total  FLOAT,
+                trafic_data_total	FLOAT,
+
+
                 PRIMARY KEY(jour, id_site)
 
 
