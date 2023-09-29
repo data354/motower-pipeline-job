@@ -172,8 +172,8 @@ with DAG(
     check_file_sensor = PythonSensor(
         task_id= "sensor_ca",
         mode="poke",
-        retries=0,
-        timeout=10,
+        poke_interval=24* 60 *60, # 1 jour
+        timeout=168* 60 *60, #7 jours
         python_callable= check_file,
         on_failure_callback = on_failure,
         op_kwargs={
