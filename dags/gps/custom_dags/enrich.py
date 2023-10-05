@@ -164,7 +164,7 @@ with DAG(
         "retries": 0,
     },
     description="clean monthly data",
-    schedule_interval="0 0 6 * *",
+    schedule_interval="0 0 2 * *",
     start_date=datetime(2023, 1, 2, 0, 0, 0),
     catchup=True,
 ) as dag:
