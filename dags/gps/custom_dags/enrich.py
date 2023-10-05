@@ -165,7 +165,7 @@ with DAG(
     },
     description="clean monthly data",
     schedule_interval="0 0 6 * *",
-    start_date=datetime(2023, 1, 6, 0, 0, 0),
+    start_date=datetime(2023, 1, 2, 0, 0, 0),
     catchup=True,
 ) as dag:
      # Task group for cleaning tasks
@@ -201,7 +201,7 @@ with DAG(
             task_id= "check_bdd_sensor",
             mode='poke',
             poke_interval= 24* 60 *60, # 1 jour
-            timeout = 144 * 60 * 60,    # 6 jours
+            timeout = 336 * 60 * 60,    # 6 jours
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -244,7 +244,7 @@ with DAG(
             task_id= "check_esco_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 144 * 60 * 60,
+            timeout = 336 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -261,7 +261,7 @@ with DAG(
             mode='poke',
             poke_interval= 24* 60 *60,
             soft_fail = True,
-            timeout = 144 * 60 * 60,
+            timeout = 336 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -304,7 +304,7 @@ with DAG(
             task_id= "check_ihs_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 144 * 60 * 60,
+            timeout = 336 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
@@ -407,7 +407,7 @@ with DAG(
             task_id= "check_congestion_sensor",
             mode='poke',
             poke_interval= 24* 60 *60,
-            timeout = 144 * 60 * 60,
+            timeout = 336 * 60 * 60,
             python_callable= check_file,
             op_kwargs={
                   'client': CLIENT,
