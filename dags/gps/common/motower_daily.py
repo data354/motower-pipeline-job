@@ -107,7 +107,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
         
         mois = exec_date.month
         conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-        sql_query =  "select * from motower_daily where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
+        sql_query =  "select * from motower_daily_caparc where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
         daily_month_df = pd.read_sql_query(sql_query, conn, params=(mois, date))
         
         logging.info("ADD CA_MTD AND SEGMENT")
