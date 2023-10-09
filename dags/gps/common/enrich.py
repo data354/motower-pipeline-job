@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from minio import Minio
 from copy import deepcopy
 from gps import CONFIG
-from gps.common.rwminio import  get_latest_file
+from gps.common.rwminio import  get_latest_file, read_file
 import logging
 
 ################################## joindre les tables
@@ -84,17 +84,21 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     # Parse the date string into datetime object
     
     filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    try:
-        logging.info("read %s", filename)
-        bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                storage_options={
-                "key": accesskey,
-                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    if filename != None:
+        bdd = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
+
+    # try:
+    #     logging.info("read %s", filename)
+    #     bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #             storage_options={
+    #             "key": accesskey,
+    #             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
     
     #get CA
     objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
@@ -102,18 +106,21 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise ValueError("Table 'caparc' not found in configuration")
         
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    if filename != None:
+        caparc = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
 
-    try:        
-        logging.info("read %s", filename)
-        caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                storage_options={
-                            "key": accesskey,
-                            "secret": secretkey,
-                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                    }
-                            )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    # try:        
+    #     logging.info("read %s", filename)
+    #     caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #             storage_options={
+    #                         "key": accesskey,
+    #                         "secret": secretkey,
+    #                         "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #                                 }
+    #                         )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
     caparc["total"] = caparc["ca_voix"] + caparc["ca_data"] 
     logging.info(f"Le CA recupéré du fichier cleaning est : {sum(caparc['total'])}")
     logging.info(f"Le CA recupéré du fichier cleaning du code OCI0001 est : {caparc.loc[caparc['id_site'] == 1, 'total']}")
@@ -124,18 +131,22 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise ValueError("Table 'BASE_SITES' not found in configuration")
     
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    try:
-        logging.info("read %s", filename)
-        esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    if filename != None:
+        esco = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
+
+    #try:
+    #     logging.info("read %s", filename)
+    #     esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
                                 
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
     
     # get opex ihs
     if date.split('-')[1] in ["01","02", "03"]:
@@ -151,18 +162,21 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'OPEX_IHS' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{pre}/{date_parts[2]}")
+    if filename != None:
+        ihs = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
 
-    try:
-        logging.info("read %s", filename)
-        ihs = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    # try:
+    #     logging.info("read %s", filename)
+    #     ihs = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
     
     # get  indisponibilité
     # objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
@@ -188,53 +202,63 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    if filename != None:
+        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
 
-    try:
-        logging.info("read %s", filename)
-        trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    # try:
+    #     logging.info("read %s", filename)
+    #     trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
     
     # get trafic_v2
     objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
     if objet is None:
         raise ValueError("Table 'ks_tdb_radio_drsi' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    try:
-        logging.info("read %s", filename)
-        trafic2 = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    if filename != None:
+        trafic2 = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
+
+    # try:
+    #     logging.info("read %s", filename)
+    #     trafic2 = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
 
     # get CSSR
     objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
     if objet is None:
         raise ValueError("Table 'Taux_succes_2g' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    if filename != None:
+        cssr = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        
 
-    try:
-        logging.info("read %s", filename)
-        cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
-    except Exception as error:
-        raise OSError(f"{filename} don't exists in bucket") from error
+    # try:
+    #     logging.info("read %s", filename)
+    #     cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
 
     # get congestion
     # objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)

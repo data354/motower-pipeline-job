@@ -147,18 +147,19 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         data = deepcopy(df_)
         if filename!=None:
             logging.info("add annexe")
-            try:
-                logging.info("Reading %s", filename)
-                annexe = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
-                                        header = 3, sheet_name="Fichier_de_calcul",
-                                        storage_options={
-                                        "key": accesskey,
-                                        "secret": secretkey,
-                        "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                        }
-                            )
-            except Exception as error:
-                raise OSError(f"{filename} don't exists in bucket") from error
+            annexe = read_file(client=client, bucket_name=objet['bucket'], object_name=filename, header_num=3, sheet_name="Fichier_de_calcul")
+            # try:
+            #     logging.info("Reading %s", filename)
+            #     annexe = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+            #                             header = 3, sheet_name="Fichier_de_calcul",
+            #                             storage_options={
+            #                             "key": accesskey,
+            #                             "secret": secretkey,
+            #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+            #             }
+            #                 )
+            # except Exception as error:
+            #     raise OSError(f"{filename} don't exists in bucket") from error
                 # check columns
 
             annexe.columns = annexe.columns.str.lower().map(unidecode)
