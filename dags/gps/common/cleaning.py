@@ -57,6 +57,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
     logging.info("Reading %s", filename)
      # Read file from minio
     if filename != None:
+        logging.info("new reading ")
         df_ = read_file(client, table_obj["bucket"], filename)
         
         
