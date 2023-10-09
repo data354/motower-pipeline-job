@@ -503,7 +503,7 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
     date_parts = date.split("-")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename != None:
-        df_ = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
         
     # try:
     #     logging.info("read %s", filename)
@@ -623,6 +623,7 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         # except Exception as error:
         #     raise OSError(f"{filename} don't exists in bucket") from error
         cssr = pd.concat([cssr, df_], ignore_index=True)
+    logging.info(cssr.columns)
     logging.info("start to clean data")
     cssr.date_jour = cssr.date_jour.astype("str")
     cssr = cssr.drop_duplicates(["date_jour",	"code_site", "techno"], keep="first")
