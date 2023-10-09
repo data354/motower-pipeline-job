@@ -451,7 +451,7 @@ def cleaning_traffic(client, endpoint: str, accesskey: str, secretkey: str, date
      # Read and concatenate all files into a single DataFrame
     data = pd.DataFrame()
     for filename in filenames:
-        df_ = read_file(client=client,bucket_name=objet['bucket'], object_name=filename)
+        df_ = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep=",")
         # try:
         # try:
                     
