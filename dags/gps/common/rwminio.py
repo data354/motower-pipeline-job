@@ -2,6 +2,7 @@
 from typing import List
 import logging
 from io import BytesIO
+import pandas as pd
 
 def save_minio(client, bucket: str, date: str, data, folder=None) -> None:
     """
@@ -54,6 +55,23 @@ def get_latest_file(client, bucket: str, prefix: str = '', extensions: list = No
     latest_file = max(good_objects, key=lambda x: x.last_modified)
     return latest_file.object_name
 
+def read_file(client, bucket_name: str, object_name: str, sheet_name = '', header_num:int=0, sep:str=';') -> pd.DataFrame:
+    """
+    
+        read file from minio
+    """
+    rep = client.get_object(bucket_name=bucket_name, object_name=object_name)
+    data = BytesIO()
+    data.write(rep.read())
+    data.seek(0)
+    if object_name.lower().endswith(".csv"):
+        df = pd.read_csv(data, sep=sep) 
+    elif object_name.lower().endswith(tuple([".xlsx", "xls"])):
+        df = pd.read_excel(data, header=header_num) if sheet_name=='' else pd.read_excel(data, header=header_num, sheet_name=sheet_name)
+    rep.close()
+    rep.release_conn()
+    return df
+
 
 def get_files(client, bucket: str, prefix: str = '', extensions: List[str] = None) -> List[str]:
     """
@@ -74,6 +92,7 @@ def get_files(client, bucket: str, prefix: str = '', extensions: List[str] = Non
     if not good_objects:
         raise ValueError(f"No files found with good extensions {extensions}")
     return good_objects
+
 
 
 
