@@ -610,7 +610,7 @@ def cleaning_cssr(client, endpoint:str, accesskey:str, secretkey:str,  date: str
     filenames = get_files(client, objet_2g["bucket"], prefix = f"{objet_2g['folder']}/{date_parts[0]}/{date_parts[1]}") + get_files(client, objet_3g["bucket"], prefix = f"{objet_3g['folder']}/{date_parts[0]}/{date_parts[1]}")
     cssr = pd.DataFrame()
     for filename in filenames:
-        df_ = read_file(client=client, bucket_name=objet_2g['bucket'], object_name=filename)
+        df_ = read_file(client=client, bucket_name=objet_2g['bucket'], object_name=filename, sep=",")
         # try:
                     
         #     df_ = pd.read_csv(f"s3://{objet_2g['bucket']}/{filename}",
