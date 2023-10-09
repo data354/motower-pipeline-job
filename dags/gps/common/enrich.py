@@ -84,8 +84,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     # Parse the date string into datetime object
     
     filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename != None:
-        bdd = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+    if filename is not None:
+        bdd = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=',')
         
 
     # try:
@@ -106,7 +106,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise ValueError("Table 'caparc' not found in configuration")
         
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename != None:
+    if filename is not None:
         caparc = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=',')
         
 
@@ -121,9 +121,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     #                         )
     # except Exception as error:
     #     raise OSError(f"{filename} don't exists in bucket") from error
-    caparc["total"] = caparc["ca_voix"] + caparc["ca_data"] 
-    logging.info(f"Le CA recupéré du fichier cleaning est : {sum(caparc['total'])}")
-    logging.info(f"Le CA recupéré du fichier cleaning du code OCI0001 est : {caparc.loc[caparc['id_site'] == 1, 'total']}")
+      
     # get opex esco
 
     objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None) 
@@ -131,8 +129,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         raise ValueError("Table 'BASE_SITES' not found in configuration")
     
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename != None:
-        esco = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+    if filename is not None:
+        esco = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
 
     #try:
@@ -162,8 +160,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'OPEX_IHS' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{pre}/{date_parts[2]}")
-    if filename != None:
-        ihs = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+    if filename is not None:
+        ihs = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
         
 
     # try:
@@ -202,8 +200,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename != None:
-        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+    if filename is not None:
+        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
         
 
     # try:
@@ -223,8 +221,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'ks_tdb_radio_drsi' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename != None:
-        trafic2 = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+    if filename is not None:
+        trafic2 = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
 
     # try:
@@ -244,8 +242,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'Taux_succes_2g' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename != None:
-        cssr = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+    if filename is not None:
+        cssr = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
 
     # try:
