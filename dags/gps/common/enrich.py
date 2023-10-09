@@ -107,7 +107,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename != None:
-        caparc = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        caparc = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=',')
         
 
     # try:        
