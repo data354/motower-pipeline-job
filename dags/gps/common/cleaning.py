@@ -59,6 +59,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
     if filename != None:
         logging.info("new reading ")
         df_ = read_file(client, table_obj["bucket"], filename)
+        logging.info(df_.shape)
         
         
         # try:
