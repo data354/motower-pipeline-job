@@ -503,7 +503,7 @@ def cleaning_trafic_v2(client, endpoint: str, accesskey: str, secretkey: str, da
     date_parts = date.split("-")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename != None:
-        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename )
+        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
     # try:
     #     logging.info("read %s", filename)
