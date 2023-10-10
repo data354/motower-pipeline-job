@@ -336,6 +336,7 @@ with DAG(
             task_id='choose_clean_esco',
             python_callable=decide_task_to_run,
             provide_context=True,
+            trigger_rule = 'one_success',
             dag=dag,
         )
 
