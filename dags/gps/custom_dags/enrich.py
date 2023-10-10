@@ -1,5 +1,6 @@
 # Monthly DAG
 from datetime import datetime
+import logging
 from airflow import DAG
 from airflow.utils.task_group import TaskGroup
 from airflow.operators.python import PythonOperator, BranchPythonOperator
@@ -91,7 +92,7 @@ def on_failure(context):
         raise RuntimeError("Can't get file type")
     alert_failure(**params)
 
-def check_file(context, **kwargs ):
+def check_file(**kwargs ):
     """
     check if file exists
     """
@@ -102,9 +103,7 @@ def check_file(context, **kwargs ):
     date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
     if filename is None:
-        context['ti'].xcom_push(key='sensor_state', value=False)
         return False
-    context['ti'].xcom_push(key='sensor_state', value=True)
     return True
 
 def decide_task_to_run(**kwargs):
@@ -112,11 +111,16 @@ def decide_task_to_run(**kwargs):
     ti = kwargs['ti']
     sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key='sensor_state')
     sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key='sensor_state')
+    logging.info("sensor_state_annexe is %s", sensor_state_annexe)
+    logging.info("sensor_state_esco is %s", sensor_state_esco)
+
 
     if sensor_state_annexe and sensor_state_esco:
         return 'cleaning_esco'
     elif sensor_state_esco:
         return 'cleaning_esco_event_fail'
+    else:
+        raise RuntimeError("esco and esco_annexe are missing")
 
 def gen_oneforall(**kwargs):
     data = oneforall(
