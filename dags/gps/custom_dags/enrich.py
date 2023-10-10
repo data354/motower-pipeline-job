@@ -2,7 +2,7 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.utils.task_group import TaskGroup
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from minio import Minio
@@ -15,7 +15,8 @@ from gps.common.cleaning import (
     cleaning_cssr,
     cleaning_congestion,
     cleaning_ca_parc,
-    cleaning_trafic_v2
+    cleaning_trafic_v2,
+    cleaning_esco_event_fail
 )
 from gps.common.enrich import oneforall, get_last_ofa
 from gps.common.alerting import alert_failure
@@ -90,7 +91,7 @@ def on_failure(context):
         raise RuntimeError("Can't get file type")
     alert_failure(**params)
 
-def check_file(**kwargs ):
+def check_file(context, **kwargs ):
     """
     check if file exists
     """
@@ -101,8 +102,21 @@ def check_file(**kwargs ):
     date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
     if filename is None:
+        context['ti'].xcom_push(key='sensor_state', value=False)
         return False
+    context['ti'].xcom_push(key='sensor_state', value=True)
     return True
+
+def decide_task_to_run(**kwargs):
+    # Récupérez l'état du capteur en utilisant xcom_pull
+    ti = kwargs['ti']
+    sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key='sensor_state')
+    sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key='sensor_state')
+
+    if sensor_state_annexe and sensor_state_esco:
+        return 'cleaning_esco'
+    elif sensor_state_esco:
+        return 'cleaning_esco_event_fail'
 
 def gen_oneforall(**kwargs):
     data = oneforall(
@@ -300,6 +314,27 @@ with DAG(
             on_failure_callback=on_failure,
             dag=dag,
         )
+        clean_opex_esco_event_fail =  PythonOperator(
+            task_id="cleaning_esco_event_fail",
+            provide_context=True,
+            python_callable=cleaning_esco_event_fail,
+            op_kwargs={
+                "client": CLIENT,
+                "endpoint": MINIO_ENDPOINT,
+                "accesskey": MINIO_ACCESS_KEY,
+                "secretkey": MINIO_SECRET_KEY,
+                "date": DATE,
+            },
+            on_failure_callback=on_failure,
+            dag=dag,
+        )
+        branch_clean_esco = BranchPythonOperator(
+            task_id='choose_clean_esco',
+            python_callable=decide_task_to_run,
+            provide_context=True,
+            dag=dag,
+        )
+
         check_ihs_sensor =  PythonSensor(
             task_id= "check_ihs_sensor",
             mode='poke',
@@ -449,7 +484,7 @@ with DAG(
         check_bdd_sensor >> send_email_bdd_task 
         check_bdd_sensor >> clean_base_site
         check_esco_sensor >> send_email_esco_task
-        [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco
+        branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail]
         check_ihs_sensor >> send_email_ihs_task 
         check_ihs_sensor>> clean_opex_ihs
         check_congestion_sensor >> send_email_congestion_task 
@@ -486,7 +521,7 @@ with DAG(
         merge_data >> save_pg
     extract_trafic_deux >> clean_trafic_deux >> section_oneforall
     check_bdd_sensor >> clean_base_site >> section_oneforall
-    [check_esco_sensor, check_esco_annexe_sensor]  >> clean_opex_esco >> section_oneforall
+    branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail] >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
     #check_congestion_sensor >>  clean_congestion >> section_oneforall
     #[clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall

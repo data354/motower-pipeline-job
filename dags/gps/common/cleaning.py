@@ -94,7 +94,7 @@ def clean_base_sites(client, endpoint: str, accesskey: str, secretkey: str, date
         raise RuntimeError("No file for %s", date)
 
 
-def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+def cleaning_esco(client,  date: str)-> None:
     """
     Clean opex esco file
        Args:
@@ -185,7 +185,52 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
         raise RuntimeError("No file for %s", date)
 
 
-
+def cleaning_esco_event_fail(client,  date: str)
+    objet = next((d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"), None)
+    if objet is None:
+        raise ValueError("Table OPEX_ESCO not found in CONFIG.")
+    if not client.bucket_exists(objet["bucket"]):
+        raise OSError(f"Bucket {objet['bucket']} does not exist.")
+    date_parts = date.split("-")
+    prefix = f"{objet['folder']}/{objet['folder']}_{date_parts[0]}{date_parts[1]}"
+    filename = get_latest_file(client, objet["bucket"], prefix=prefix)
+    if filename != None:
+        df_ = read_file(client, objet["bucket"], filename, "Fichier_de_calcul", 3)
+    # try:
+    #     logging.info("Reading %s", filename)
+    #     df_ = pd.read_excel(f"s3://{objet['bucket']}/{filename}",
+    #                             header = 3, sheet_name="Fichier_de_calcul",
+    #                             storage_options={
+    #                             "key": accesskey,
+    #                             "secret": secretkey,
+    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
+    #             }
+    #                 )
+    # except Exception as error:
+    #     raise OSError(f"{filename} don't exists in bucket") from error
+        # check columns
+    
+        df_.columns = df_.columns.str.lower().map(unidecode)
+        if "volume discount" not in df_.columns:
+            df_["volume discount"] = 0
+        logging.info("check columns")
+        missing_columns = set(objet["columns"]) - (set(data.columns))
+        if missing_columns:
+            raise ValueError(f"missing columns {', '.join(missing_columns)}")
+        logging.info("columns validation OK")
+        # Clean columns
+        logging.info("clean columns")
+        cols_to_trim = ["code site oci", "code site"]
+        subset_na=["code site oci","total redevances ht" ]
+        subset_unique = ["code site oci"]
+        data["mois"] = date_parts[0]+"-"+date_parts[1]
+        data = clean_dataframe(data, cols_to_trim, subset_unique, subset_na)
+        logging.info("Saving to minio")
+        save_minio(client, objet["bucket"], date, data, "OPEX_ESCO-cleaned")
+    else:
+        raise RuntimeError("No file for %s", date)
+    
+    
 def cleaning_ihs(client, date: str)-> None:
     """
     Clean opex esco file
