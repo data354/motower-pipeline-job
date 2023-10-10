@@ -488,7 +488,7 @@ with DAG(
         check_bdd_sensor >> send_email_bdd_task 
         check_bdd_sensor >> clean_base_site
         check_esco_sensor >> send_email_esco_task
-        branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail]
+        [check_esco_sensor, check_esco_annexe_sensor] >> branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail] 
         check_ihs_sensor >> send_email_ihs_task 
         check_ihs_sensor>> clean_opex_ihs
         check_congestion_sensor >> send_email_congestion_task 
@@ -525,7 +525,7 @@ with DAG(
         merge_data >> save_pg
     extract_trafic_deux >> clean_trafic_deux >> section_oneforall
     check_bdd_sensor >> clean_base_site >> section_oneforall
-    branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail] >> section_oneforall
+    [check_esco_sensor, check_esco_annexe_sensor] >> branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail]  >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
     #check_congestion_sensor >>  clean_congestion >> section_oneforall
     #[clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
