@@ -102,15 +102,19 @@ def check_file(**kwargs ):
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
     date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
+    ti = kwargs['ti']
     if filename is None:
+        
+        ti.xcom_push(key="sensor_state", value=False)
         return False
+    ti.xcom_push(key="sensor_state", value=True)
     return True
 
 def decide_task_to_run(**kwargs):
     # Récupérez l'état du capteur en utilisant xcom_pull
     ti = kwargs['ti']
-    sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor')
-    sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor')
+    sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key= 'sensor_state' )
+    sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key= 'sensor_state')
     logging.info("sensor_state_annexe is %s", sensor_state_annexe)
     logging.info("sensor_state_esco is %s", sensor_state_esco)
 
@@ -336,7 +340,7 @@ with DAG(
             task_id='choose_clean_esco',
             python_callable=decide_task_to_run,
             provide_context=True,
-            trigger_rule = 'one_success',
+            trigger_rule = 'all_done',
             dag=dag,
         )
 
