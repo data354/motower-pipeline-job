@@ -268,6 +268,7 @@ with DAG(
             poke_interval= 24* 60 *60,
             timeout = 336 * 60 * 60,
             python_callable= check_file,
+            provide_context=True,
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'OPEX_ESCO',
@@ -280,6 +281,7 @@ with DAG(
         
         check_esco_annexe_sensor =  PythonSensor(
             task_id= "check_esco_annexe_sensor",
+            provide_context=True,
             mode='poke',
             poke_interval= 24* 60 *60,
             soft_fail = True,
