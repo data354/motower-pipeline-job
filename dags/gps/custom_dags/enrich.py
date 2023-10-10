@@ -109,8 +109,8 @@ def check_file(**kwargs ):
 def decide_task_to_run(**kwargs):
     # Récupérez l'état du capteur en utilisant xcom_pull
     ti = kwargs['ti']
-    sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key='sensor_state')
-    sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key='sensor_state')
+    sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor')
+    sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor')
     logging.info("sensor_state_annexe is %s", sensor_state_annexe)
     logging.info("sensor_state_esco is %s", sensor_state_esco)
 
