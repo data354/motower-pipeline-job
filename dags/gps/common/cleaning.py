@@ -186,7 +186,7 @@ def cleaning_esco(client, endpoint:str, accesskey:str, secretkey:str,  date: str
 
 
 
-def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+def cleaning_ihs(client, date: str)-> None:
     """
     Clean opex esco file
        Args:
@@ -260,7 +260,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
         prefix = f"{esco_objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}"
         filename = get_latest_file(client, esco_objet["bucket"], prefix=prefix)
         if filename != None:
-            esco = read_file(client, esco_objet["bucket"], filename)
+            esco = read_file(client, esco_objet["bucket"], filename, sep=',')
             # try:
             #     logging.info("read %s", filename)
             #     esco = pd.read_csv(f"s3://{esco_objet['bucket']}/{filename}",
@@ -294,7 +294,7 @@ def cleaning_ihs(client, endpoint:str, accesskey:str, secretkey:str,  date: str)
 
 
 
-def cleaning_ca_parc(client, endpoint:str, accesskey:str, secretkey:str,  date: str)-> None:
+def cleaning_ca_parc(client, date: str)-> None:
     """
      cleaning CA & Parc
     """
