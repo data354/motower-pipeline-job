@@ -185,7 +185,7 @@ def cleaning_esco(client,  date: str)-> None:
         raise RuntimeError("No file for %s", date)
 
 
-def cleaning_esco_event_fail(client,  date: str)
+def cleaning_esco_event_fail(client,  date: str):
     objet = next((d for d in CONFIG["tables"] if d["name"] == "OPEX_ESCO"), None)
     if objet is None:
         raise ValueError("Table OPEX_ESCO not found in CONFIG.")
@@ -230,7 +230,7 @@ def cleaning_esco_event_fail(client,  date: str)
     else:
         raise RuntimeError("No file for %s", date)
     
-    
+
 def cleaning_ihs(client, date: str)-> None:
     """
     Clean opex esco file
