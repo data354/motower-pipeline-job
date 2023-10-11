@@ -17,7 +17,6 @@ from gps.common.cleaning import (
     cleaning_congestion,
     cleaning_ca_parc,
     cleaning_trafic_v2,
-    cleaning_esco_event_fail
 )
 from gps.common.enrich import oneforall, get_last_ofa
 from gps.common.alerting import alert_failure
@@ -102,29 +101,24 @@ def check_file(**kwargs ):
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
     date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
-    ti = kwargs['ti']
-    if filename is None:
-        
-        ti.xcom_push(key="sensor_state", value=False)
-        return False
-    ti.xcom_push(key="sensor_state", value=True)
-    return True
+    return filename is None
+    
 
-def decide_task_to_run(**kwargs):
-    # Récupérez l'état du capteur en utilisant xcom_pull
-    ti = kwargs['ti']
-    sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key= 'sensor_state' )
-    sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key= 'sensor_state')
-    logging.info("sensor_state_annexe is %s", sensor_state_annexe)
-    logging.info("sensor_state_esco is %s", sensor_state_esco)
+# def decide_task_to_run(**kwargs):
+#     # Récupérez l'état du capteur en utilisant xcom_pull
+#     ti = kwargs['ti']
+#     sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key= 'sensor_state' )
+#     sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key= 'sensor_state')
+#     logging.info("sensor_state_annexe is %s", sensor_state_annexe)
+#     logging.info("sensor_state_esco is %s", sensor_state_esco)
 
 
-    if sensor_state_annexe and sensor_state_esco:
-        return 'cleaning_esco'
-    elif sensor_state_esco:
-        return 'cleaning_esco_event_fail'
-    else:
-        raise RuntimeError("esco and esco_annexe are missing")
+#     if sensor_state_annexe and sensor_state_esco:
+#         return 'cleaning_esco'
+#     elif sensor_state_esco:
+#         return 'cleaning_esco_event_fail'
+#     else:
+#         raise RuntimeError("esco and esco_annexe are missing")
 
 def gen_oneforall(**kwargs):
     data = oneforall(
@@ -268,7 +262,6 @@ with DAG(
             poke_interval= 24* 60 *60,
             timeout = 336 * 60 * 60,
             python_callable= check_file,
-            provide_context=True,
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'OPEX_ESCO',
@@ -281,7 +274,6 @@ with DAG(
         
         check_esco_annexe_sensor =  PythonSensor(
             task_id= "check_esco_annexe_sensor",
-            provide_context=True,
             mode='poke',
             poke_interval= 24* 60 *60,
             soft_fail = True,
@@ -313,6 +305,7 @@ with DAG(
         clean_opex_esco = PythonOperator(
             task_id="cleaning_esco",
             provide_context=True,
+            trigger_rule = 'all_done',
             python_callable=cleaning_esco,
             op_kwargs={
                 "client": CLIENT,
@@ -324,28 +317,7 @@ with DAG(
             on_failure_callback=on_failure,
             dag=dag,
         )
-        clean_opex_esco_event_fail =  PythonOperator(
-            task_id="cleaning_esco_event_fail",
-            provide_context=True,
-            python_callable=cleaning_esco_event_fail,
-            op_kwargs={
-                "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
-            },
-            on_failure_callback=on_failure,
-            dag=dag,
-        )
-        branch_clean_esco = BranchPythonOperator(
-            task_id='choose_clean_esco',
-            python_callable=decide_task_to_run,
-            provide_context=True,
-            trigger_rule = 'all_done',
-            dag=dag,
-        )
-
+        
         check_ihs_sensor =  PythonSensor(
             task_id= "check_ihs_sensor",
             mode='poke',
@@ -495,7 +467,7 @@ with DAG(
         check_bdd_sensor >> send_email_bdd_task 
         check_bdd_sensor >> clean_base_site
         check_esco_sensor >> send_email_esco_task
-        [check_esco_sensor, check_esco_annexe_sensor] >> branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail] 
+        [check_esco_sensor, check_esco_annexe_sensor] >> clean_opex_esco
         check_ihs_sensor >> send_email_ihs_task 
         check_ihs_sensor>> clean_opex_ihs
         check_congestion_sensor >> send_email_congestion_task 
@@ -532,7 +504,7 @@ with DAG(
         merge_data >> save_pg
     extract_trafic_deux >> clean_trafic_deux >> section_oneforall
     check_bdd_sensor >> clean_base_site >> section_oneforall
-    [check_esco_sensor, check_esco_annexe_sensor] >> branch_clean_esco >> [clean_opex_esco, clean_opex_esco_event_fail]  >> section_oneforall
+    [check_esco_sensor, check_esco_annexe_sensor] >> clean_opex_esco  >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
     #check_congestion_sensor >>  clean_congestion >> section_oneforall
     #[clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
