@@ -12,13 +12,13 @@ from gps.common.data_validation import validate_column, validate_site_actifs
 
 def compute_segment(ca:float, loc:str)->str:
     segment = None
-    if not ca or not loc :
-        return segment
-    loc = loc.lower()
-    if loc=='abidjan':
-        segment = "PREMIUM" if ca>=20000000 else "NORMAL" if ca>=10000000 else "A DEVELOPER"
-    if loc=='intérieur':
-        segment = "PREMIUM" if ca>=10000000 else "NORMAL" if ca>=4000000 else "A DEVELOPER"
+   
+    if (ca is not None )and (loc is not None):
+        loc = loc.lower()
+        if loc=='abidjan':
+            segment = "PREMIUM" if ca>=20000000 else "NORMAL" if ca>=10000000 else "A DEVELOPER"
+        if loc=='intérieur':
+            segment = "PREMIUM" if ca>=10000000 else "NORMAL" if ca>=4000000 else "A DEVELOPER"
     return segment
 
 
