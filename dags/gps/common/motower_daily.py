@@ -1,5 +1,4 @@
 import logging
-import math
 import pandas as pd
 import psycopg2
 from datetime import datetime
@@ -15,13 +14,12 @@ def compute_segment(ca:float, loc:str)->str:
     segment = None
     if not ca or not loc :
         return segment
-    if not((math.isnan(ca) ) or (math.isnan(ca))):
-        loc = loc.lower()
-        if loc=='abidjan':
-            segment = "PREMIUM" if ca>=20000000 else "NORMAL" if ca>=10000000 else "A DEVELOPER"
-        if loc=='intérieur':
-            segment = "PREMIUM" if ca>=10000000 else "NORMAL" if ca>=4000000 else "A DEVELOPER"
-        return segment
+    loc = loc.lower()
+    if loc=='abidjan':
+        segment = "PREMIUM" if ca>=20000000 else "NORMAL" if ca>=10000000 else "A DEVELOPER"
+    if loc=='intérieur':
+        segment = "PREMIUM" if ca>=10000000 else "NORMAL" if ca>=4000000 else "A DEVELOPER"
+    return segment
 
 
     
@@ -140,6 +138,8 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
                 ca_mtd = mtd_rows["ca_total"].sum()
                 ca_norm = ca_mtd * 30 / date_row.day
                 print(loc_row)
+                print(loc_row is None)
+                
                 segment = compute_segment(ca_norm, loc_row)
                 df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
 
