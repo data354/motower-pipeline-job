@@ -12,7 +12,7 @@ from gps.common.data_validation import validate_column, validate_site_actifs
 
 def compute_segment(ca:float, loc:str)->str:
     segment = None
-    if not ca or not loc :
+    if (not ca) or (not loc) or (not loc.isinstance(str)):
         return segment
     loc = loc.lower()
     if loc=='abidjan':
@@ -137,9 +137,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
                 mtd_rows = month_data.loc[month_data["code_oci"] == code_oci, :]
                 ca_mtd = mtd_rows["ca_total"].sum()
                 ca_norm = ca_mtd * 30 / date_row.day
-                print(loc_row)
-                print(loc_row is None)
-                
+                print(loc_row)                
                 segment = compute_segment(ca_norm, loc_row)
                 df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
 
