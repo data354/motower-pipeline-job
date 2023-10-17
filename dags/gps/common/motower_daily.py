@@ -131,7 +131,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
         logging.info("ADD CA_MTD AND SEGMENT")
         if daily_month_df.shape[0]>0:
             month_data = pd.concat([daily_month_df, df_final])
-            for idx, row in df_final.iterrows():
+            for idx, row in df_final.loc[df_final["localisation"].notna(),:].iterrows():
                 code_oci = row["code_oci"]
                 date_row = row["jour"]
                 loc_row = row["localisation"]
@@ -139,7 +139,6 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
                 ca_mtd = mtd_rows["ca_total"].sum()
                 ca_norm = ca_mtd * 30 / date_row.day
                 print(loc_row)         
-                print(math.isnan(loc_row))       
                 segment = compute_segment(ca_norm, loc_row)
                 df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
 
