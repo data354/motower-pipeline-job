@@ -137,6 +137,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
                 mtd_rows = month_data.loc[month_data["code_oci"] == code_oci, :]
                 ca_mtd = mtd_rows["ca_total"].sum()
                 ca_norm = ca_mtd * 30 / date_row.day
+                print(loc_row)
                 segment = compute_segment(ca_norm, loc_row)
                 df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
 
