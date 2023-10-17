@@ -110,7 +110,7 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
 
     # GET DATA MONTH TO DAY
     if exec_date.day == 1:
-        for idx, row in df_final.iterrows():
+        for idx, row in df_final.loc[df_final["localisation"].notna(),:].iterrows():
                 code_oci = row["code_oci"]
                 date_row = row["jour"]
                 loc_row = row["localisation"]
