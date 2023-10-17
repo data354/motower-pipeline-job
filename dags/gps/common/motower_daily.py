@@ -10,7 +10,7 @@ from gps.common.data_validation import validate_column, validate_site_actifs
 
 
 
-def compute_segment(ca:float, loc:str)->str:
+def compute_segment(ca:float, loc:str):
     segment = None
     if not ca or not loc :
         return segment
