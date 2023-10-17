@@ -9,7 +9,19 @@ from gps.common.data_validation import validate_column, validate_site_actifs
 
 
 
-    
+
+def compute_segment(ca:float, loc:str)->str:
+    segment = None
+    if not ca or not loc :
+        return segment
+    loc = loc.lower()
+    if loc=='abidjan':
+        segment = "PREMIUM" if ca>=20000000 else "NORMAL" if ca>=10000000 else "A DEVELOPER"
+    if loc=='intérieur':
+        segment = "PREMIUM" if ca>=10000000 else "NORMAL" if ca>=4000000 else "A DEVELOPER"
+    return segment
+
+
     
 def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str, date: str, pghost, pguser, pgpwd, pgdb):
     """
@@ -92,16 +104,21 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
     # INIT COLUMNS
     df_final["ca_norm"] = None
     df_final["ca_mtd"] = None
+    df_final["segment"] = None
+    df_final["previous_segment"] = None
 
     # GET DATA MONTH TO DAY
     if exec_date.day == 1:
         for idx, row in df_final.iterrows():
                 code_oci = row["code_oci"]
                 date_row = row["jour"]
+                loc_row = row["localisation"]
                 ca_mtd = row["ca_total"]
                 ca_norm = ca_mtd * 30 
-                df_final.loc[idx, ["ca_mtd", "ca_norm"]] = [ca_mtd, ca_norm]
+                segment = compute_segment(ca_norm, loc_row)
+                df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
         
+                
     if exec_date.day > 1:
         logging.info("GET DATA MONTH TO DAY")
         
@@ -116,11 +133,25 @@ def generate_daily_caparc(client, endpoint: str, accesskey: str, secretkey: str,
             for idx, row in df_final.iterrows():
                 code_oci = row["code_oci"]
                 date_row = row["jour"]
+                loc_row = row["localisation"]
                 mtd_rows = month_data.loc[month_data["code_oci"] == code_oci, :]
                 ca_mtd = mtd_rows["ca_total"].sum()
                 ca_norm = ca_mtd * 30 / date_row.day
-                df_final.loc[idx, ["ca_mtd", "ca_norm"]] = [ca_mtd, ca_norm]
-    
+                segment = compute_segment(ca_norm, loc_row)
+                df_final.loc[idx, ["ca_mtd", "ca_norm", "segment"]] = [ca_mtd, ca_norm, segment]
+
+        logging.info("ADD PREVIOUS SEGMENT")
+        lmonth = exec_date - relativedelta.relativedelta(months=1)
+        if lmonth!=6:
+            sql_query =  "select * from motower_daily_caparc where  EXTRACT(MONTH FROM jour) = %s and EXTRACT(DAY FROM jour) = %s "
+            last_month = pd.read_sql_query(sql_query, conn, params=(lmonth.month,exec_date.day))
+            if last_month.shape[0] > 0:
+                for idx, row in df_final.iterrows():
+                    code_oci = row["code_oci"]
+                    date_row = row["jour"]
+                    previos_segment = last_month.loc[last_month.code_oci==code_oci, "segment"].values[0]
+                    print(previos_segment)
+                    df_final.loc[idx, "previous_segment"] = previos_segment
 
     logging.info("DATA VALIDATION AFTER MERGING")
     validate_site_actifs(df_final, col = "code_oci")
