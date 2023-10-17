@@ -183,7 +183,7 @@ with DAG(
     },
     description="clean monthly data",
     schedule_interval="0 0 2 * *",
-    start_date=datetime(2023, 1, 2, 0, 0, 0),
+    start_date=datetime(2023, 7, 2, 0, 0, 0),
     catchup=True,
 ) as dag:
      # Task group for cleaning tasks
