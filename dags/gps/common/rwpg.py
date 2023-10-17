@@ -292,6 +292,8 @@ def write_pg(host: str, database:str, user: str, password: str,
                 trafic_data_in_mo  FLOAT,
                 ca_mtd   FLOAT,
                 ca_norm   FLOAT,
+                segment  VARCHAR,
+                previous_segment VARCHAR,
                 PRIMARY KEY(jour, code_oci_id)
                              
             );
