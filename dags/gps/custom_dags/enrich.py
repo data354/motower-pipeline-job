@@ -101,7 +101,7 @@ def check_file(**kwargs ):
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
     date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
-    return filename is None
+    return filename==None
     
 
 # def decide_task_to_run(**kwargs):
