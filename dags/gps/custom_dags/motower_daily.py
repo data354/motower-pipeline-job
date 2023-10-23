@@ -114,9 +114,13 @@ def send_email_onfailure(**kwargs):
     send email if sensor failed
     """
     date_parts = kwargs["ingest_date"].split("-")
-    filename = f"{kwargs['code']}_{date_parts[0]}{date_parts[1]}.xlsx"
-    subject = f"  Missing file {filename}"
-    content = f"Missing file {filename}. please provide file asap"
+    if kwargs['code'] =="CA_SITES":
+        subject = f" Missing ca parc file of {kwargs['ingest_date']}"
+        content = f" Missing ca parc file of {kwargs['ingest_date']}. please provide file asap"
+    else:
+        filename = f"{kwargs['code']}_{date_parts[0]}{date_parts[1]}.xlsx"
+        subject = f"  Missing file {filename}"
+        content = f"Missing file {filename}. please provide file asap"
     receivers = get_receivers(code=kwargs["code"])
     send_email(kwargs["host"], kwargs["port"], kwargs["users"], receivers, subject, content)
 
