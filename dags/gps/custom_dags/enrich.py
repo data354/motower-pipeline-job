@@ -179,6 +179,7 @@ with DAG(
         "email_on_failure": True,
         "email_on_retry": False,
         "max_active_run": 1,
+        "max_active_tasks": 25,
         "retries": 0,
     },
     description="clean monthly data",
