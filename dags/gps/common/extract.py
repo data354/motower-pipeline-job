@@ -199,3 +199,7 @@ def extract_ftp(hostname: str, user: str, password: str, date: str) -> pd.DataFr
     except Exception as error:
         raise ValueError("Failed to add the 'month_id' column.") from error
     return df_
+
+
+
+
