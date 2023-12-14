@@ -335,6 +335,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco_cong_trafic_cssr['cellules_4g'] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr['avg_cssr_cs_2G'] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr['avg_cssr_cs_3G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_voix_2G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_voix_3G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_voix_4G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_data_2G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_data_3G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_data_4G'] = 0
     
 
     df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
