@@ -398,32 +398,32 @@ with DAG(
             dag=dag,
         )
 
-        clean_trafic = PythonOperator(
-            task_id="cleaning_trafic",
-            provide_context=True,
-            python_callable=cleaning_traffic,
-            op_kwargs={
-                "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
-            },
-            dag=dag,
-        )
-        clean_cssr = PythonOperator(
-            task_id="cleaning_cssr",
-            provide_context=True,
-            python_callable=cleaning_cssr,
-            op_kwargs={
-                "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
-            },
-            dag=dag,
-        )
+        # clean_trafic = PythonOperator(
+        #     task_id="cleaning_trafic",
+        #     provide_context=True,
+        #     python_callable=cleaning_traffic,
+        #     op_kwargs={
+        #         "client": CLIENT,
+        #         "endpoint": MINIO_ENDPOINT,
+        #         "accesskey": MINIO_ACCESS_KEY,
+        #         "secretkey": MINIO_SECRET_KEY,
+        #         "date": DATE,
+        #     },
+        #     dag=dag,
+        # )
+        # clean_cssr = PythonOperator(
+        #     task_id="cleaning_cssr",
+        #     provide_context=True,
+        #     python_callable=cleaning_cssr,
+        #     op_kwargs={
+        #         "client": CLIENT,
+        #         "endpoint": MINIO_ENDPOINT,
+        #         "accesskey": MINIO_ACCESS_KEY,
+        #         "secretkey": MINIO_SECRET_KEY,
+        #         "date": DATE,
+        #     },
+        #     dag=dag,
+        # )
         check_congestion_sensor =  PythonSensor(
             task_id= "check_congestion_sensor",
             mode='poke',
@@ -476,7 +476,7 @@ with DAG(
         check_congestion_sensor >> send_email_congestion_task 
         check_congestion_sensor >>  clean_congestion
         #[clean_alarm, clean_trafic, clean_cssr, clean_caparc]
-        [clean_trafic, clean_cssr, clean_caparc]
+        [clean_caparc]
     # Task group for oneforall tasks
     with TaskGroup("oneforall", tooltip="Tasks for generate oneforall") as section_oneforall:
         merge_data = PythonOperator(
@@ -511,7 +511,7 @@ with DAG(
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
     #check_congestion_sensor >>  clean_congestion >> section_oneforall
     #[clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
-    [clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
+    [clean_caparc] >> section_oneforall
     #section_cleaning >> section_oneforall
 
     # clean_call_drop = PythonOperator(

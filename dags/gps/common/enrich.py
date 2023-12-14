@@ -196,12 +196,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     #     raise OSError(f"{filename} don't exists in bucket") from error
 
     # get trafic
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "hourly_datas_radio_prod"), None)
-    if objet is None:
-        raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename is not None:
-        trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
+    # objet = next((table for table in CONFIG["tables"] if table["name"] == "hourly_datas_radio_prod"), None)
+    # if objet is None:
+    #     raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
+    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    # if filename is not None:
+    #     trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
         
 
     # try:
@@ -238,12 +238,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     #     raise OSError(f"{filename} don't exists in bucket") from error
 
     # get CSSR
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
-    if objet is None:
-        raise ValueError("Table 'Taux_succes_2g' not found in configuration")
-    filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    if filename is not None:
-        cssr = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
+    # objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
+    # if objet is None:
+    #     raise ValueError("Table 'Taux_succes_2g' not found in configuration")
+    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
+    # if filename is not None:
+    #     cssr = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
 
     # try:
@@ -305,15 +305,15 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     logging.info("add congestion")
     #bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
     bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco
-    logging.info("add trafic")
-    bdd_ca_ihs_esco_cong_trafic = bdd_ca_ihs_esco_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    #logging.info("add trafic")
+    #bdd_ca_ihs_esco_cong_trafic = bdd_ca_ihs_esco_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
 
     logging.info("add trafic v2")
-    bdd_ca_ihs_esco_cong_trafic2 = bdd_ca_ihs_esco_cong_trafic.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
+    bdd_ca_ihs_esco_cong_trafic2 = bdd_ca_ihs_esco_cong.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
 
-    logging.info("add cssr")
-    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
-
+    # logging.info("add cssr")
+    # bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2
     logging.info("final columns")
     bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:, ~bdd_ca_ihs_esco_cong_trafic_cssr.columns.duplicated()]
     bdd_ca_ihs_esco_cong_trafic_cssr["delay_2G"] = 0
@@ -333,8 +333,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco_cong_trafic_cssr['cellules_2g'] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr['cellules_3g'] = 0
     bdd_ca_ihs_esco_cong_trafic_cssr['cellules_4g'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['avg_cssr_cs_2G'] = 0
+    bdd_ca_ihs_esco_cong_trafic_cssr['avg_cssr_cs_3G'] = 0
     
-
 
     df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
