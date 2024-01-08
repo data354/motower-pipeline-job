@@ -12,8 +12,6 @@ from gps.common.cleaning import (
     clean_base_sites,
     cleaning_esco,
     cleaning_ihs,
-    cleaning_traffic,
-    cleaning_cssr,
     cleaning_congestion,
     cleaning_ca_parc,
     cleaning_trafic_v2,
@@ -55,14 +53,14 @@ def extract_trafic_v2(**kwargs):
     """
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs["date"])
-    print(data.shape)
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['date']}")
-    
     save_minio(CLIENT, kwargs["bucket"] , kwargs["date"], data, kwargs["folder"])
 
 def clean_trafic_v2(**kwargs):
-    data = cleaning_trafic_v2(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs["date"])
+    """
+    """
+    data = cleaning_trafic_v2(CLIENT, kwargs["date"])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['date']}")
     save_minio(CLIENT, kwargs["bucket"], kwargs["date"], data, f'{kwargs["folder"]}-cleaned')
@@ -105,23 +103,6 @@ def check_file(**kwargs ):
         return False
     return True
     
-
-# def decide_task_to_run(**kwargs):
-#     # Récupérez l'état du capteur en utilisant xcom_pull
-#     ti = kwargs['ti']
-#     sensor_state_annexe = ti.xcom_pull(task_ids='check_esco_annexe_sensor', key= 'sensor_state' )
-#     sensor_state_esco = ti.xcom_pull(task_ids='check_esco_sensor', key= 'sensor_state')
-#     logging.info("sensor_state_annexe is %s", sensor_state_annexe)
-#     logging.info("sensor_state_esco is %s", sensor_state_esco)
-
-
-#     if sensor_state_annexe and sensor_state_esco:
-#         return 'cleaning_esco'
-#     elif sensor_state_esco:
-#         return 'cleaning_esco_event_fail'
-#     else:
-#         raise RuntimeError("esco and esco_annexe are missing")
-
 def gen_oneforall(**kwargs):
     data = oneforall(
         CLIENT,
@@ -133,27 +114,16 @@ def gen_oneforall(**kwargs):
     )
     
     if not data.empty:
-        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
-    else:
-        raise RuntimeError(f"No data for {kwargs['date']}")
-
-def save_in_pg(**kwargs):
-    data = get_last_ofa(
-        CLIENT,
-        kwargs["endpoint"],
-        kwargs["accesskey"],
-        kwargs["secretkey"],
-        kwargs["date"],
-    )
-    if not data.empty:
+        logging.info("START TO SAVE INTO POSTGRES")
         write_pg(
             host=PG_SAVE_HOST,
             database=PG_SAVE_DB,
             user=PG_SAVE_USER,
             password=PG_SAVE_PASSWORD,
             data=data,
-            table="motower_monthly"
-        )
+            table="motower_monthly")
+        logging.info("START TO SAVE INTO MINIO")
+        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
 
@@ -225,11 +195,7 @@ with DAG(
             op_kwargs={
                   'client': CLIENT,
                   'table_type': 'BASE_SITES',
-                  'date': DATE,
-            #     'smtp_host': SMTP_HOST,
-            #     'smtp_user': SMTP_USER,
-            #     'smtp_port': SMTP_PORT,
-            #     'receivers': CONFIG["airflow_receivers"]
+                  'date': DATE
             })
         
         send_email_bdd_task = PythonOperator(
@@ -269,10 +235,7 @@ with DAG(
                   'client': CLIENT,
                   'table_type': 'OPEX_ESCO',
                   'date': DATE,
-            #     'smtp_host': SMTP_HOST,
-            #     'smtp_user': SMTP_USER,
-            #     'smtp_port': SMTP_PORT,
-            #     'receivers': CONFIG["airflow_receivers"]
+       
             })
         
         check_esco_annexe_sensor =  PythonSensor(
@@ -286,10 +249,7 @@ with DAG(
                   'client': CLIENT,
                   'table_type': 'ANNEXE_OPEX_ESCO',
                   'date': DATE,
-            #     'smtp_host': SMTP_HOST,
-            #     'smtp_user': SMTP_USER,
-            #     'smtp_port': SMTP_PORT,
-            #     'receivers': CONFIG["airflow_receivers"]
+            
             })
         
         send_email_esco_task = PythonOperator(
@@ -331,10 +291,7 @@ with DAG(
                   'client': CLIENT,
                   'table_type': 'OPEX_IHS',
                   'date': DATE,
-            #     'smtp_host': SMTP_HOST,
-            #     'smtp_user': SMTP_USER,
-            #     'smtp_port': SMTP_PORT,
-            #     'receivers': CONFIG["airflow_receivers"]
+          
             })
         send_email_ihs_task = PythonOperator(
         task_id='send_email_ihs',
@@ -362,28 +319,7 @@ with DAG(
             on_failure_callback=on_failure,
             dag=dag,
         )
-        # clean_ca_parc = PythonOperator(
-        #     task_id='cleaning_ca_parc',
-        #     provide_context=True,
-        #     python_callable=cleaning_ca_parc,
-        #     op_kwargs={'client': CLIENT,
-        #                'date': DATE},
-        #     dag=dag
-        # )
-        # clean_alarm = PythonOperator(
-        #     task_id="cleaning_alarm",
-        #     provide_context=True,
-        #     python_callable=cleaning_alarm,
-        #     op_kwargs={
-        #         "client": CLIENT,
-        #         "endpoint": MINIO_ENDPOINT,
-        #         "accesskey": MINIO_ACCESS_KEY,
-        #         "secretkey": MINIO_SECRET_KEY,
-        #         "date": DATE,
-        #     },
-        #     dag=dag,
-        # )
-
+      
         clean_caparc = PythonOperator(
             task_id="cleaning_caparc",
             provide_context=True,
@@ -398,32 +334,6 @@ with DAG(
             dag=dag,
         )
 
-        # clean_trafic = PythonOperator(
-        #     task_id="cleaning_trafic",
-        #     provide_context=True,
-        #     python_callable=cleaning_traffic,
-        #     op_kwargs={
-        #         "client": CLIENT,
-        #         "endpoint": MINIO_ENDPOINT,
-        #         "accesskey": MINIO_ACCESS_KEY,
-        #         "secretkey": MINIO_SECRET_KEY,
-        #         "date": DATE,
-        #     },
-        #     dag=dag,
-        # )
-        # clean_cssr = PythonOperator(
-        #     task_id="cleaning_cssr",
-        #     provide_context=True,
-        #     python_callable=cleaning_cssr,
-        #     op_kwargs={
-        #         "client": CLIENT,
-        #         "endpoint": MINIO_ENDPOINT,
-        #         "accesskey": MINIO_ACCESS_KEY,
-        #         "secretkey": MINIO_SECRET_KEY,
-        #         "date": DATE,
-        #     },
-        #     dag=dag,
-        # )
         check_congestion_sensor =  PythonSensor(
             task_id= "check_congestion_sensor",
             mode='poke',
@@ -475,7 +385,6 @@ with DAG(
         check_ihs_sensor>> clean_opex_ihs
         check_congestion_sensor >> send_email_congestion_task 
         check_congestion_sensor >>  clean_congestion
-        #[clean_alarm, clean_trafic, clean_cssr, clean_caparc]
         [clean_caparc]
     # Task group for oneforall tasks
     with TaskGroup("oneforall", tooltip="Tasks for generate oneforall") as section_oneforall:
@@ -492,37 +401,15 @@ with DAG(
             },
             dag=dag,
         )
-        save_pg = PythonOperator(
-            task_id="save_pg",
-            provide_context=True,
-            python_callable=save_in_pg,
-            op_kwargs={
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
-            },
-            dag=dag,
-        )
-        merge_data >> save_pg
+        
+        merge_data 
     extract_trafic_deux >> clean_trafic_deux >> section_oneforall
     check_bdd_sensor >> clean_base_site >> section_oneforall
     [check_esco_sensor, check_esco_annexe_sensor] >> clean_opex_esco  >> section_oneforall
     check_ihs_sensor>> clean_opex_ihs >> section_oneforall
-    #check_congestion_sensor >>  clean_congestion >> section_oneforall
-    #[clean_alarm, clean_trafic, clean_cssr, clean_caparc] >> section_oneforall
     [clean_caparc] >> section_oneforall
-    #section_cleaning >> section_oneforall
 
-    # clean_call_drop = PythonOperator(
-    #     task_id='cleaning_call_drop',
-    #     provide_context=True,
-    #     python_callable=cleaning_call_drop,
-    #     op_kwargs={'endpoint': MINIO_ENDPOINT,
-    #                'accesskey': MINIO_ACCESS_KEY,
-    #                'secretkey': MINIO_SECRET_KEY,
-    #                'date': DATE},
-    #     dag=dag
-    # )
+ 
+  
     
     

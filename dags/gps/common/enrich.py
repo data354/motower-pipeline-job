@@ -1,5 +1,5 @@
 """ enrich data"""
-
+import numpy as np
 import pandas as pd
 import requests
 import calendar
@@ -10,6 +10,7 @@ from gps import CONFIG
 from gps.common.rwminio import  get_latest_file, read_file
 import logging
 
+
 ################################## joindre les tables
 def get_number_days(mois: str):
     """
@@ -17,6 +18,10 @@ def get_number_days(mois: str):
     """
     try:
         year, month = map(int, mois.split("-"))
+        if month < 1 or month > 12:
+            raise ValueError("Month value must be between 1 and 12.")
+        if year < 0:
+            raise ValueError("Year value must be positive.")
     except ValueError:
         return "Invalid input format. Please use format 'YYYY-MM'."
     return calendar.monthrange(year, month)[1]
@@ -32,16 +37,16 @@ def get_number_cellule(dataframe, cellule: str):
 
 
 def pareto(dataframe):
-  """
+    """
     add pareto
-  """
-  total = dataframe.ca_total.sum()
-  dataframe = dataframe.sort_values(by="ca_total", ascending = False)
-  dataframe["sommecum"] = dataframe.ca_total.cumsum()
-  dataframe.loc[dataframe.sommecum<total*0.8 ,"pareto"] = 1
-  dataframe.loc[dataframe.sommecum>total*0.8 ,"pareto"] = 0
-  dataframe["pareto"] = dataframe["pareto"].astype(bool)
-  return dataframe.drop(columns = ["sommecum"])
+    """
+    total = np.sum(dataframe["ca_total"].values)
+    sorted_indices = np.argsort(dataframe["ca_total"].values)[::-1]
+    dataframe = dataframe.iloc[sorted_indices]
+    dataframe["sommecum"] = np.cumsum(dataframe["ca_total"].values)
+    dataframe["pareto"] = dataframe["sommecum"] < total * 0.8
+    dataframe = dataframe.drop(columns=["sommecum"])
+    return dataframe
 
 
 
@@ -69,7 +74,7 @@ def get_thresold(code: str):
     objets = requests.get(CONFIG["api_params"], timeout=15).json()
     objet =  next((obj for obj in objets if obj["code"] == code), None)
     if not objet:
-        raise ValueError("thresold of type %s not available", code)
+        raise ValueError(f"thresold of type {code} not available")
     return objet.get("value", CONFIG[code]).replace(",",".")
 
 def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, start_date):
@@ -77,29 +82,17 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
        merge all data and generate oneforall
     """
     date_parts = date.split("-")
+
     #get bdd site
     objet = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
     if objet is None:
         raise ValueError("Table 'BASE_SITES' not found in configuration")
-    # Parse the date string into datetime object
     
     filename = get_latest_file(client= client, bucket= objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename is not None:
         bdd = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=',')
         
-
-    # try:
-    #     logging.info("read %s", filename)
-    #     bdd = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #             storage_options={
-    #             "key": accesskey,
-    #             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-    
+  
     #get CA
     objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
     if objet is None:
@@ -108,44 +101,17 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename is not None:
         caparc = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=',')
-        
-
-    # try:        
-    #     logging.info("read %s", filename)
-    #     caparc = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #             storage_options={
-    #                         "key": accesskey,
-    #                         "secret": secretkey,
-    #                         "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #                                 }
-    #                         )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
       
     # get opex esco
 
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None) 
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None)
     if objet is None:
         raise ValueError("Table 'BASE_SITES' not found in configuration")
     
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename is not None:
         esco = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
-        
 
-    #try:
-    #     logging.info("read %s", filename)
-    #     esco = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-                                
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-    
     # get opex ihs
     if date.split('-')[1] in ["01","02", "03"]:
         pre = "01"
@@ -162,59 +128,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{pre}/{date_parts[2]}")
     if filename is not None:
         ihs = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
-        
 
-    # try:
-    #     logging.info("read %s", filename)
-    #     ihs = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-    
-    # get  indisponibilité
-    # objet = next((table for table in CONFIG["tables"] if table["name"] == "faitalarme"), None)
-    # if objet is None:
-    #     raise ValueError("Table 'faitalarme' not found in configuration")
-  
-    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-
-    # try:
-    #     logging.info("read %s", filename)
-    #     indisponibilite = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-
-    # get trafic
-    # objet = next((table for table in CONFIG["tables"] if table["name"] == "hourly_datas_radio_prod"), None)
-    # if objet is None:
-    #     raise ValueError("Table 'hourly_datas_radio_prod' not found in configuration")
-    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    # if filename is not None:
-    #     trafic = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
-        
-
-    # try:
-    #     logging.info("read %s", filename)
-    #     trafic = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
     
     # get trafic_v2
     objet = next((table for table in CONFIG["tables"] if table["name"] == "ks_tdb_radio_drsi"), None)
@@ -224,71 +138,16 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if filename is not None:
         trafic2 = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
-
-    # try:
-    #     logging.info("read %s", filename)
-    #     trafic2 = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-
-    # get CSSR
-    # objet = next((table for table in CONFIG["tables"] if table["name"] == "Taux_succes_2g"), None)
-    # if objet is None:
-    #     raise ValueError("Table 'Taux_succes_2g' not found in configuration")
-    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['bucket']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    # if filename is not None:
-    #     cssr = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
-        
-
-    # try:
-    #     logging.info("read %s", filename)
-    #     cssr = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-
-    # get congestion
-    # objet = next((table for table in CONFIG["tables"] if table["name"] == "CONGESTION"), None)
-    # if objet is None:
-    #     raise ValueError("Table 'CONGESTION' not found in configuration")
-    # filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-    # try:
-    #     logging.info("read %s", filename)
-    #     cong = pd.read_csv(f"s3://{objet['bucket']}/{filename}",
-    #                             storage_options={
-    #                             "key": accesskey,
-    #                             "secret": secretkey,
-    #             "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-    #             }
-    #                 )
-    # except Exception as error:
-    #     raise OSError(f"{filename} don't exists in bucket") from error
-
-
     # merging
 
-    
     logging.info("merge bdd and CA")
     bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
 
-    
     logging.info("add opex")
     bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
     bdd_ca_ihs_esco = bdd_ca_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
     
     # join esco and ihs colonnes
-    
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_ca_ihs_esco["total redevances ht"]
 
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["o&m_x"].isnull(), "o&m_x"] = bdd_ca_ihs_esco["o&m_y"]
@@ -299,51 +158,44 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["discount_x"].isnull(), "discount_x"] = bdd_ca_ihs_esco["discount_y"]
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_ca_ihs_esco["volume discount_y"]
     
-    logging.info("add indisponibilite")
-    #bdd_ca_ihs_esco_ind = bdd_ca_ihs_esco.merge(indisponibilite, left_on =["code oci"], right_on = ["code_site"], how="left" )
-
-    logging.info("add congestion")
-    #bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco.merge(cong, left_on =["code oci"], right_on = ["code_site"], how="left" )
-    bdd_ca_ihs_esco_cong = bdd_ca_ihs_esco
-    #logging.info("add trafic")
-    #bdd_ca_ihs_esco_cong_trafic = bdd_ca_ihs_esco_cong.merge(trafic, left_on =["code oci"], right_on = ["code_site"], how="left" )
+    
+    
+   
 
     logging.info("add trafic v2")
-    bdd_ca_ihs_esco_cong_trafic2 = bdd_ca_ihs_esco_cong.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
+    bdd_ca_ihs_esco_trafic2 = bdd_ca_ihs_esco.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
 
-    # logging.info("add cssr")
-    # bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2.merge(cssr, left_on =["code oci"], right_on = ["code_site"], how="left" )
-    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic2
+    
     logging.info("final columns")
-    bdd_ca_ihs_esco_cong_trafic_cssr = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:, ~bdd_ca_ihs_esco_cong_trafic_cssr.columns.duplicated()]
-    bdd_ca_ihs_esco_cong_trafic_cssr["delay_2G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr["delay_3G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr["delay_4G"] = 0
+    bdd_ca_ihs_esco_trafic2 = bdd_ca_ihs_esco_trafic2.loc[:, ~bdd_ca_ihs_esco_trafic2.columns.duplicated()]
+    bdd_ca_ihs_esco_trafic2["delay_2G"] = 0
+    bdd_ca_ihs_esco_trafic2["delay_3G"] = 0
+    bdd_ca_ihs_esco_trafic2["delay_4G"] = 0
 
-    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_2G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_3G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr["delaycellule_4G"] = 0
+    bdd_ca_ihs_esco_trafic2["delaycellule_2G"] = 0
+    bdd_ca_ihs_esco_trafic2["delaycellule_3G"] = 0
+    bdd_ca_ihs_esco_trafic2["delaycellule_4G"] = 0
 
-    bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_2G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_3G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr["nbrecellule_4G"] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_2g_congestionnees'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_3g_congestionnees']= 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_4g_congestionnees'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_2g'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_3g'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['cellules_4g'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['avg_cssr_cs_2G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['avg_cssr_cs_3G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_voix_2G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_voix_3G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_voix_4G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_data_2G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_data_3G'] = 0
-    bdd_ca_ihs_esco_cong_trafic_cssr['trafic_data_4G'] = 0
+    bdd_ca_ihs_esco_trafic2["nbrecellule_2G"] = 0
+    bdd_ca_ihs_esco_trafic2["nbrecellule_3G"] = 0
+    bdd_ca_ihs_esco_trafic2["nbrecellule_4G"] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_2g_congestionnees'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_3g_congestionnees']= 0
+    bdd_ca_ihs_esco_trafic2['cellules_4g_congestionnees'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_2g'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_3g'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_4g'] = 0
+    bdd_ca_ihs_esco_trafic2['avg_cssr_cs_2G'] = 0
+    bdd_ca_ihs_esco_trafic2['avg_cssr_cs_3G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_voix_2G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_voix_3G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_voix_4G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_data_2G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_data_3G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_data_4G'] = 0
     
 
-    df_final = bdd_ca_ihs_esco_cong_trafic_cssr.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
+    df_final = bdd_ca_ihs_esco_trafic2.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
                                                        'type du site', 'statut','localisation', 'commune', 'departement', 'region',
                                                          'partenaires','proprietaire', 'gestionnaire','type geolocalite',
                                                            'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'ca_total','parc', 'parc_data',"parc_2g",
@@ -582,9 +434,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     oneforall["previous_segment"] = None
     oneforall.reset_index(drop=True,inplace=True)
-    if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
-        last = datetime.strptime(date, CONFIG["date_format"]) - timedelta(weeks=4)
-        last_filename = get_latest_file(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
+    #if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
+    last = datetime.strptime(date, CONFIG["date_format"]) - timedelta(weeks=4)
+    last_filename = get_latest_file(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
+    if last_filename is not None:
+        
         logging.info(f"read {last_filename}")
         lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
                                 storage_options={
@@ -593,12 +447,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                 "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
                 }
                     )
+        oneforall = oneforall.merge(lastoneforall[["code_oci","segment"]].rename(columns={"segment", "psegment"}), on=['code_oci'], how="left" ) 
+        oneforall["previous_segment"] = oneforall["psegment"]
         
-        for idx, row in oneforall.iterrows():
-            previos_segment = lastoneforall.loc[lastoneforall.code_oci==row["code_oci"], "segment"].values
-            print(previos_segment)
-            oneforall.loc[idx, "previous_segment"] = previos_segment if len(previos_segment)>0 else None
-            print(oneforall.loc[idx, ["code_oci","previous_segment"]])
     return oneforall
 
 

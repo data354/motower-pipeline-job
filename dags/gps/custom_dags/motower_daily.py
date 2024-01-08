@@ -1,5 +1,4 @@
 from datetime import datetime
-from functools import partial
 from minio import Minio
 from airflow.operators.python import PythonOperator
 from airflow.sensors.python import PythonSensor
@@ -54,6 +53,8 @@ CLIENT = Minio( MINIO_ENDPOINT,
 ################################### FUNCTIONS
 
 def check_data_in_table(**kwargs):
+    """
+    """
 
     data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
@@ -83,7 +84,7 @@ def clean_trafic(**kwargs):
 def clean_congestion(**kwargs):
     """
     """
-    data = cleaning_congestion(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['ingest_date'])
+    data = cleaning_congestion(CLIENT, kwargs['ingest_date'])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_congestion")
@@ -128,6 +129,8 @@ def send_email_onfailure(**kwargs):
     send_email(kwargs["host"], kwargs["port"], kwargs["users"], receivers, subject, content)
 
 def gen_motower_daily(**kwargs):
+    """
+    """
     data = generate_daily_caparc(
         CLIENT,
         MINIO_ENDPOINT,
