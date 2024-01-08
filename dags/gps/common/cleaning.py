@@ -27,7 +27,7 @@ def clean_dataframe(df_, cols_to_trim, subset_unique, subset_na)-> pd.DataFrame:
     """
       trim some cols, drop duplicates, dropna
     """
-    df_[cols_to_trim] = df_[cols_to_trim].str.strip()
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip(), axis=0)
     df_.drop_duplicates(subset=subset_unique, inplace=True, keep="first")
     df_.dropna(subset=subset_na, inplace=True)
     return df_
@@ -279,7 +279,7 @@ def cleaning_ca_parc(client, date: str, smtp_host, smtp_port, smtp_user) -> None
     data = pd.concat(data_frames)
     
     cols_to_trim = ["id_site"]
-    data[cols_to_trim] = data[cols_to_trim].str.strip()
+    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
     
     data = data.sort_values("day_id")
     
@@ -343,7 +343,7 @@ def cleaning_traffic(client, date: str):
     data = pd.concat(data_frames)
      # Trim whitespace from certain columns
     cols_to_trim = ["code_site"]
-    data[cols_to_trim] = data[cols_to_trim].str.strip()
+    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
      # Convert date_jour column to string and add a new column for month
     data.date_jour = data.date_jour.astype("str")
     data["mois"] = data.date_jour.str[:4].str.cat(data.date_jour.str[4:6], "-")
@@ -483,7 +483,7 @@ def cleaning_congestion(client, date: str):
     
     df_["mois"] = f"{date_parts[0]}-{date_parts[1]}"
     cols_to_trim = ["code_site"]
-    df_[cols_to_trim] = df_[cols_to_trim].str.strip()
+    df_[cols_to_trim] = df_[cols_to_trim].apply(lambda x: x.str.strip())
     df_.dropna(subset=["code_site"], inplace=True)
     
     df_ = df_.drop_duplicates(subset=["code_site"])
