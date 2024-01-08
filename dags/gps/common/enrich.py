@@ -48,7 +48,18 @@ def pareto(dataframe):
     dataframe = dataframe.drop(columns=["sommecum"])
     return dataframe
 
-
+def compute_evolution(row):
+    """
+    compute evolution
+    """
+    row["evolution_segment"] = None
+    if row["segment"] == row["previous_segment"]:
+        row["evolution_segment"] = 0
+    elif row["segment"] > row["previous_segment"]:
+        row["evolution_segment"] = 1
+    elif row["segment"] < row["previous_segment"]:
+        row["evolution_segment"] = -1
+    return row
 
 def prev_segment(dataframe):
     """
@@ -449,27 +460,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
                     )
         oneforall = oneforall.merge(lastoneforall[["code_oci","segment"]].rename(columns={"segment", "psegment"}), on=['code_oci'], how="left" ) 
         oneforall["previous_segment"] = oneforall["psegment"]
+        logging.info("ADD EVOLUTION SEGMENT")
+    oneforall = oneforall.apply(f=compute_evolution, axis=1)
         
     return oneforall
 
 
-def get_last_ofa(client, endpoint: str, accesskey: str, secretkey: str, date: str):
-    """ """
-    # get files
-    date_parts = date.split("-")
-    filename = get_latest_file(client, bucket="oneforall", prefix=f"{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
-
-   
-    try:
-                    
-        df_ = pd.read_csv(f"s3://oneforall/{filename}",
-                        storage_options={
-                            "key": accesskey,
-                            "secret": secretkey,
-                            "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                                    }
-                            )
-    except Exception as error:
-            raise OSError(f"{filename} don't exists in bucket") from error
-    
-    return df_

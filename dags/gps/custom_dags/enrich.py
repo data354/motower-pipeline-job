@@ -16,7 +16,7 @@ from gps.common.cleaning import (
     cleaning_ca_parc,
     cleaning_trafic_v2,
 )
-from gps.common.enrich import oneforall, get_last_ofa
+from gps.common.enrich import oneforall
 from gps.common.alerting import alert_failure
 from gps.common.rwminio import save_minio, get_latest_file
 from gps.common.rwpg import write_pg
