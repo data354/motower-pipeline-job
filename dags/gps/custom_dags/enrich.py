@@ -336,34 +336,6 @@ with DAG(
             dag=dag,
         )
 
-        check_congestion_sensor =  PythonSensor(
-            task_id= "check_congestion_sensor",
-            mode='poke',
-            poke_interval= 24* 60 *60,
-            timeout = 336 * 60 * 60,
-            python_callable= check_file,
-            op_kwargs={
-                  'client': CLIENT,
-                  'table_type': 'CONGESTION',
-                  'date': DATE,
-            #     'smtp_host': SMTP_HOST,
-            #     'smtp_user': SMTP_USER,
-            #     'smtp_port': SMTP_PORT,
-            #     'receivers': CONFIG["airflow_receivers"]
-            })
-        clean_congestion = PythonOperator(
-            task_id="cleaning_congestion",
-            provide_context=True,
-            python_callable=cleaning_congestion,
-            op_kwargs={
-                "client": CLIENT,
-                "endpoint": MINIO_ENDPOINT,
-                "accesskey": MINIO_ACCESS_KEY,
-                "secretkey": MINIO_SECRET_KEY,
-                "date": DATE,
-            },
-            dag=dag,
-        )
         send_email_congestion_task = PythonOperator(
             task_id='send_email_congestion',
             python_callable=send_email_onfailure,
@@ -385,8 +357,6 @@ with DAG(
         [check_esco_sensor, check_esco_annexe_sensor] >> clean_opex_esco
         check_ihs_sensor >> send_email_ihs_task 
         check_ihs_sensor>> clean_opex_ihs
-        check_congestion_sensor >> send_email_congestion_task 
-        check_congestion_sensor >>  clean_congestion
         [clean_caparc]
     # Task group for oneforall tasks
     with TaskGroup("oneforall", tooltip="Tasks for generate oneforall") as section_oneforall:
