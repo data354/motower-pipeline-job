@@ -75,15 +75,17 @@ def compute_evolution(row):
     """
     compute evolution
     """
-    row["evolution_segment"] = None
-    if row["segment"] == row["previous_segment"]:
+    if (row["previous_segment"] is None) or (row["segment"] is None):
+        row["evolution_segment"] = None    
+    dummy = {"A DEVELOPPER": 0, "NORMAL": 1, "PREMIUM": 2}
+    if dummy[row["segment"]] == dummy[row["previous_segment"]]:
         row["evolution_segment"] = 0
-    elif row["segment"] > row["previous_segment"]:
+    elif dummy[row["segment"]]  > dummy[row["previous_segment"]]:
         row["evolution_segment"] = 1
-    elif row["segment"] < row["previous_segment"]:
+    elif dummy[row["segment"]] < dummy[row["previous_segment"]]:
         row["evolution_segment"] = -1
     return row
-    
+
 def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, date: str, pghost, pguser, pgpwd, pgdb):
     """
         create motower daily structure
@@ -134,6 +136,7 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
     df_final["ca_mtd"] = None
     df_final["segment"] = None
     df_final["previous_segment"] = None
+    df_final["evolution_segment"] = None
 
     # GET DATA MONTH TO DAY
     mois = exec_date.month
@@ -158,8 +161,8 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
         df_final = pd.merge(left=df_final,right=last_month[["code_oci", "segment"]].rename(mapper={"segment":"psegment"}), how="left", on="code_oci", validate="one_to_one")
         df_final["previous_segment"] = df_final["psegment"]
 
-    logging.info("ADD EVOLUTION SEGMENT")
-    df_final = df_final.apply(f=compute_evolution, axis=1)
+        logging.info("ADD EVOLUTION SEGMENT")
+        df_final = df_final.apply(f=compute_evolution, axis=1)
 
     logging.info("DATA VALIDATION AFTER MERGING")
     validate_site_actifs(df_bdd_site=df_final, col="code_oci", host=smtphost, port=smtpport, user=smtpuser)

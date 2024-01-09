@@ -52,7 +52,8 @@ def compute_evolution(row):
     """
     compute evolution
     """
-    row["evolution_segment"] = None
+    if (row["previous_segment"] is None) or (row["segment"] is None):
+        row["evolution_segment"] = None
     dummy = {"A DEVELOPPER": 0, "NORMAL": 1, "PREMIUM": 2}
     if dummy[row["segment"]] == dummy[row["previous_segment"]]:
         row["evolution_segment"] = 0
@@ -445,6 +446,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["nur_total_v2"] =  oneforall["nur_2g_v2"] +  oneforall["nur_3g_v2"] +  oneforall["nur_4g_v2"]
 
     oneforall["previous_segment"] = None
+    oneforall["evolution_segment"] = None
     oneforall.reset_index(drop=True,inplace=True)
     #if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
     last = datetime.strptime(date, CONFIG["date_format"]) - timedelta(weeks=4)
