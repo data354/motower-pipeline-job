@@ -279,7 +279,7 @@ def cleaning_ca_parc(client, date: str, smtp_host, smtp_port, smtp_user) -> None
     data = pd.concat(data_frames)
     
     cols_to_trim = ["id_site"]
-    data[cols_to_trim] = data[cols_to_trim].apply(lambda x: x.str.strip())
+    data[cols_to_trim] = data[cols_to_trim].astype("str").apply(lambda x: x.str.strip())
     
     data = data.sort_values("day_id")
     
