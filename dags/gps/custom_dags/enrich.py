@@ -123,7 +123,7 @@ def gen_oneforall(**kwargs):
             data=data,
             table="motower_monthly")
         logging.info("START TO SAVE INTO MINIO")
-        save_minio(client=CLIENT, bucket="oneforall", date=kwargs["date"], data=data)
+        save_minio(client=CLIENT, bucket=CONFIG["final_bucket"], date=kwargs["date"], data=data, folder= CONFIG["final_folder"])
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
 
