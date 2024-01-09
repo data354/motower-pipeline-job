@@ -53,11 +53,12 @@ def compute_evolution(row):
     compute evolution
     """
     row["evolution_segment"] = None
-    if row["segment"] == row["previous_segment"]:
+    dummy = {"A DEVELOPPER": 0, "NORMAL": 1, "PREMIUM": 2}
+    if dummy[row["segment"]] == dummy[row["previous_segment"]]:
         row["evolution_segment"] = 0
-    elif row["segment"] > row["previous_segment"]:
+    elif dummy[row["segment"]]  > dummy[row["previous_segment"]]:
         row["evolution_segment"] = 1
-    elif row["segment"] < row["previous_segment"]:
+    elif dummy[row["segment"]] < dummy[row["previous_segment"]]:
         row["evolution_segment"] = -1
     return row
 
@@ -455,7 +456,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         oneforall = oneforall.merge(lastoneforall[["code_oci","segment"]].rename(columns={"segment", "psegment"}), on=['code_oci'], how="left" ) 
         oneforall["previous_segment"] = oneforall["psegment"]
         logging.info("ADD EVOLUTION SEGMENT")
-    oneforall = oneforall.apply(f=compute_evolution, axis=1)
+        oneforall = oneforall.apply(func=compute_evolution, axis=1)
         
     return oneforall
 
