@@ -148,7 +148,6 @@ with DAG(
         "email": CONFIG["airflow_receivers"],
         "email_on_failure": True,
         "email_on_retry": False,
-        "max_active_run": 1,
         "max_active_tasks": 45,
         "retries": 0,
     },
