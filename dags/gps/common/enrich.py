@@ -447,17 +447,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall.reset_index(drop=True,inplace=True)
     #if datetime.strptime(date, CONFIG["date_format"]) > datetime.strptime(start_date, CONFIG["date_format"]):
     last = datetime.strptime(date, CONFIG["date_format"]) - timedelta(weeks=4)
-    last_filename = get_latest_file(client, "oneforall", prefix = f"{last.year}/{str(last.month).zfill(2)}")
+    last_filename = get_latest_file(client, CONFIG["final_bucket"], prefix = f"{CONFIG['final_folder']}/{last.year}/{str(last.month).zfill(2)}")
     if last_filename is not None:
         
         logging.info(f"read {last_filename}")
-        lastoneforall = pd.read_csv(f"s3://oneforall/{last_filename}",
-                                storage_options={
-                                "key": accesskey,
-                                "secret": secretkey,
-                "client_kwargs": {"endpoint_url": f"http://{endpoint}"}
-                }
-                    )
+        lastoneforall = read_file(client=client, bucket_name=CONFIG["final_bucket"],object_name=last_filename, sep="," )
         oneforall = oneforall.merge(lastoneforall[["code_oci","segment"]].rename(columns={"segment", "psegment"}), on=['code_oci'], how="left" ) 
         oneforall["previous_segment"] = oneforall["psegment"]
         logging.info("ADD EVOLUTION SEGMENT")
