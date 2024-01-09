@@ -335,20 +335,6 @@ with DAG(
             },
             dag=dag,
         )
-
-        send_email_congestion_task = PythonOperator(
-            task_id='send_email_congestion',
-            python_callable=send_email_onfailure,
-            trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
-            op_kwargs={
-                'date': DATE,
-                'host': SMTP_HOST, 
-                'port':SMTP_PORT,
-                'users': SMTP_USER,
-                'code': "CONGESTION",
-            },
-            dag=dag,
-            )
         
         extract_trafic_deux >> clean_trafic_deux 
         check_bdd_sensor >> send_email_bdd_task 
