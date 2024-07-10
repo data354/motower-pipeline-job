@@ -12,6 +12,7 @@ from psycopg2.extensions import connection
 from gps import CONFIG
 
 # Define SQL queries for different tables 
+
 SQL_QUERIES = {
     "hourly_datas_radio_prod": """select  date_jour, code_site, sum(trafic_voix) as trafic_voix, 
     sum(trafic_data) as trafic_data, techno from 
@@ -51,8 +52,18 @@ SQL_QUERIES = {
     group by date_jour, code_site, techno;''',
 
     "faitalarme": """select  *, nbrecellule * delay as delayCellule
-    from faitalarme where date=%s;"""
+    from faitalarme where date=%s;""",
+    
 }
+
+
+sql_queries_gsm =   ''' select date_id day_id,id_site,ca_voix,ca_data,ca_total,
+    trafic_voix,trafic_data,parc_mois parc, parc_data_otarie parc_data, parc_2g, 
+    parc_3g, parc_4g,parc_5g,parc_othe from "DDIR".dtm_motower_gsm
+    '''
+
+
+
 
 
 @lru_cache(maxsize=None)

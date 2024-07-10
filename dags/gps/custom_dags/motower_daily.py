@@ -5,7 +5,7 @@ from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from airflow import DAG
 from gps import CONFIG
-from gps.common.extract import extract_ftp, list_ftp_file, extract_pg
+from gps.common.extract import extract_ftp, list_ftp_file, extract_pg, sql_queries_gsm
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic, cleaning_congestion
@@ -13,9 +13,9 @@ from gps.common.rwpg import write_pg
 
 # get variables
 
-FTP_HOST = Variable.get('ftp_host')
-FTP_USER = Variable.get('ftp_user')
-FTP_PASSWORD = Variable.get('ftp_password')
+#FTP_HOST = Variable.get('ftp_host')
+#FTP_USER = Variable.get('ftp_user')
+#FTP_PASSWORD = Variable.get('ftp_password')
 
 PG_SAVE_HOST = Variable.get('pg_save_host')
 PG_SAVE_DB = Variable.get('pg_save_db')
@@ -89,25 +89,50 @@ def clean_congestion(**kwargs):
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_congestion")
     
-def extract_ftp_job(**kwargs):
-    """
-    extract ftp files callable
+####################################################################################################################################################
+#def extract_ftp_jobp(**kwargs):
+ #   """
+ #   extract ftp files callable
  
-    """
-    data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
-    if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, kwargs["folder"])
+ #   """
+ #   data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
+ #   if  data.empty:
+ #       raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+ #   save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, kwargs["folder"])
 
-def check_file(**kwargs):
+#def check_file(**kwargs):
+#    """
+#        check if file exists
+#    """
+#    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
+#    liste = list_ftp_file(FTP_HOST, FTP_USER, FTP_PASSWORD)
+#    if filename in liste:
+#        return True
+#    return False  
+####################################################################################################################################################
+
+
+
+def check_data_in_table_gsm():
     """
-        check if file exists
     """
-    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
-    liste = list_ftp_file(FTP_HOST, FTP_USER, FTP_PASSWORD)
-    if filename in liste:
-        return True
-    return False  
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+            password= PG_V2_PASSWORD , sql_query=sql_queries_gsm)
+    if data.empty:
+        return False
+    return True
+
+
+def extract_pg_table_gsm(**kwargs):
+    """
+    """
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+            password= PG_V2_PASSWORD , sql_query=sql_queries_gsm)
+    if data.empty:
+        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    
+    save_minio(CLIENT, kwargs["bucket"] , kwargs['ingest_date'], data, kwargs["folder"])
+    
 
 
 def send_email_onfailure(**kwargs):
@@ -179,18 +204,21 @@ with DAG(
         start_date=datetime(2023, 7, 2, 6, 0, 0),
         catchup=True
 ) as dag:
-    check_file_sensor = PythonSensor(
-        task_id= "sensor_ca",
+    
+    
+    table_config_gsm = next((table for table in CONFIG["tables"] if table["name"] == '"DDIR".dtm_motower_gsm'), None)
+    
+    check_trafic_sensor__gsm  = PythonSensor(
+        task_id= "sensor_trafic__gsm ",
         mode="poke",
         poke_interval=24* 60 *60, # 1 jour
         timeout=168* 60 *60, #7 jours
-        python_callable= check_file,
+        python_callable= check_data_in_table_gsm,
         on_failure_callback = on_failure,
         op_kwargs={
-      
+             'thetable': table_config_gsm ["name"],
               'ingest_date': INGEST_DATE,
         },
-
     )
     send_email_task = PythonOperator(
         task_id='send_email',
@@ -205,21 +233,21 @@ with DAG(
             'code': 'CA_SITES'  
         }
     )
-    table_config = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
-    ingest_caparc = PythonOperator(
-                task_id='ingest_caparc',
+
+    extract_table_gsm = PythonOperator(
+                task_id="extract_table_gsm",
                 provide_context=True,
-                python_callable=extract_ftp_job,
+                python_callable=extract_pg_table_gsm,
                 on_failure_callback=on_failure,
                 op_kwargs={
-                    'thetable': table_config["name"],
-                    'bucket': table_config["bucket"],
-                    'folder': table_config["folder"],
-                    'table': table_config["table"],
+                    'thetable': table_config_gsm["name"],
+                    'bucket': table_config_gsm["bucket"],
+                    'folder': table_config_gsm["folder"],
+                    'table': table_config_gsm["table"],
                     'ingest_date': INGEST_DATE
                 },
                 dag=dag,
-    )
+            )
 
     generate_motower_dcaparc = PythonOperator(
             task_id="motower_dcaparc",
@@ -341,8 +369,8 @@ with DAG(
             #on_failure_callback=on_failure,
             dag=dag,
         )
-    check_file_sensor >> send_email_task  
-    check_file_sensor >> ingest_caparc >> generate_motower_dcaparc
+    check_trafic_sensor__gsm >> send_email_task  
+    check_trafic_sensor__gsm >> extract_table_gsm >> generate_motower_dcaparc
     check_trafic_sensor >> send_email_trafic_task
     check_trafic_sensor >> extract_trafic >> clean_trafic_task
     check_congestion_sensor >> send_email_congestion_task
