@@ -5,7 +5,7 @@ from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from airflow import DAG
 from gps import CONFIG
-from gps.common.extract import extract_pg, 
+from gps.common.extract import extract_pg
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic, cleaning_congestion
