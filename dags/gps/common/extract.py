@@ -54,13 +54,12 @@ SQL_QUERIES = {
     "faitalarme": """select  *, nbrecellule * delay as delayCellule
     from faitalarme where date=%s;""",
     
-}
-
-
-sql_queries_gsm =   ''' select date_id day_id,id_site,ca_voix,ca_data,ca_total,
+    "dtm_motower_gsm": ''' select date_id day_id,id_site,ca_voix,ca_data,ca_total,
     trafic_voix,trafic_data,parc_mois parc, parc_data_otarie parc_data, parc_2g, 
     parc_3g, parc_4g,parc_5g,parc_othe from "DDIR".dtm_motower_gsm
     '''
+}
+
 
 
 

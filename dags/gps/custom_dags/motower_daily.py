@@ -5,7 +5,7 @@ from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from airflow import DAG
 from gps import CONFIG
-from gps.common.extract import extract_ftp, list_ftp_file, extract_pg, sql_queries_gsm
+from gps.common.extract import extract_ftp, list_ftp_file, extract_pg, SQL_QUERIES
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic, cleaning_congestion
@@ -55,9 +55,13 @@ CLIENT = Minio( MINIO_ENDPOINT,
 def check_data_in_table(**kwargs):
     """
     """
-
-    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+    if kwargs["thetable"] !='dtm_motower_gsm':
+        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
+    else:
+        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+            password= PG_V2_PASSWORD , sql_query=SQL_QUERIES["dtm_motower_gsm"])
+        
     if data.empty:
         return False
     return True
@@ -66,12 +70,20 @@ def check_data_in_table(**kwargs):
 def extract_pg_job(**kwargs):
     """
     """
-    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+    if kwargs["thetable"] !='dtm_motower_gsm':
+        
+        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
+    else :
+        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+            password= PG_V2_PASSWORD , sql_query=SQL_QUERIES["dtm_motower_gsm"])
+        
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
     save_minio(CLIENT, kwargs["bucket"] , kwargs['ingest_date'], data, kwargs["folder"])
+    
+    
 
 def clean_trafic(**kwargs):
     """
@@ -111,28 +123,6 @@ def clean_congestion(**kwargs):
 #    return False  
 ####################################################################################################################################################
 
-
-
-def check_data_in_table_gsm():
-    """
-    """
-    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , sql_query=sql_queries_gsm)
-    if data.empty:
-        return False
-    return True
-
-
-def extract_pg_table_gsm(**kwargs):
-    """
-    """
-    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , sql_query=sql_queries_gsm)
-    if data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    
-    save_minio(CLIENT, kwargs["bucket"] , kwargs['ingest_date'], data, kwargs["folder"])
-    
 
 
 def send_email_onfailure(**kwargs):
@@ -206,17 +196,17 @@ with DAG(
 ) as dag:
     
     
-    table_config_gsm = next((table for table in CONFIG["tables"] if table["name"] == '"DDIR".dtm_motower_gsm'), None)
+    table_config_gsm = next((table for table in CONFIG["tables"] if table["name"] == 'dtm_motower_gsm'), None)
     
     check_trafic_sensor__gsm  = PythonSensor(
         task_id= "sensor_trafic__gsm ",
         mode="poke",
         poke_interval=24* 60 *60, # 1 jour
         timeout=168* 60 *60, #7 jours
-        python_callable= check_data_in_table_gsm,
+        python_callable= check_data_in_table,
         on_failure_callback = on_failure,
         op_kwargs={
-             'thetable': table_config_gsm ["name"],
+             'thetable': table_config_gsm["name"],
               'ingest_date': INGEST_DATE,
         },
     )
@@ -237,7 +227,7 @@ with DAG(
     extract_table_gsm = PythonOperator(
                 task_id="extract_table_gsm",
                 provide_context=True,
-                python_callable=extract_pg_table_gsm,
+                python_callable=extract_pg_job,
                 on_failure_callback=on_failure,
                 op_kwargs={
                     'thetable': table_config_gsm["name"],
