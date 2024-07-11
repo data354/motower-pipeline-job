@@ -5,7 +5,7 @@ from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from airflow import DAG
 from gps import CONFIG
-from gps.common.extract import extract_ftp, list_ftp_file, extract_pg, SQL_QUERIES
+from gps.common.extract import extract_pg, 
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic, cleaning_congestion
@@ -55,13 +55,10 @@ CLIENT = Minio( MINIO_ENDPOINT,
 def check_data_in_table(**kwargs):
     """
     """
-    if kwargs["thetable"] !='dtm_motower_gsm':
-        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
-    else:
-        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , sql_query=SQL_QUERIES["dtm_motower_gsm"])
-        
+    
     if data.empty:
         return False
     return True
@@ -70,14 +67,10 @@ def check_data_in_table(**kwargs):
 def extract_pg_job(**kwargs):
     """
     """
-    if kwargs["thetable"] !='dtm_motower_gsm':
-        
-        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
+  
+    data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
             password= PG_V2_PASSWORD , table= kwargs["thetable"] , date= kwargs['ingest_date'])
-    else :
-        data = extract_pg(host = PG_HOST, database= PG_V2_DB, user= PG_V2_USER, 
-            password= PG_V2_PASSWORD , sql_query=SQL_QUERIES["dtm_motower_gsm"])
-        
+    
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
@@ -101,28 +94,6 @@ def clean_congestion(**kwargs):
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_congestion")
     
-####################################################################################################################################################
-#def extract_ftp_jobp(**kwargs):
- #   """
- #   extract ftp files callable
- 
- #   """
- #   data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
- #   if  data.empty:
- #       raise RuntimeError(f"No data for {kwargs['ingest_date']}")
- #   save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, kwargs["folder"])
-
-#def check_file(**kwargs):
-#    """
-#        check if file exists
-#    """
-#    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
-#    liste = list_ftp_file(FTP_HOST, FTP_USER, FTP_PASSWORD)
-#    if filename in liste:
-#        return True
-#    return False  
-####################################################################################################################################################
-
 
 
 def send_email_onfailure(**kwargs):
@@ -142,6 +113,7 @@ def send_email_onfailure(**kwargs):
         content = f"Missing file {filename}. please provide file asap"
     receivers = get_receivers(code=kwargs["code"])
     send_email(kwargs["host"], kwargs["port"], kwargs["users"], receivers, subject, content)
+
 
 def gen_motower_daily(**kwargs):
     """
@@ -234,7 +206,8 @@ with DAG(
                     'bucket': table_config_gsm["bucket"],
                     'folder': table_config_gsm["folder"],
                     'table': table_config_gsm["table"],
-                    'ingest_date': INGEST_DATE
+                    'ingest_date': INGEST_DATE, 
+                    
                 },
                 dag=dag,
             )
