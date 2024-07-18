@@ -170,7 +170,7 @@ with DAG(
                     'table': table_config["table"],
                     'date': DATE
                 },
-                dag=dag,
+                dag=dag,date
             )
         clean_trafic_deux = PythonOperator(
             task_id="cleaning_trafic_deux",
