@@ -13,6 +13,7 @@ def get_receivers(code: str):
     if code in ["trafic", "congestion"]:
         email = CONFIG["default_adress"]
         return email
+    print(CONFIG["api_mails"])
     objets = requests.get(CONFIG["api_mails"], timeout=15).json()
     objet =  next((obj for obj in objets if obj["typeFichier"] == code), None)
     if objet is None:
@@ -52,7 +53,7 @@ def alert_failure(**kwargs):
                                             value=exception,
                                             tb=exception.__traceback__)).strip()
     email_content = f"""
-            Une erreur est survenue sur la tache {task_id} de OMER.
+            Une erreur est survenue sur la tache {task_id} du {dag_id} du projet MOTOWER.
             *Erreur survenue*: {exception}
             -----------------------------------------------------------------------------
 
@@ -68,5 +69,5 @@ def alert_failure(**kwargs):
     # send email for alerting
     receivers = CONFIG['airflow_receivers']
     logging.info("send alert mail to %s", ', '.join(receivers))
-    subject = "Rapport d'erreur sur GPS"
+    subject = "Rapport d'erreur sur MOTOWER"
     send_email(kwargs["host"],kwargs["port"], kwargs["user"], receivers, subject, email_content)

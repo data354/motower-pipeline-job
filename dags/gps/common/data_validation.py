@@ -13,8 +13,9 @@ def validate_column(df, file_type: str, col:str, host: str, port: int, user: str
     df_not_valid = df[~((df[col] >= thresholds["min"]) & (df[col] <= thresholds["max"]) )]
     date_for_group = "date_id" if file_type.upper() == "TRAFIC" else "day_id"
     if not df_not_valid.empty:
-        message = f"These dates have invalid {col}: {df_not_valid[[date_for_group, col]].to_string(index=False)}" if date is None else f"FILE OF {date} have invalid {col}: {df_not_valid[[date_for_group, col]].to_string(index=False)}"
-        send_email( host= host, port = port, user= user, receivers= receivers, subject= f"VALIDATION ERRORS,ON FILE {file_type.upper()}", content=message)
+        message = "These dates have invalid {}: \n\n{}".format(col, df_not_valid[[date_for_group, col]]) if date is None else "FILE OF {} have invalid {}: \n\n{}".format(date, col, df_not_valid[[date_for_group, col]])
+        print(message)
+        send_email( host= host, port = port, user= user, receivers= receivers, subject= f"VALIDATION ERRORS ON FILE {file_type.upper()}", content=message)
         raise ValueError(message)
     logging.info("DATA OF COLUMN %s ARE VALID", col)
 
@@ -25,7 +26,7 @@ def validate_site_actifs(df_bdd_site, col: str, host: str, port: int, user: str,
         validate number of actifs sites from bdd site
     """
     logging.info("START VALIDATION ")
-    thresholds = CONFIG["thresold"]["sites_actifs"]
+    thresholds = CONFIG["threshold"]["sites_actifs"]
     number = df_bdd_site[col].nunique()
     try:
         mois = df_bdd_site["mois"].unique()[0]

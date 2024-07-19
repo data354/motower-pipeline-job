@@ -1,6 +1,7 @@
 """ postgres UTILS"""
 from datetime import datetime as dt
 import psycopg2
+from psycopg2   import sql
 from sqlalchemy import create_engine
 from gps import CONFIG
 
@@ -8,7 +9,7 @@ from gps import CONFIG
 def create_table(cur, table_name: str, columns: dict):
     create_query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
-        id SERIAL PRIMARY KEY,
+        id SERIAL ,
         {", ".join([f"{column} {data_type}" for column, data_type in columns.items()])}
     
     """
@@ -17,7 +18,7 @@ def create_table(cur, table_name: str, columns: dict):
     elif table_name in ("motower_daily_congestion", "motower_daily_trafic"):
         create_query += " , PRIMARY KEY(jour, id_site));"
     else:
-        create_query += " );"
+        create_query += ", PRIMARY KEY(id) );"
     cur.execute(create_query)
 
 
@@ -46,15 +47,15 @@ def write_pg(host: str, database:str, user: str, password: str,
     # delete data if already exists
     # Delete data from table
     if table in ["motower_daily", "motower_daily_caparc", "motower_daily_congestion", "motower_daily_trafic"]:
-        delete_query = psycopg2.sql.SQL("DELETE FROM {table} WHERE jour = %s;").format(table=psycopg2.sql.Identifier(table))
-        cur.execute(delete_query, [data.jour.unique()[0]])
+        delete_query = sql.SQL("DELETE FROM {table} WHERE jour = %s;").format(table=sql.Identifier(table))
+        cur.execute(delete_query, [str(data.jour.unique()[0])])
     elif table == "motower_weekly":
         exec_date = data["jour"].dt.to_pydatetime()[0]
-        delete_query = psycopg2.sql.SQL("DELETE FROM {table} WHERE EXTRACT(WEEK FROM jour) = %s AND EXTRACT(YEAR FROM jour) = %s;").format(table=psycopg2.sql.Identifier(table))
-        cur.execute(delete_query, [exec_date.isocalendar()[1], exec_date.isocalendar()[0]])
+        delete_query = sql.SQL("DELETE FROM {table} WHERE EXTRACT(WEEK FROM jour) = %s AND EXTRACT(YEAR FROM jour) = %s;").format(table=sql.Identifier(table))
+        cur.execute(delete_query, [str(exec_date.isocalendar()[1]), str(exec_date.isocalendar()[0])])
     elif table == "motower_monthly":
-        delete_query = psycopg2.sql.SQL("DELETE FROM {table} WHERE mois = %s;").format(table=psycopg2.sql.Identifier(table))
-        cur.execute(delete_query, [data.mois.unique()[0]])
+        delete_query = sql.SQL("DELETE FROM {table} WHERE mois = %s;").format(table= sql.Identifier(table))
+        cur.execute(delete_query, [str(data.mois.unique()[0])])
 
     conn.commit()
     cur.close()

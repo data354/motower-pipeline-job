@@ -39,7 +39,6 @@ def get_number_cellule(dataframe, cellule: str):
 def pareto(dataframe):
     """
     add pareto
-    add new colone to dataframe, this colone containt the cumulate sum of ca_total
     """
     total = np.sum(dataframe["ca_total"].values)
     sorted_indices = np.argsort(dataframe["ca_total"].values)[::-1]
@@ -53,14 +52,21 @@ def compute_evolution(row):
     """
     compute evolution
     """
-    if (row["previous_segment"] is None) or (row["segment"] is None):
+    DUMMY = {"A DEVELOPPER":0, "NORMAL":1, "PREMIUM":2}
+    if row["previous_segment"] is None or row["segment"] is None:
         row["evolution_segment"] = None
-    dummy = {"A DEVELOPPER": 0, "NORMAL": 1, "PREMIUM": 2}
-    if dummy[row["segment"]] == dummy[row["previous_segment"]]:
+        return row
+    if pd.isna(row["previous_segment"]) or pd.isna(row["segment"]):
+        row["evolution_segment"] = None
+        return row       
+    current_segment = DUMMY.get(row["segment"])
+    previous_segment = DUMMY.get(row["previous_segment"])
+
+    if current_segment == previous_segment:
         row["evolution_segment"] = 0
-    elif dummy[row["segment"]]  > dummy[row["previous_segment"]]:
+    elif current_segment  > previous_segment:
         row["evolution_segment"] = 1
-    elif dummy[row["segment"]] < dummy[row["previous_segment"]]:
+    elif current_segment < previous_segment:
         row["evolution_segment"] = -1
     return row
 
@@ -120,7 +126,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     objet = next((table for table in CONFIG["tables"] if table["name"] == "OPEX_ESCO"), None)
     if objet is None:
-        raise ValueError("Table 'OPEX_ESCO' not found in configuration")
+        raise ValueError("Table 'BASE_SITES' not found in configuration")
     
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{date_parts[1]}/{date_parts[2]}")
     if filename is not None:
@@ -152,7 +158,7 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if filename is not None:
         trafic2 = read_file(client=client,bucket_name=objet['bucket'], object_name=filename, sep="," )
         
-    # merging # join esco and ihs colonnes
+    # merging
 
     logging.info("merge bdd and CA")
     bdd_ca = bdd.merge(caparc, left_on=["code oci id"], right_on = ["id_site" ], how="left")
@@ -161,11 +167,9 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs = bdd_ca.merge(ihs, left_on=[ "autre code", "mois"], right_on=[ "site id ihs", "mois"], how="left")
     bdd_ca_ihs_esco = bdd_ca_ihs.merge(esco, left_on=["autre code"], right_on=["code site"], how="left")
     
-   
-   
-   
-    
+    # join esco and ihs colonnes
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["total redevances ht"].notnull(), "month_total"] = bdd_ca_ihs_esco["total redevances ht"]
+
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["o&m_x"].isnull(), "o&m_x"] = bdd_ca_ihs_esco["o&m_y"]
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["energy_x"].isnull(), "energy_x"] = bdd_ca_ihs_esco["energy_y"]
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["infra_x"].isnull(), "infra_x"] = bdd_ca_ihs_esco["infra_y"]
@@ -175,67 +179,207 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     bdd_ca_ihs_esco.loc[bdd_ca_ihs_esco["volume discount_x"].isnull(), "volume discount_x"] = bdd_ca_ihs_esco["volume discount_y"]
     
     
+    
+   
+
     logging.info("add trafic v2")
     bdd_ca_ihs_esco_trafic2 = bdd_ca_ihs_esco.merge(trafic2, left_on =["code oci id"], right_on = ["id_site"], how="left" )
+
     
     logging.info("final columns")
-    bdd_ca_ihs_esco_trafic2 = bdd_ca_ihs_esco_trafic2.loc[:, ~bdd_ca_ihs_esco_trafic2.columns.duplicated()]  #suppression des colones en double du aux jointure
-    
-  
-    
+    bdd_ca_ihs_esco_trafic2 = bdd_ca_ihs_esco_trafic2.loc[:, ~bdd_ca_ihs_esco_trafic2.columns.duplicated()]
+    bdd_ca_ihs_esco_trafic2["delay_2G"] = 0
+    bdd_ca_ihs_esco_trafic2["delay_3G"] = 0
+    bdd_ca_ihs_esco_trafic2["delay_4G"] = 0
+
+    bdd_ca_ihs_esco_trafic2["delaycellule_2G"] = 0
+    bdd_ca_ihs_esco_trafic2["delaycellule_3G"] = 0
+    bdd_ca_ihs_esco_trafic2["delaycellule_4G"] = 0
+
+    bdd_ca_ihs_esco_trafic2["nbrecellule_2G"] = 0
+    bdd_ca_ihs_esco_trafic2["nbrecellule_3G"] = 0
+    bdd_ca_ihs_esco_trafic2["nbrecellule_4G"] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_2g_congestionnees'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_3g_congestionnees']= 0
+    bdd_ca_ihs_esco_trafic2['cellules_4g_congestionnees'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_2g'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_3g'] = 0
+    bdd_ca_ihs_esco_trafic2['cellules_4g'] = 0
+    bdd_ca_ihs_esco_trafic2['avg_cssr_cs_2G'] = 0
+    bdd_ca_ihs_esco_trafic2['avg_cssr_cs_3G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_voix_2G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_voix_3G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_voix_4G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_data_2G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_data_3G'] = 0
+    bdd_ca_ihs_esco_trafic2['trafic_data_4G'] = 0
     
 
-
-    df_final = bdd_ca_ihs_esco_trafic2.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude','partenaires','proprietaire',
-                                            'type du site', 'statut','localisation', 'commune', 'departement', 'region','gestionnaire',
-                                            'type geolocalite','projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'ca_total','parc', 'parc_data',
-                                            "parc_2g","parc_3g", "parc_4g", "parc_5g", "parc_other",'o&m_x', 'energy_x', 'infra_x',
-                                            'maintenance passive preventive_x','gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%',
-                                            "month_total","trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4G", "trafic_voix_erl_2G", 
-                                            "trafic_voix_erl_3G", "trafic_voix_erl_4G","nbre_cellule_2G", "nbre_cellule_congestionne_2G","nbre_cellule_3G",
-                                            "nbre_cellule_congestionne_3G", "nbre_cellule_4G", "nbre_cellule_congestionne_4G"]]
+    df_final = bdd_ca_ihs_esco_trafic2.loc[:,[ 'mois_x','code oci','site','autre code','longitude', 'latitude',
+                                                       'type du site', 'statut','localisation', 'commune', 'departement', 'region',
+                                                         'partenaires','proprietaire', 'gestionnaire','type geolocalite',
+                                                           'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'ca_total','parc', 'parc_data',"parc_2g",
+                                                         "parc_3g", "parc_4g", "parc_5g", "parc_other", 
+                                                           'o&m_x', 'energy_x', 'infra_x', 'maintenance passive preventive_x',
+       'gardes de securite_x', 'discount_x', 'volume discount_x' ,'tva : 18%', "month_total",'delay_2G', 'delay_3G', 'delay_4G', 'delaycellule_2G', 'delaycellule_3G',"delaycellule_4G",'nbrecellule_2G', 'nbrecellule_3G', 'nbrecellule_4G',
+        
+        "trafic_voix_2G",	"trafic_voix_3G",	"trafic_voix_4G",	"trafic_data_2G",	"trafic_data_3G",	"trafic_data_4G", "trafic_data_go_2G", "trafic_data_go_3G", "trafic_data_go_4G", "trafic_voix_erl_2G", "trafic_voix_erl_3G", "trafic_voix_erl_4G",
+        'cellules_2g_congestionnees', 'cellules_2g', 'cellules_3g_congestionnees', 'cellules_3g', 'cellules_4g_congestionnees', 'cellules_4g',
+        "nbre_cellule_2G", "nbre_cellule_congestionne_2G","nbre_cellule_3G", "nbre_cellule_congestionne_3G", "nbre_cellule_4G", "nbre_cellule_congestionne_4G",
+        "avg_cssr_cs_2G"	,"avg_cssr_cs_3G"]]
     
     
     logging.info("final columns renamed")
     
     print(df_final.columns)
     print(df_final.shape)
-    df_final.columns = ['mois', 'code_oci','site','autre_code','longitude','latitude','type_du_site','statut','localisation',
-                        'commune', 'departement','region','partenaires', 'proprietaire', 'gestionnaire',  'type_geolocalite', 
-                        'projet', 'clutter', 'position_site', 'ca_voix','ca_data', 'ca_total', 'parc_global','parc_data', "parc_2g",
-                        "parc_3g", "parc_4g",  "parc_5g", "autre_parc",'o_m', 'energie', 'infra', 'maintenance_passive_preventive',
-                        'garde_de_securite','discount', 'volume_discount','tva',  'opex_itn',"trafic_data_v2_2g",  "trafic_data_v2_3g",    
-                        "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
-                        "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", 
-                        "cellules_congestionne_v2_4g"]
-    
-    
+    df_final.columns = ['mois', 'code_oci',
+                                'site',
+                                'autre_code',
+                                'longitude',
+                                'latitude',
+                                'type_du_site',
+                                'statut',
+                                'localisation',
+                                'commune',
+                                'departement',
+                                'region',
+                                'partenaires',
+                                'proprietaire',
+                                'gestionnaire',
+                                'type_geolocalite',
+                                'projet',
+                                'clutter',
+                                'position_site',
+                                'ca_voix',
+                                'ca_data',
+                                'ca_total',
+                                'parc_global',
+                                'parc_data',
+                                "parc_2g",
+                                "parc_3g",
+                                "parc_4g",
+                                "parc_5g",
+                                "autre_parc",
+                                'o_m',
+                                'energie',
+                                'infra',
+                                'maintenance_passive_preventive',
+                                'garde_de_securite',
+                                'discount',
+                                'volume_discount',
+                                'tva',  'opex_itn',
+                                'delay_2g',
+                                'delay_3g',
+                                'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
+                                'nbrecellule_2g',
+                                'nbrecellule_3g',
+                                'nbrecellule_4g',
+                                'trafic_voix_2g',
+                                'trafic_voix_3g',
+                                'trafic_voix_4g',
+                                'trafic_data_2g',
+                                'trafic_data_3g',
+                                'trafic_data_4g',
+                                "trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
+                                'cellules_2g_congestionnees',
+                                'cellules_2g',
+                                'cellules_3g_congestionnees',
+                                'cellules_3g',
+                                'cellules_4g_congestionnees',
+                                'cellules_4g',
+                                "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", "cellules_congestionne_v2_4g",
+                                'avg_cssr_cs_2g',
+                                'avg_cssr_cs_3g']
     print(df_final.shape)
     # enrich
+    df_final["trafic_voix_total"] = df_final["trafic_voix_2g"]+df_final["trafic_voix_3g"] + df_final["trafic_voix_4g"]
+    df_final["trafic_data_total"] = df_final["trafic_data_2g"]+df_final["trafic_data_3g"] + df_final["trafic_data_4g"]
 
     df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total>=20000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total>=10000000)),["segment"]] = "PREMIUM"
     df_final.loc[((df_final.localisation.str.lower()=="abidjan") & ((df_final.ca_total>=10000000) & (df_final.ca_total<20000000) )) | ((df_final.localisation.str.lower()=="intérieur") & ((df_final.ca_total>=4000000) & (df_final.ca_total<10000000))),["segment"]] = "NORMAL"
     df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total<10000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total<4000000)),["segment"]] = "A DEVELOPPER"
 
 
-    df_final = df_final.loc[:, ['mois','code_oci','site','autre_code','longitude','latitude','type_du_site','statut',
-                                'localisation','commune','departement','region','partenaires','proprietaire','gestionnaire',
-                                'type_geolocalite','projet','clutter', 'position_site','ca_voix','ca_data', 'parc_global',
-                                'parc_data',"parc_2g","parc_3g","parc_4g","parc_5g","autre_parc",'o_m', 'energie','infra',    
-                                'maintenance_passive_preventive','garde_de_securite','discount','volume_discount','tva',
-                                'opex_itn',"trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g",
-                                "trafic_voix_v2_3g", "trafic_voix_v2_4g","cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g",
-                                "cellules_congestionne_v2_3g", "cellules_v2_4g","cellules_congestionne_v2_4g",'ca_total','segment']]
-                                
-   
+    df_final = df_final.loc[:, ['mois',
+                                'code_oci',
+                                'site',
+                                'autre_code',
+                                'longitude',
+                                'latitude',
+                                'type_du_site',
+                                'statut',
+                                'localisation',
+                                'commune',
+                                'departement',
+                                'region',
+                                'partenaires',
+                                'proprietaire',
+                                'gestionnaire',
+                                'type_geolocalite',
+                                'projet',
+                                'clutter',
+                                'position_site',
+                                'ca_voix',
+                                'ca_data',
+                                'parc_global',
+                                'parc_data',
+                                "parc_2g",
+                                "parc_3g",
+                                "parc_4g",
+                                "parc_5g",
+                                "autre_parc",
+                                'o_m',
+                                'energie',
+                                'infra',
+                                'maintenance_passive_preventive',
+                                'garde_de_securite',
+                                'discount',
+                                'volume_discount',
+                                'tva',
+                                'opex_itn',
+                                'delay_2g',
+                                'delay_3g',
+                                'delay_4g', 'delaycellule_2g', 'delaycellule_3g',"delaycellule_4g",
+                                'nbrecellule_2g',
+                                'nbrecellule_3g',
+                                'nbrecellule_4g',
+                                'trafic_voix_2g',
+                                'trafic_voix_3g',
+                                'trafic_voix_4g',
+                                'trafic_data_2g',
+                                'trafic_data_3g',
+                                'trafic_data_4g',
+                                "trafic_data_v2_2g", "trafic_data_v2_3g", "trafic_data_v2_4g", "trafic_voix_v2_2g", "trafic_voix_v2_3g", "trafic_voix_v2_4g",
+                                'cellules_2g_congestionnees',
+                                'cellules_2g',
+                                'cellules_3g_congestionnees',
+                                'cellules_3g',
+                                'cellules_4g_congestionnees',
+                                'cellules_4g',
+                                "cellules_v2_2g", "cellules_congestionne_v2_2g","cellules_v2_3g", "cellules_congestionne_v2_3g", "cellules_v2_4g", "cellules_congestionne_v2_4g",
+                                'avg_cssr_cs_2g',
+                                'avg_cssr_cs_3g',
+                                'trafic_voix_total',
+                                'trafic_data_total',
+                                'ca_total',
+                                'segment']]
+    
     
     
     # pareto
     oneforall = pareto(df_final)
 
+    oneforall["cellules_congestionnees_total"] = oneforall['cellules_2g_congestionnees'] +  oneforall['cellules_3g_congestionnees'] + oneforall['cellules_4g_congestionnees']
     oneforall["cellules_congestionnees_total_v2"] = oneforall['cellules_congestionne_v2_2g'] +  oneforall['cellules_congestionne_v2_3g'] + oneforall['cellules_congestionne_v2_4g'] ###
 
+    oneforall["cellules_total"] = oneforall['cellules_2g'] + oneforall['cellules_3g'] + oneforall['cellules_4g']
     oneforall["cellules_total_v2"] = oneforall['cellules_v2_2g'] + oneforall['cellules_v2_3g'] + oneforall['cellules_v2_4g'] ###
+
+    oneforall["taux_congestion_2g"] = oneforall['cellules_2g_congestionnees'] / oneforall['cellules_2g']
+    oneforall["taux_congestion_3g"] = oneforall['cellules_3g_congestionnees'] / oneforall['cellules_3g']
+    oneforall["taux_congestion_4g"] = oneforall['cellules_4g_congestionnees'] / oneforall['cellules_4g']
+    oneforall["taux_congestion_total"] =  oneforall["taux_congestion_2g"] + oneforall["taux_congestion_3g"] + oneforall["taux_congestion_4g"]
 
 
     oneforall["taux_congestion_2g_v2"] = oneforall['cellules_congestionne_v2_2g'] / oneforall['cellules_v2_2g']
@@ -244,12 +388,18 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall["taux_congestion_total_v2"] =  oneforall["taux_congestion_2g_v2"] + oneforall["taux_congestion_3g_v2"] + oneforall["taux_congestion_4g_v2"]
 
 
+    oneforall["recommandation"] = "Surveillance technique"
+    oneforall.loc[(oneforall["taux_congestion_total"]<=0.5), "recommandation"] =  "Surveillance commerciale"
 
     oneforall["recommandation_v2"] = "Surveillance technique"
     oneforall.loc[(oneforall["taux_congestion_total_v2"]<=0.5), "recommandation_v2"] =  "Surveillance commerciale"
     
     oneforall["arpu"] = oneforall["ca_total"] / oneforall["parc_global"]
-    
+    oneforall["segmentation_rentabilite"] = 'Unknown'
+    oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 1'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] < 0.15)),"segmentation_rentabilite"] = 'Seg 2'
+    oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g"] >=0.15)),"segmentation_rentabilite"] = 'Seg 3'
+    oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g"] >= 0.15)),"segmentation_rentabilite"] = 'Seg 4'
 
     oneforall["segmentation_rentabilite_v2"] = 'Unknown'
     oneforall.loc[((oneforall["arpu"]<3000) & (oneforall["taux_congestion_4g_v2"] < 0.15)),"segmentation_rentabilite_v2"] = 'Seg 1'
@@ -257,6 +407,12 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     oneforall.loc[((oneforall["arpu"]>=3000) & (oneforall["taux_congestion_4g_v2"] >=0.15)),"segmentation_rentabilite_v2"] = 'Seg 3'
     oneforall.loc[((oneforall["arpu"]<3000 )& (oneforall["taux_congestion_4g_v2"] >= 0.15)),"segmentation_rentabilite_v2"] = 'Seg 4'
 
+
+    oneforall["cssr_pondere_trafic_2g"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_2g']) / sum(oneforall["trafic_voix_2g"])) / 100
+    oneforall["cssr_pondere_trafic_3g"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_3g']) / sum(oneforall["trafic_voix_3g"])) / 100
+
+    oneforall["cssr_pondere_trafic_2g_v2"] = ((oneforall['avg_cssr_cs_2g'] * oneforall['trafic_voix_v2_2g']) / sum(oneforall["trafic_voix_v2_2g"])) / 100
+    oneforall["cssr_pondere_trafic_3g_v2"] = ((oneforall['avg_cssr_cs_3g'] * oneforall['trafic_voix_v2_3g']) / sum(oneforall["trafic_voix_v2_3g"])) / 100
 
     # get thresold
     interco = float(get_thresold("intercos")) /100 #CA-voix 
@@ -283,6 +439,18 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
     oneforall["days"] = oneforall["mois"].apply(get_number_days)
 
+    oneforall["nur_2g"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_2g") )
+    oneforall["nur_3g"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_3g") )
+    oneforall["nur_4g"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_4g") )
+
+
+    oneforall["nur_2g_v2"] = (100000 * oneforall['nbrecellule_2g'] * oneforall['delaycellule_2g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_2g") )
+    oneforall["nur_3g_v2"] = (100000 * oneforall['nbrecellule_3g'] * oneforall['delaycellule_3g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_3g") )
+    oneforall["nur_4g_v2"] = (100000 * oneforall['nbrecellule_4g'] * oneforall['delaycellule_4g'] )/ (3600*24*oneforall["days"]  * get_number_cellule(oneforall, "cellules_v2_4g") )
+    
+    oneforall["nur_total"] =  oneforall["nur_2g"] +  oneforall["nur_3g"] +  oneforall["nur_4g"]
+
+    oneforall["nur_total_v2"] =  oneforall["nur_2g_v2"] +  oneforall["nur_3g_v2"] +  oneforall["nur_4g_v2"]
 
     oneforall["previous_segment"] = None
     oneforall["evolution_segment"] = None
@@ -294,10 +462,11 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
         
         logging.info(f"read {last_filename}")
         lastoneforall = read_file(client=client, bucket_name=CONFIG["final_bucket"],object_name=last_filename, sep="," )
-        oneforall = oneforall.merge(lastoneforall[["code_oci","segment"]].rename(columns={"segment", "psegment"}), on=['code_oci'], how="left" ) 
+        oneforall = oneforall.merge((lastoneforall[["code_oci","segment"]]).rename(columns={"segment": "psegment"}), on=['code_oci'], how="left" ) 
         oneforall["previous_segment"] = oneforall["psegment"]
         logging.info("ADD EVOLUTION SEGMENT")
-        oneforall = oneforall.apply(func=compute_evolution, axis=1)
+        oneforall = oneforall.apply(func=compute_evolution, axis=1).drop(["psegment"], axis = 1)
+
         
     return oneforall
 

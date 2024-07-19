@@ -142,7 +142,7 @@ def send_email_onfailure(**kwargs):
 
  # Set up DAG
 with DAG(
-    "enrich",
+    "enrich_prod",
     default_args={
         "depends_on_past": False,
         "email": CONFIG["airflow_receivers"],
@@ -170,7 +170,7 @@ with DAG(
                     'table': table_config["table"],
                     'date': DATE
                 },
-                dag=dag,date
+                dag=dag,
             )
         clean_trafic_deux = PythonOperator(
             task_id="cleaning_trafic_deux",

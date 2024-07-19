@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 import pandas as pd
 import psycopg2
+from copy import deepcopy
 from dateutil import relativedelta
 from gps import CONFIG
 from gps.common.rwminio import  get_latest_file, read_file
@@ -75,24 +76,39 @@ def compute_evolution(row):
     """
     compute evolution
     """
-    if (row["previous_segment"] is None) or (row["segment"] is None):
-        row["evolution_segment"] = None    
-    dummy = {"A DEVELOPPER": 0, "NORMAL": 1, "PREMIUM": 2}
-    if dummy[row["segment"]] == dummy[row["previous_segment"]]:
-        row["evolution_segment"] = 0
-    elif dummy[row["segment"]]  > dummy[row["previous_segment"]]:
-        row["evolution_segment"] = 1
-    elif dummy[row["segment"]] < dummy[row["previous_segment"]]:
-        row["evolution_segment"] = -1
-    return row
+    DUMMY = {"A DEVELOPER":0, "NORMAL":1, "PREMIUM":2}
+    print(row)
+    if row["previous_segment"] is None or row["segment"] is None:
+        row["evolution_segment"] = None
+        return row
+    if pd.isna(row["previous_segment"]) or pd.isna(row["segment"]):
+        row["evolution_segment"] = None
+        return row       
+    current_segment = DUMMY.get(row["segment"])
+    previous_segment = DUMMY.get(row["previous_segment"])
+    print(current_segment)
+    print(previous_segment)
 
-def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, date: str, pghost, pguser, pgpwd, pgdb):
+    if current_segment == previous_segment:
+        row["evolution_segment"] = 0
+        return row
+    if current_segment  > previous_segment:
+        row["evolution_segment"] = 1
+        return row
+    if current_segment < previous_segment:
+        row["evolution_segment"] = -1
+        return row
+
+
+def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, date: str, pghost, pguser, pgpwd, pgdb, start: str):
     """
         create motower daily structure
     """
+    CONN = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
 
     logging.info("get last modified bdd sites cleaned")
     exec_date = datetime.strptime(date, CONFIG["date_format"])
+    start_date = datetime.strptime(start, CONFIG["date_format"])
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == "BASE_SITES"), None)
     if not table_obj:
         raise ValueError("Table BASE_SITES not found.")
@@ -140,30 +156,43 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
 
     # GET DATA MONTH TO DAY
     mois = exec_date.month
-    conn = psycopg2.connect(host=pghost, database=pgdb, user=pguser, password=pgpwd)
-    sql_query =  "select * from motower_daily_caparc where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
-    daily_month_df = pd.read_sql_query(sql_query, conn, params=(mois, date))
-    month_data = pd.concat([daily_month_df, df_final])
-    month_data["jour"] = pd.to_datetime(month_data["jour"])
-    month_data["ca_mtd"] = month_data["ca_total"].groupby(['code_oci']).cumsum()
-    month_data["ca_norm"] = month_data["ca_mtd"] * 30
-    # add segment
-    logging.info("ADD  SEGMENT")
-    month_data = month_data.apply(f=compute_segment, axis=1)
-    # get data of the day
-    df_final = month_data.loc[month_data["jour"]==exec_date,:]
-    # add previous segement
-    logging.info("ADD PREVIOUS SEGMENT")
-    lmonth = exec_date - relativedelta.relativedelta(months=1)
-    sql_query =  "select * from motower_daily_caparc where  EXTRACT(MONTH FROM jour) = %s and EXTRACT(DAY FROM jour) = %s "
-    last_month = pd.read_sql_query(sql_query, conn, params=(lmonth.month,exec_date.day))
-    if not last_month.empty:
-        df_final = pd.merge(left=df_final,right=last_month[["code_oci", "segment"]].rename(mapper={"segment":"psegment"}), how="left", on="code_oci", validate="one_to_one")
-        df_final["previous_segment"] = df_final["psegment"]
+    print(mois)
+    if exec_date > start_date:
+        sql_query =  "select * from motower_daily_caparc where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
+        daily_month_df = pd.read_sql_query(sql_query, CONN, params=(mois, date))
+        month_data = pd.concat([daily_month_df, df_final])
 
-        logging.info("ADD EVOLUTION SEGMENT")
-        df_final = df_final.apply(f=compute_evolution, axis=1)
+        lmonth = exec_date - relativedelta.relativedelta(months=1)
+        sql_query =  "select * from motower_daily_caparc where  EXTRACT(MONTH FROM jour) = %s and EXTRACT(DAY FROM jour) = %s "
+        last_month = pd.read_sql_query(sql_query, CONN, params=(lmonth.month,exec_date.day))
+        month_data["jour"] = pd.to_datetime(month_data["jour"])
+        month_data["ca_mtd"] = month_data[["code_oci","ca_total"]].groupby(['code_oci']).cumsum()
+        month_data["ca_norm"] = month_data["ca_mtd"] * 30
+        # add segment
+        logging.info("ADD  SEGMENT")
+        month_data = month_data.apply(func=compute_segment, axis=1)
+        # get data of the day
+        df_final = month_data.loc[month_data["jour"]==exec_date,:]
+        # add previous segement
+        if not last_month.empty:
+            logging.info("ADD PREVIOUS SEGMENT")
+            df_final = df_final.merge(last_month[["code_oci", "segment"]], how="left", on="code_oci",   validate="one_to_one"). rename(columns={"segment_x":"segment"})
+            df_final["previous_segment"] = df_final["segment_y"]
 
+            logging.info("ADD EVOLUTION SEGMENT")
+            df_final = df_final.apply(func=compute_evolution, axis=1)
+    else:
+        month_data = deepcopy(df_final)
+        
+        month_data["jour"] = pd.to_datetime(month_data["jour"])
+        month_data["ca_mtd"] = month_data[["code_oci","ca_total"]].groupby(['code_oci']).cumsum()
+        month_data["ca_norm"] = month_data["ca_mtd"] * 30
+        # add segment
+        logging.info("ADD  SEGMENT")
+        month_data = month_data.apply(func=compute_segment, axis=1)
+        # get data of the day
+        df_final = month_data.loc[month_data["jour"]==exec_date,:]
+    
     logging.info("DATA VALIDATION AFTER MERGING")
     validate_site_actifs(df_bdd_site=df_final, col="code_oci", host=smtphost, port=smtpport, user=smtpuser)
 
@@ -178,6 +207,11 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
     logging.info('DAILY KPI - %s',df_for_validation.to_string())
     for col in ["ca_total","ca_voix", "ca_data", "parc_global", "parc_data"]:
         validate_column(df=df_for_validation, col=col,  host=smtphost, port= smtpport, user=smtpuser, file_type="CAPARC JOIN TO BDD SITE", date=date)
+    final_cols = list(DAILY_CAPARC_COL.values())
+    final_cols.extend(["trafic_data_in_mo","ca_mtd", "ca_norm", "segment", "previous_segment", "evolution_segment"])
+    print(df_final.head())
+    df_final = df_final[final_cols]
+    print(df_final.head())
     return df_final
 
 
