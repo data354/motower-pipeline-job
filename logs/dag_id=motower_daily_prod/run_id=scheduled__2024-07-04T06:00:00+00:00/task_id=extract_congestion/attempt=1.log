@@ -1,0 +1,66 @@
+[2024-07-22T16:28:06.540+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-22T16:28:06.769+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.extract_congestion scheduled__2024-07-04T06:00:00+00:00 [queued]>
+[2024-07-22T16:28:06.778+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.extract_congestion scheduled__2024-07-04T06:00:00+00:00 [queued]>
+[2024-07-22T16:28:06.778+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-22T16:28:06.789+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): extract_congestion> on 2024-07-04 06:00:00+00:00
+[2024-07-22T16:28:06.798+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=359) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-22T16:28:06.799+0000] {standard_task_runner.py:64} INFO - Started process 366 to run task
+[2024-07-22T16:28:06.799+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'extract_congestion', 'scheduled__2024-07-04T06:00:00+00:00', '--job-id', '17', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpdvxaj8xn']
+[2024-07-22T16:28:06.801+0000] {standard_task_runner.py:91} INFO - Job 17: Subtask extract_congestion
+[2024-07-22T16:28:06.839+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.extract_congestion scheduled__2024-07-04T06:00:00+00:00 [running]> on host 5e959f2258db
+[2024-07-22T16:28:06.916+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='extract_congestion' AIRFLOW_CTX_EXECUTION_DATE='2024-07-04T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-07-04T06:00:00+00:00'
+[2024-07-22T16:28:06.918+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-22T16:28:06.933+0000] {extract.py:127} INFO - Getting data of the table ks_hebdo_tdb_radio_drsi 
+[2024-07-22T16:28:06.933+0000] {extract.py:128} INFO - where date is 2024-07-03
+[2024-07-22T16:28:06.933+0000] {extract.py:99} INFO - get data to date 27 and year 2024
+[2024-07-22T16:28:06.937+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:100: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-07-22T16:28:06.975+0000] {rwminio.py:19} INFO - start to save data
+[2024-07-22T16:28:06.978+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72863047b260>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:28:07.379+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862ba69730>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:28:08.180+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862ba69a30>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:28:09.783+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862ba69e50>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:28:12.985+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862ba6a3c0>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:28:12.988+0000] {rwminio.py:36} ERROR - Error saving data to Minio with error: HTTPConnectionPool(host='minio', port=80): Max retries exceeded with url: /motower?location= (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862ba6a6c0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+[2024-07-22T16:28:12.989+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-22T16:28:12.989+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-22T16:28:13.004+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=extract_congestion, run_id=scheduled__2024-07-04T06:00:00+00:00, execution_date=20240704T060000, start_date=20240722T162806, end_date=20240722T162813
+[2024-07-22T16:28:13.071+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-22T16:28:13.095+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-22T16:28:13.096+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-07-22T16:29:05.603+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-22T16:29:05.629+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.extract_congestion scheduled__2024-07-04T06:00:00+00:00 [queued]>
+[2024-07-22T16:29:05.638+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.extract_congestion scheduled__2024-07-04T06:00:00+00:00 [queued]>
+[2024-07-22T16:29:05.639+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-22T16:29:05.649+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): extract_congestion> on 2024-07-04 06:00:00+00:00
+[2024-07-22T16:29:05.657+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=410) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-22T16:29:05.659+0000] {standard_task_runner.py:64} INFO - Started process 417 to run task
+[2024-07-22T16:29:05.659+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'extract_congestion', 'scheduled__2024-07-04T06:00:00+00:00', '--job-id', '30', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmp4qfkfofh']
+[2024-07-22T16:29:05.661+0000] {standard_task_runner.py:91} INFO - Job 30: Subtask extract_congestion
+[2024-07-22T16:29:05.699+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.extract_congestion scheduled__2024-07-04T06:00:00+00:00 [running]> on host 5e959f2258db
+[2024-07-22T16:29:05.769+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='extract_congestion' AIRFLOW_CTX_EXECUTION_DATE='2024-07-04T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-07-04T06:00:00+00:00'
+[2024-07-22T16:29:05.770+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-22T16:29:05.784+0000] {extract.py:127} INFO - Getting data of the table ks_hebdo_tdb_radio_drsi 
+[2024-07-22T16:29:05.784+0000] {extract.py:128} INFO - where date is 2024-07-03
+[2024-07-22T16:29:05.784+0000] {extract.py:99} INFO - get data to date 27 and year 2024
+[2024-07-22T16:29:05.789+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:100: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-07-22T16:29:05.824+0000] {rwminio.py:19} INFO - start to save data
+[2024-07-22T16:29:05.826+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862baad0d0>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:29:06.227+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862baad370>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:29:07.029+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862baad790>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:29:08.632+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862baad9d0>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:29:11.835+0000] {connectionpool.py:872} WARNING - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862baadfd0>: Failed to establish a new connection: [Errno 111] Connection refused')': /motower?location=
+[2024-07-22T16:29:11.836+0000] {rwminio.py:36} ERROR - Error saving data to Minio with error: HTTPConnectionPool(host='minio', port=80): Max retries exceeded with url: /motower?location= (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x72862baae300>: Failed to establish a new connection: [Errno 111] Connection refused'))
+[2024-07-22T16:29:11.837+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-22T16:29:11.838+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-22T16:29:11.852+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=extract_congestion, run_id=scheduled__2024-07-04T06:00:00+00:00, execution_date=20240704T060000, start_date=20240722T162905, end_date=20240722T162911
+[2024-07-22T16:29:12.133+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-22T16:29:12.153+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-22T16:29:12.154+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

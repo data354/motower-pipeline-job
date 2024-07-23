@@ -23,7 +23,14 @@ from gps.common.rwpg import write_pg
 from gps.common.alerting import get_receivers, send_email
 from gps.common.extract import extract_pg
 
-MINIO_ENDPOINT = Variable.get('minio_host')
+PG_SAVE_HOST = Variable.get('pg_save_host')
+PG_SAVE_DB = Variable.get('pg_save_db')
+PG_SAVE_USER = Variable.get('pg_save_user')
+PG_SAVE_PASSWORD = Variable.get('pg_save_password')
+
+INGEST_DATE = "{{ macros.ds_add(ds, -1) }}"
+
+MINIO_ENDPOINT =  Variable.get('minio_host')
 MINIO_ACCESS_KEY = Variable.get('minio_access_key')
 MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 
@@ -31,22 +38,19 @@ SMTP_HOST = Variable.get('smtp_host')
 SMTP_PORT = Variable.get('smtp_port')
 SMTP_USER = Variable.get('smtp_user')
 
-PG_SAVE_HOST = Variable.get('pg_save_host')
-PG_SAVE_DB = Variable.get('pg_save_db')
-PG_SAVE_USER = Variable.get('pg_save_user')
-PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 
 PG_HOST = Variable.get('pg_host')
 PG_V2_DB = Variable.get('pg_v2_db')
 PG_V2_USER = Variable.get('pg_v2_user')
 PG_V2_PASSWORD = Variable.get('pg_v2_password')
 
+
 DATE = "{{data_interval_start | ds}}"
 
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
         secret_key= MINIO_SECRET_KEY,
-        secure=False)
+        secure=False)   
 
 def extract_trafic_v2(**kwargs):
     """
@@ -143,7 +147,7 @@ def send_email_onfailure(**kwargs):
  # Set up DAG
 with DAG(
     "enrich_prod",
-    default_args={
+    default_args={ 
         "depends_on_past": False,
         "email": CONFIG["airflow_receivers"],
         "email_on_failure": True,
@@ -153,7 +157,7 @@ with DAG(
     },
     description="clean monthly data",
     schedule_interval="0 0 2 * *",
-    start_date=datetime(2023, 7, 2, 0, 0, 0),
+    start_date=datetime(2024, 7, 2, 0, 0, 0),
     catchup=True,
 ) as dag:
      # Task group for cleaning tasks

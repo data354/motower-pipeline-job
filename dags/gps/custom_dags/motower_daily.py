@@ -5,7 +5,7 @@ from airflow.sensors.python import PythonSensor
 from airflow.models import Variable
 from airflow import DAG
 from gps import CONFIG
-from gps.common.extract import extract_ftp, list_ftp_file, extract_pg
+from gps.common.extract import  extract_pg
 from gps.common.rwminio import save_minio
 from gps.common.alerting import send_email, alert_failure, get_receivers
 from gps.common.motower_daily import generate_daily_caparc, cleaning_daily_trafic, cleaning_congestion
@@ -13,9 +13,10 @@ from gps.common.rwpg import write_pg
 
 # get variables
 
-FTP_HOST = Variable.get('ftp_host')
-FTP_USER = Variable.get('ftp_user')
-FTP_PASSWORD = Variable.get('ftp_password')
+#FTP_HOST = Variable.get('ftp_host')
+#FTP_USER = Variable.get('ftp_user')  
+#FTP_PASSWORD = Variable.get('ftp_password')
+
 
 PG_SAVE_HOST = Variable.get('pg_save_host')
 PG_SAVE_DB = Variable.get('pg_save_db')
@@ -25,27 +26,23 @@ PG_SAVE_PASSWORD = Variable.get('pg_save_password')
 INGEST_DATE = "{{ macros.ds_add(ds, -1) }}"
 
 MINIO_ENDPOINT = Variable.get('minio_host')
-MINIO_ACCESS_KEY = Variable.get('minio_access_key')
+MINIO_ACCESS_KEY =  Variable.get('minio_access_key')
 MINIO_SECRET_KEY = Variable.get('minio_secret_key')
 
-SMTP_HOST = Variable.get('smtp_host')
-SMTP_PORT = Variable.get('smtp_port')
+SMTP_HOST =  Variable.get('smtp_host')
+SMTP_PORT =  Variable.get('smtp_port')
 SMTP_USER = Variable.get('smtp_user')
 
-PG_HOST = Variable.get('pg_host')
-PG_DB = Variable.get('pg_db')
-PG_USER = Variable.get('pg_user')
-PG_PASSWORD = Variable.get('pg_password')
 
 PG_HOST = Variable.get('pg_host')
 PG_V2_DB = Variable.get('pg_v2_db')
 PG_V2_USER = Variable.get('pg_v2_user')
-PG_V2_PASSWORD = Variable.get('pg_v2_password')
+PG_V2_PASSWORD =  Variable.get('pg_v2_password')
 
 
 CLIENT = Minio( MINIO_ENDPOINT,
         access_key= MINIO_ACCESS_KEY,
-        secret_key= MINIO_SECRET_KEY,
+        secret_key= MINIO_SECRET_KEY, 
         secure=False)
 
 
@@ -63,6 +60,7 @@ def check_data_in_table(**kwargs):
     return True
 
 
+
 def extract_pg_job(**kwargs):
     """
     """
@@ -72,7 +70,7 @@ def extract_pg_job(**kwargs):
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     
     save_minio(CLIENT, kwargs["bucket"] , kwargs['ingest_date'], data, kwargs["folder"])
-
+    
 def clean_trafic(**kwargs):
     """
     """
@@ -88,26 +86,7 @@ def clean_congestion(**kwargs):
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_congestion")
-    
-def extract_ftp_job(**kwargs):
-    """
-    extract ftp files callable
- 
-    """
-    data = extract_ftp(FTP_HOST, FTP_USER, FTP_PASSWORD, kwargs["ingest_date"])
-    if  data.empty:
-        raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    save_minio(CLIENT, kwargs["bucket"], kwargs["ingest_date"], data, kwargs["folder"])
-
-def check_file(**kwargs):
-    """
-        check if file exists
-    """
-    filename = f"extract_vbm_{kwargs['ingest_date'].replace('-', '')}.csv"
-    liste = list_ftp_file(FTP_HOST, FTP_USER, FTP_PASSWORD)
-    if filename in liste:
-        return True
-    return False  
+     
 
 
 def send_email_onfailure(**kwargs):
@@ -166,7 +145,7 @@ def on_failure(context):
 with DAG(
         'motower_daily_prod',
         default_args={
-            'depends_on_past': False,
+            'depends_on_past': False, 
             'wait_for_downstream': False,
             'email': CONFIG["airflow_receivers"],
             'email_on_failure': True,
@@ -178,21 +157,23 @@ with DAG(
                     },
         description='daily job',
         schedule_interval="0 6 * * *",
-        start_date=datetime(2023, 7, 2, 6, 0, 0),
-        catchup=True
+        start_date=datetime(2024, 6, 25, 6, 0, 0),
+        catchup= True
 ) as dag:
-    check_file_sensor = PythonSensor(
-        task_id= "sensor_ca",
+    
+    table_config = next((table for table in CONFIG["tables"] if table["name"] == "dtm_motower_gsm"), None)
+    
+    check_data_ca = PythonSensor(
+        task_id= "checkataa",
         mode="poke",
-        poke_interval=24* 60 *60, # 1 jour
-        timeout=168* 60 *60, #7 jours
-        python_callable= check_file,
+        poke_interval= 24* 60 *60, # 1 jour
+        timeout= 168* 60 *60, #7 jours                   
+        python_callable= check_data_in_table,
         on_failure_callback = on_failure,
         op_kwargs={
-      
+             'thetable': table_config["name"],
               'ingest_date': INGEST_DATE,
         },
-
     )
     send_email_task = PythonOperator(
         task_id='send_email',
@@ -204,24 +185,24 @@ with DAG(
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
-            'code': 'CA_SITES'  
+            'code': 'CA_SITES'       
         }
     )
-    table_config = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
-    ingest_caparc = PythonOperator(
-                task_id='ingest_caparc',
+
+    extract_ca = PythonOperator(
+                task_id="extracta",
                 provide_context=True,
-                python_callable=extract_ftp_job,
+                python_callable=extract_pg_job,
                 on_failure_callback=on_failure,
                 op_kwargs={
-                    'thetable': table_config["name"],
+                    'thetable': table_config["name"],   
                     'bucket': table_config["bucket"],
                     'folder': table_config["folder"],
                     'table': table_config["table"],
                     'ingest_date': INGEST_DATE
                 },
                 dag=dag,
-    )
+            )
 
     generate_motower_dcaparc = PythonOperator(
             task_id="motower_dcaparc",
@@ -275,7 +256,7 @@ with DAG(
                     'table': table_config["table"],
                     'ingest_date': INGEST_DATE
                 },
-                dag=dag,
+                dag=dag, 
             )
     clean_trafic_task = PythonOperator(
             task_id="clean_trafic_task",
@@ -301,7 +282,7 @@ with DAG(
         on_failure_callback = on_failure,
         op_kwargs={
              'thetable': table_config["name"],
-              'ingest_date': INGEST_DATE,
+              'ingest_date': INGEST_DATE, 
         },
     )
     send_email_congestion_task = PythonOperator(
@@ -344,8 +325,8 @@ with DAG(
             #on_failure_callback=on_failure,
             dag=dag,
         )
-    check_file_sensor >> send_email_task  
-    check_file_sensor >> ingest_caparc >> generate_motower_dcaparc
+    check_data_ca >> send_email_task  
+    check_data_ca >> extract_ca >> generate_motower_dcaparc
     check_trafic_sensor >> send_email_trafic_task
     check_trafic_sensor >> extract_trafic >> clean_trafic_task
     check_congestion_sensor >> send_email_congestion_task
