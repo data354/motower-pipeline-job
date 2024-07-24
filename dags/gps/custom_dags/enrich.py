@@ -99,7 +99,7 @@ def check_file(**kwargs ):
     """
     if (kwargs['table_type'] == 'OPEX_IHS') and (kwargs["date"].split('-')[1] not in ["01", "04", "07", "10"]):
         return True
-    
+     
     table_obj = next((table for table in CONFIG["tables"] if table["name"] == kwargs['table_type'] ), None)
     date_parts = kwargs["date"].split("-")
     filename = get_latest_file(client=kwargs["client"], bucket=table_obj["bucket"], prefix=f"{table_obj['folder']}/{table_obj['folder']}_{date_parts[0]}{date_parts[1]}")
@@ -206,7 +206,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         op_kwargs={
-            'date': DATE,
+            'date': DATE, 
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
             'users': SMTP_USER,
@@ -217,7 +217,7 @@ with DAG(
         clean_base_site = PythonOperator(
             task_id="cleaning_bdd",
             provide_context=True,
-            python_callable=clean_base_sites,
+            python_callable=clean_base_sites,  
             op_kwargs={
                 "client": CLIENT,
                 "endpoint": MINIO_ENDPOINT,

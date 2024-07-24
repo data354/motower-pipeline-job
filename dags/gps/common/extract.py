@@ -55,10 +55,9 @@ SQL_QUERIES = {
     from faitalarme where date=%s;""",
     
     
-    "dtm_motower_gsm": '''select date_id ,id_site,ca_voix,ca_data,ca_total,
-    trafic_voix,trafic_data,parc_mois , parc_data_otarie ,parc_data, parc_2g, 
-    parc_3g, parc_4g,parc_5g, parc_other from "DDIR".dtm_motower_gsm where date_id=%s;
-
+    "dtm_motower_gsm": '''select date_id as day_id, id_site, ca_voix, ca_data, ca_total, 
+    trafic_voix, trafic_data,parc_mois as parc, parc_data_otarie as parc_data, parc_2g, 
+    parc_3g, parc_4g, parc_5g, parc_other from "DDIR".dtm_motower_gsm where date_id=%s;
     '''  
 }
 

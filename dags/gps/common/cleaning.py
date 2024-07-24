@@ -257,7 +257,7 @@ def cleaning_ca_parc(client, date: str, smtp_host, smtp_port, smtp_user) -> None
     """
     cleaning CA & Parc
     """
-    objet = next((table for table in CONFIG["tables"] if table["name"] == "caparc"), None)
+    objet = next((table for table in CONFIG["tables"] if table["name"] == "dtm_motower_gsm"), None)
     if not objet:
         raise ValueError("Table caparc not found.")
     

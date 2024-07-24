@@ -110,7 +110,7 @@ def send_email_onfailure(**kwargs):
 def gen_motower_daily(**kwargs):
     """
     """
-    data = generate_daily_caparc(
+    data = generate_daily_caparc( 
         CLIENT,
         SMTP_HOST,
         SMTP_PORT,
@@ -214,7 +214,7 @@ with DAG(
                 "ingest_date": INGEST_DATE,
                 "start": "2023-07-02"
             },
-            dag=dag,
+            dag=dag, 
     )
 
     table_config = next((table for table in CONFIG["tables"] if table["name"] == "ks_daily_tdb_radio_drsi"), None)
