@@ -145,6 +145,8 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
     
     bdd_ca["jour"] = exec_date
 
+    
+    print(bdd_ca.columns)
     df_final = bdd_ca[list(DAILY_CAPARC_COL.keys())]
     df_final.rename(columns=DAILY_CAPARC_COL, inplace=True)
     df_final["trafic_data_in_mo"] = df_final["trafic_data_in"] / 1000

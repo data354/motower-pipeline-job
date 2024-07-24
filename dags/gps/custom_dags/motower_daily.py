@@ -110,10 +110,10 @@ def send_email_onfailure(**kwargs):
 def gen_motower_daily(**kwargs):
     """
     """
-    data = generate_daily_caparc( 
+    data = generate_daily_caparc(  
         CLIENT,
         SMTP_HOST,
-        SMTP_PORT,
+        SMTP_PORT,  
         SMTP_USER,
         kwargs["ingest_date"],
         PG_SAVE_HOST, 
@@ -141,7 +141,7 @@ def on_failure(context):
 
 
 
-######################################### DAG DEFINITIONS
+######################################### DAG DEFINITIONS    
 with DAG(
         'motower_daily_prod',
         default_args={
@@ -180,7 +180,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         on_failure_callback=on_failure,
-        op_kwargs={
+        op_kwargs={ 
             'ingest_date': INGEST_DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
@@ -212,7 +212,7 @@ with DAG(
             depends_on_past= True,
             op_kwargs={
                 "ingest_date": INGEST_DATE,
-                "start": "2023-07-02"
+                "start": "2024-07-24"
             },
             dag=dag, 
     )
