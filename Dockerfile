@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir \
     unidecode \
     psycopg2-binary \
     python-dateutil \
-    sqlalchemy
+    sqlalchemy \
+    openpyxl
 
 # If needed, you can switch back to root for any further configuration
 USER root

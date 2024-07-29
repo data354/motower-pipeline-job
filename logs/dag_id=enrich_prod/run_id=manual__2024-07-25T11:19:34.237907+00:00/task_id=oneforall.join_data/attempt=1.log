@@ -1,0 +1,63 @@
+[2024-07-25T11:20:22.933+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-25T11:20:22.954+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: enrich_prod.oneforall.join_data manual__2024-07-25T11:19:34.237907+00:00 [queued]>
+[2024-07-25T11:20:22.960+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: enrich_prod.oneforall.join_data manual__2024-07-25T11:19:34.237907+00:00 [queued]>
+[2024-07-25T11:20:22.961+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-25T11:20:22.970+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): oneforall.join_data> on 2024-07-25 11:19:34.237907+00:00
+[2024-07-25T11:20:22.979+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=6541) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-25T11:20:22.980+0000] {standard_task_runner.py:64} INFO - Started process 6543 to run task
+[2024-07-25T11:20:22.981+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'enrich_prod', 'oneforall.join_data', 'manual__2024-07-25T11:19:34.237907+00:00', '--job-id', '1489', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/enrich.py', '--cfg-path', '/tmp/tmpni5wwqyt']
+[2024-07-25T11:20:22.982+0000] {standard_task_runner.py:91} INFO - Job 1489: Subtask oneforall.join_data
+[2024-07-25T11:20:23.026+0000] {task_command.py:426} INFO - Running <TaskInstance: enrich_prod.oneforall.join_data manual__2024-07-25T11:19:34.237907+00:00 [running]> on host b3845fb494d4
+[2024-07-25T11:20:23.100+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='enrich_prod' AIRFLOW_CTX_TASK_ID='oneforall.join_data' AIRFLOW_CTX_EXECUTION_DATE='2024-07-25T11:19:34.237907+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-07-25T11:19:34.237907+00:00'
+[2024-07-25T11:20:23.101+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-25T11:20:23.215+0000] {enrich.py:172} INFO - merge bdd and CA
+[2024-07-25T11:20:23.219+0000] {enrich.py:175} INFO - add opex
+[2024-07-25T11:20:23.233+0000] {enrich.py:193} INFO - add trafic v2
+[2024-07-25T11:20:23.241+0000] {enrich.py:196} INFO - final columns
+[2024-07-25T11:20:23.246+0000] {enrich.py:214} INFO - final columns renamed
+[2024-07-25T11:20:23.247+0000] {logging_mixin.py:188} INFO - Index(['mois_x', 'code oci', 'site', 'autre code', 'longitude', 'latitude',
+       'partenaires', 'proprietaire', 'type du site', 'statut', 'localisation',
+       'commune', 'departement', 'region', 'gestionnaire', 'type geolocalite',
+       'projet', 'clutter', 'position site', 'ca_voix', 'ca_data', 'ca_total',
+       'parc', 'parc_data', 'parc_2g', 'parc_3g', 'parc_4g', 'parc_5g',
+       'parc_other', 'o&m_x', 'energy_x', 'infra_x',
+       'maintenance passive preventive_x', 'gardes de securite_x',
+       'discount_x', 'volume discount_x', 'tva : 18%', 'month_total',
+       'trafic_data_go_2G', 'trafic_data_go_3G', 'trafic_data_go_4G',
+       'trafic_voix_erl_2G', 'trafic_voix_erl_3G', 'trafic_voix_erl_4G',
+       'nbre_cellule_2G', 'nbre_cellule_congestionne_2G', 'nbre_cellule_3G',
+       'nbre_cellule_congestionne_3G', 'nbre_cellule_4G',
+       'nbre_cellule_congestionne_4G'],
+      dtype='object')
+[2024-07-25T11:20:23.247+0000] {logging_mixin.py:188} INFO - (3107, 50)
+[2024-07-25T11:20:23.247+0000] {logging_mixin.py:188} INFO - (3107, 50)
+[2024-07-25T11:20:23.251+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/enrich.py:231: FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future error of pandas. Value 'PREMIUM' has dtype incompatible with float64, please explicitly cast to a compatible dtype first.
+  df_final.loc[((df_final.localisation.str.lower()=="abidjan") & (df_final.ca_total>=20000000)) | ((df_final.localisation.str.lower()=="intérieur") & (df_final.ca_total>=10000000)),["segment"]] = "PREMIUM"
+
+[2024-07-25T11:20:23.258+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/enrich.py:46: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  dataframe["sommecum"] = np.cumsum(dataframe["ca_total"].values)
+
+[2024-07-25T11:20:23.259+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/enrich.py:47: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  dataframe["pareto"] = dataframe["sommecum"] < total * 0.8
+
+[2024-07-25T11:20:23.265+0000] {enrich.py:296} INFO - add NUR
+[2024-07-25T11:20:23.275+0000] {enrich.py:121} INFO - START TO SAVE INTO POSTGRES
+[2024-07-25T11:20:24.001+0000] {enrich.py:129} INFO - START TO SAVE INTO MINIO
+[2024-07-25T11:20:24.002+0000] {rwminio.py:19} INFO - start to save data
+[2024-07-25T11:20:24.112+0000] {rwminio.py:34} INFO - data in minio ok
+[2024-07-25T11:20:24.114+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-25T11:20:24.114+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-25T11:20:24.123+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=enrich_prod, task_id=oneforall.join_data, run_id=manual__2024-07-25T11:19:34.237907+00:00, execution_date=20240725T111934, start_date=20240725T112022, end_date=20240725T112024
+[2024-07-25T11:20:24.156+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-25T11:20:24.172+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-25T11:20:24.173+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

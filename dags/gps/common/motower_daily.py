@@ -77,7 +77,6 @@ def compute_evolution(row):
     compute evolution
     """
     DUMMY = {"A DEVELOPER":0, "NORMAL":1, "PREMIUM":2}
-    print(row)
     if row["previous_segment"] is None or row["segment"] is None:
         row["evolution_segment"] = None
         return row
@@ -86,8 +85,6 @@ def compute_evolution(row):
         return row       
     current_segment = DUMMY.get(row["segment"])
     previous_segment = DUMMY.get(row["previous_segment"])
-    print(current_segment)
-    print(previous_segment)
 
     if current_segment == previous_segment:
         row["evolution_segment"] = 0
@@ -159,7 +156,10 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
     # GET DATA MONTH TO DAY
     mois = exec_date.month
     print(mois)
+    print(exec_date)
     if exec_date > start_date:
+        print("Start date<exec_date")
+        #print(exec_date)
         sql_query =  "select * from motower_daily_caparc where EXTRACT(MONTH FROM jour) = %s AND jour < %s"
         daily_month_df = pd.read_sql_query(sql_query, CONN, params=(mois, date))
         month_data = pd.concat([daily_month_df, df_final])
@@ -167,6 +167,7 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
         lmonth = exec_date - relativedelta.relativedelta(months=1)
         sql_query =  "select * from motower_daily_caparc where  EXTRACT(MONTH FROM jour) = %s and EXTRACT(DAY FROM jour) = %s "
         last_month = pd.read_sql_query(sql_query, CONN, params=(lmonth.month,exec_date.day))
+        print(last_month.shape)
         month_data["jour"] = pd.to_datetime(month_data["jour"])
         month_data["ca_mtd"] = month_data[["code_oci","ca_total"]].groupby(['code_oci']).cumsum()
         month_data["ca_norm"] = month_data["ca_mtd"] * 30
@@ -175,11 +176,17 @@ def generate_daily_caparc(client,  smtphost: str, smtpport: int, smtpuser: str, 
         month_data = month_data.apply(func=compute_segment, axis=1)
         # get data of the day
         df_final = month_data.loc[month_data["jour"]==exec_date,:]
+        print(df_final.loc[df_final["code_oci"]=='OCI3190',"segment"])
+        print(last_month.loc[last_month["code_oci"]=='OCI3190',"segment"])
         # add previous segement
         if not last_month.empty:
+            print("hello")
             logging.info("ADD PREVIOUS SEGMENT")
             df_final = df_final.merge(last_month[["code_oci", "segment"]], how="left", on="code_oci",   validate="one_to_one"). rename(columns={"segment_x":"segment"})
             df_final["previous_segment"] = df_final["segment_y"]
+            print('########################################################################')
+            
+            print(df_final.loc[df_final["code_oci"]=='OCI3190'])
 
             logging.info("ADD EVOLUTION SEGMENT")
             df_final = df_final.apply(func=compute_evolution, axis=1)

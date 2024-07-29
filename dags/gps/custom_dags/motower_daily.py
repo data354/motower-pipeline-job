@@ -77,7 +77,11 @@ def clean_trafic(**kwargs):
     data = cleaning_daily_trafic(CLIENT, MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, kwargs['ingest_date'])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
-    write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_trafic")
+    data['mois'] = data['jour'].str.split('-').str[1]
+    data['annee'] = data['jour'].str.split('-').str[0]
+    print("================================") 
+    print(data['jour'].dtype)
+    write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_trafic")   
 
 def clean_congestion(**kwargs):
     """
@@ -85,6 +89,8 @@ def clean_congestion(**kwargs):
     data = cleaning_congestion(CLIENT, kwargs['ingest_date'])
     if  data.empty:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
+    data['mois'] = data["jour"].dt.month
+    data['annee'] = data["jour"].dt.year
     write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_congestion")
      
 
@@ -110,7 +116,7 @@ def send_email_onfailure(**kwargs):
 def gen_motower_daily(**kwargs):
     """
     """
-    data = generate_daily_caparc(  
+    data = generate_daily_caparc(    
         CLIENT,
         SMTP_HOST,
         SMTP_PORT,  
@@ -119,7 +125,22 @@ def gen_motower_daily(**kwargs):
         PG_SAVE_HOST, 
         PG_SAVE_USER, 
         PG_SAVE_PASSWORD, PG_SAVE_DB, kwargs["start"])
-    if not data.empty:
+    if not data.empty:  
+        
+        df_dimension = data[["jour","code_oci","code_oci_id","autre_code", "clutter","commune", "departement" ,
+                             "type_du_site","type_geolocalite","gestionnaire","latitude","longitude","localisation",
+                             "partenaires","proprietaire", "position_site", "site", "statut", "projet", "region",
+                             "segment","previous_segment", "evolution_segment"]]  
+        
+        df_faits = data[["jour","code_oci","code_oci_id", "ca_voix","ca_data", "ca_total" , 
+                             "parc_global","parc_data","parc_2g","parc_3g","parc_4g","parc_5g",
+                             "autre_parc","trafic_data_in", "trafic_voix_in", "trafic_data_in_mo", "ca_mtd", "ca_norm"]]
+        
+        df_faits['mois'] = data["jour"].dt.month
+        df_faits['annee'] = data["jour"].dt.year
+            
+        write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, df_dimension, "motower_daily_caparc_dimension") 
+        write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, df_faits, "motower_daily_caparc_faits") 
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_caparc")
     else:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
@@ -157,7 +178,7 @@ with DAG(
                     },
         description='daily job',
         schedule_interval="0 6 * * *",
-        start_date=datetime(2024, 6, 25, 6, 0, 0),
+        start_date=datetime(2024, 6, 2, 6, 0, 0),  
         catchup= True
 ) as dag:
     
@@ -167,7 +188,7 @@ with DAG(
         task_id= "checkataa",
         mode="poke",
         poke_interval= 24* 60 *60, # 1 jour
-        timeout= 168* 60 *60, #7 jours                   
+        timeout= 168* 60 *60, #7 jours                      
         python_callable= check_data_in_table,
         on_failure_callback = on_failure,
         op_kwargs={
@@ -180,7 +201,7 @@ with DAG(
         python_callable=send_email_onfailure,
         trigger_rule='one_failed',  # Exécuter la tâche si le sensor échoue
         on_failure_callback=on_failure,
-        op_kwargs={ 
+        op_kwargs={  
             'ingest_date': INGEST_DATE,
             'host': SMTP_HOST, 
             'port':SMTP_PORT,
@@ -212,7 +233,7 @@ with DAG(
             depends_on_past= True,
             op_kwargs={
                 "ingest_date": INGEST_DATE,
-                "start": "2024-07-24"
+                "start": "2024-06-02"
             },
             dag=dag, 
     )

@@ -1,0 +1,27 @@
+[2024-07-25T11:00:42.703+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-25T11:00:42.934+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: enrich_prod.cleaning.extract_trafic_deux manual__2024-07-25T11:00:41.122758+00:00 [queued]>
+[2024-07-25T11:00:42.942+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: enrich_prod.cleaning.extract_trafic_deux manual__2024-07-25T11:00:41.122758+00:00 [queued]>
+[2024-07-25T11:00:42.942+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-25T11:00:42.955+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): cleaning.extract_trafic_deux> on 2024-07-25 11:00:41.122758+00:00
+[2024-07-25T11:00:42.969+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=6221) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-25T11:00:42.971+0000] {standard_task_runner.py:64} INFO - Started process 6233 to run task
+[2024-07-25T11:00:42.971+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'enrich_prod', 'cleaning.extract_trafic_deux', 'manual__2024-07-25T11:00:41.122758+00:00', '--job-id', '1470', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/enrich.py', '--cfg-path', '/tmp/tmpiyaoa2r4']
+[2024-07-25T11:00:42.973+0000] {standard_task_runner.py:91} INFO - Job 1470: Subtask cleaning.extract_trafic_deux
+[2024-07-25T11:00:43.022+0000] {task_command.py:426} INFO - Running <TaskInstance: enrich_prod.cleaning.extract_trafic_deux manual__2024-07-25T11:00:41.122758+00:00 [running]> on host b3845fb494d4
+[2024-07-25T11:00:43.116+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='enrich_prod' AIRFLOW_CTX_TASK_ID='cleaning.extract_trafic_deux' AIRFLOW_CTX_EXECUTION_DATE='2024-07-25T11:00:41.122758+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-07-25T11:00:41.122758+00:00'
+[2024-07-25T11:00:43.117+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-25T11:00:43.135+0000] {extract.py:126} INFO - Getting data of the table ks_tdb_radio_drsi 
+[2024-07-25T11:00:43.136+0000] {extract.py:127} INFO - where date is 2024-06-02
+[2024-07-25T11:00:43.136+0000] {extract.py:102} INFO - get data to date 2024-06-01
+[2024-07-25T11:00:43.141+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:103: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-07-25T11:00:43.192+0000] {rwminio.py:19} INFO - start to save data
+[2024-07-25T11:00:43.264+0000] {rwminio.py:34} INFO - data in minio ok
+[2024-07-25T11:00:43.269+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-25T11:00:43.269+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-25T11:00:43.278+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=enrich_prod, task_id=cleaning.extract_trafic_deux, run_id=manual__2024-07-25T11:00:41.122758+00:00, execution_date=20240725T110041, start_date=20240725T110042, end_date=20240725T110043
+[2024-07-25T11:00:43.304+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-25T11:00:43.314+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

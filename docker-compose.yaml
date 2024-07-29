@@ -106,39 +106,6 @@ services:
     restart: always
 
 
-  postgres_save:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
-    
-    volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-    ports:
-      - "5436:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
-      interval: 10s
-      retries: 5
-      start_period: 5s
-    restart: always
-
-
-  minio:
-    container_name: minio
-    image: minio/minio
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-
-    volumes:
-      - minio_data:/data
-
   redis:
     image: redis:latest
     expose:
@@ -322,4 +289,3 @@ services:
 
 volumes:
   postgres-db-volume:
-  minio_data:

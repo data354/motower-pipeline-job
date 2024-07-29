@@ -108,12 +108,12 @@ def check_file(**kwargs ):
     return True
     
 def gen_oneforall(**kwargs):
-    data = oneforall(
+    data = oneforall( 
         CLIENT,
         kwargs["endpoint"],
         kwargs["accesskey"],
         kwargs["secretkey"],
-        kwargs["date"],
+        kwargs["date"],  
         kwargs["start_date"],
     )
     
@@ -121,7 +121,7 @@ def gen_oneforall(**kwargs):
         logging.info("START TO SAVE INTO POSTGRES")
         write_pg(
             host=PG_SAVE_HOST,
-            database=PG_SAVE_DB,
+            database=PG_SAVE_DB, 
             user=PG_SAVE_USER,
             password=PG_SAVE_PASSWORD,
             data=data,
@@ -157,7 +157,7 @@ with DAG(
     },
     description="clean monthly data",
     schedule_interval="0 0 2 * *",
-    start_date=datetime(2024, 7, 2, 0, 0, 0),
+    start_date=datetime(2024, 7, 2, 0, 0, 0),   
     catchup=True,
 ) as dag:
      # Task group for cleaning tasks
@@ -323,7 +323,7 @@ with DAG(
             dag=dag,
         )
       
-        clean_caparc = PythonOperator(
+        clean_caparc = PythonOperator( 
             task_id="cleaning_caparc",
             provide_context=True,
             python_callable=cleaning_ca_parc,

@@ -91,6 +91,13 @@ def get_thresold(code: str):
     """
      get thresold from api
     """
+    return CONFIG[code]
+
+
+def get_thresold_prod(code: str):
+    """
+     get thresold from api
+    """
     objets = requests.get(CONFIG["api_params"], timeout=15).json()
     objet =  next((obj for obj in objets if obj["code"] == code), None)
     if not objet:

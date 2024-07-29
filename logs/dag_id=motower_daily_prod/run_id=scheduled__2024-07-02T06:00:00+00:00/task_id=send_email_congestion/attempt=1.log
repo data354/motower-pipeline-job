@@ -1,0 +1,22 @@
+[2024-07-24T22:32:42.791+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-24T22:32:42.969+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.send_email_congestion scheduled__2024-07-02T06:00:00+00:00 [queued]>
+[2024-07-24T22:32:42.975+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.send_email_congestion scheduled__2024-07-02T06:00:00+00:00 [queued]>
+[2024-07-24T22:32:42.976+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-24T22:32:42.983+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): send_email_congestion> on 2024-07-02 06:00:00+00:00
+[2024-07-24T22:32:42.991+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=116) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-24T22:32:42.992+0000] {standard_task_runner.py:64} INFO - Started process 118 to run task
+[2024-07-24T22:32:42.993+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'send_email_congestion', 'scheduled__2024-07-02T06:00:00+00:00', '--job-id', '344', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpgocl9y21']
+[2024-07-24T22:32:42.994+0000] {standard_task_runner.py:91} INFO - Job 344: Subtask send_email_congestion
+[2024-07-24T22:32:43.027+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.send_email_congestion scheduled__2024-07-02T06:00:00+00:00 [running]> on host b3845fb494d4
+[2024-07-24T22:32:43.099+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='send_email_congestion' AIRFLOW_CTX_EXECUTION_DATE='2024-07-02T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-07-02T06:00:00+00:00'
+[2024-07-24T22:32:43.101+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-24T22:32:43.110+0000] {alerting.py:30} INFO - Sending mail ... 
+[2024-07-24T22:32:43.110+0000] {alerting.py:38} ERROR - Failed to send email: please run connect() first
+[2024-07-24T22:32:43.111+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-24T22:32:43.111+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-24T22:32:43.120+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=send_email_congestion, run_id=scheduled__2024-07-02T06:00:00+00:00, execution_date=20240702T060000, start_date=20240724T223242, end_date=20240724T223243
+[2024-07-24T22:32:43.166+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-24T22:32:43.181+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-24T22:32:43.182+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

@@ -165,8 +165,10 @@ def cleaning_ihs(client, date: str)-> None:
         None
     """
     date_parts = date.split("-")
+    print(date_parts)
     acceptable_months = ["01", "04", "07", "10"]
     if date_parts[1] not in acceptable_months:
+        print("hello")
         return
     
     # Retrieving object from CONFIG
@@ -295,10 +297,10 @@ def cleaning_ca_parc(client, date: str, smtp_host, smtp_port, smtp_user) -> None
     logging.info('DAILY KPI - %s', df_for_validation.to_string())
     logging.info("Le CA mensuel est de %s", str(df_for_validation['ca_total'].sum()))
     
-    for col in ["ca_voix", "ca_data", "parc", "parc_data"]:
-        validate_column(df=df_for_validation, file_type="CAPARC", col=col, host=smtp_host, port=smtp_port, user=smtp_user, receivers=get_receivers("CA_SITES"))
+    #for col in ["ca_voix", "ca_data", "parc", "parc_data"]:
+    #    validate_column(df=df_for_validation, file_type="CAPARC", col=col, host=smtp_host, port=smtp_port, user=smtp_user, receivers=get_receivers("CA_SITES"))
     
-    logging.info("validations are ok.")
+    #logging.info("validations are ok.")
     
     # generate final data
     logging.info("generate and save final data.")

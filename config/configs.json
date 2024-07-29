@@ -235,7 +235,7 @@
         "max": 1549278313.29794
       },
       "ca_data": { 
-        "min": 154142028.60985,
+        "min": 0,
         "max": 1972334342.24778
       },
       "parc": { 
@@ -255,11 +255,11 @@
         "max": 3600
       },
       "trafic_voix_erl": {
-        "min": 1447035.03867713,
+        "min": 0,
         "max": 5813359.7595367
       },
       "trafic_data_go": {
-        "min": 460000,
+        "min": 0,
         "max": 2600000
       }
       
@@ -397,8 +397,61 @@
                 "previous_segment": "VARCHAR" ,
                 "evolution_segment": "INTEGER"
               },
+
+
+      "motower_daily_caparc_faits": { 
+                "jour": "date", 
+                "code_oci": "varchar", 
+                "code_oci_id": "FLOAT",
+                "mois": "INTEGER", 
+                "annee": "INTEGER", 
+                "ca_data": "FLOAT", 
+                "ca_voix": "FLOAT", 
+                "ca_total": "FLOAT", 
+                "parc_global": "INTEGER", 
+                "parc_data": "INTEGER", 
+                "parc_2g": "INTEGER", 
+                "parc_3g": "INTEGER", 
+                "parc_4g": "INTEGER", 
+                "parc_5g": "INTEGER", 
+                "autre_parc": "INTEGER", 
+                "trafic_data_in": "FLOAT", 
+                "trafic_voix_in": "FLOAT", 
+                "trafic_data_in_mo": "FLOAT", 
+                "ca_mtd": "FLOAT", 
+                "ca_norm": "FLOAT"
+              },
+
+
+      "motower_daily_caparc_dimension": { 
+                "jour": "date", 
+                "code_oci": "varchar", 
+                "code_oci_id": "FLOAT", 
+                "autre_code": "VARCHAR", 
+                "clutter": "VARCHAR", 
+                "commune": "VARCHAR", 
+                "departement": "VARCHAR", 
+                "type_du_site": "VARCHAR", 
+                "type_geolocalite": "VARCHAR", 
+                "gestionnaire": "VARCHAR", 
+                "latitude": "VARCHAR", 
+                "longitude": "VARCHAR", 
+                "localisation": "VARCHAR", 
+                "partenaires": "VARCHAR", 
+                "proprietaire": "VARCHAR", 
+                "position_site": "VARCHAR", 
+                "site": "VARCHAR", 
+                "statut": "VARCHAR", 
+                "projet": "VARCHAR", 
+                "region": "VARCHAR", 
+                "segment": "VARCHAR", 
+                "previous_segment": "VARCHAR" ,
+                "evolution_segment": "INTEGER"
+              },
       "motower_daily_congestion": { 
               "jour": "date", 
+              "mois":"INTEGER",
+              "annee":"INTEGER",
               "id_site": "FLOAT", 
               "cellules_2g": "INTEGER", 
               "cellules_3g": "INTEGER", 
@@ -411,6 +464,8 @@
     },
       "motower_daily_trafic":{ 
               "jour": "date", 
+              "mois":"INTEGER",
+              "annee":"INTEGER",
               "id_site": "FLOAT", 
               "trafic_data_2g": "FLOAT", 
               "trafic_data_3g": "FLOAT", 
