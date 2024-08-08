@@ -1,0 +1,458 @@
+[2024-08-06T17:01:28.686+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-06T17:01:28.769+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [queued]>
+[2024-08-06T17:01:28.795+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [queued]>
+[2024-08-06T17:01:28.795+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-06T17:01:28.828+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): motower_dcaparc> on 2024-02-01 06:00:00+00:00
+[2024-08-06T17:01:28.847+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=2162) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-06T17:01:28.849+0000] {standard_task_runner.py:64} INFO - Started process 2181 to run task
+[2024-08-06T17:01:28.856+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'motower_dcaparc', 'scheduled__2024-02-01T06:00:00+00:00', '--job-id', '408', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmp_osc3b7x']
+[2024-08-06T17:01:28.861+0000] {standard_task_runner.py:91} INFO - Job 408: Subtask motower_dcaparc
+[2024-08-06T17:01:28.973+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [running]> on host 13681191f11c
+[2024-08-06T17:01:29.218+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='motower_dcaparc' AIRFLOW_CTX_EXECUTION_DATE='2024-02-01T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-02-01T06:00:00+00:00'
+[2024-08-06T17:01:29.220+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-06T17:01:29.255+0000] {motower_daily.py:106} INFO - get last modified bdd sites cleaned
+[2024-08-06T17:01:29.298+0000] {motower_daily.py:117} INFO - READING BASE_SITES-cleaned/2024/04/02.csv
+[2024-08-06T17:01:29.531+0000] {data_validation.py:28} INFO - START VALIDATION 
+[2024-08-06T17:01:29.537+0000] {data_validation.py:40} INFO - VALID ACTIFS SITES 3482
+[2024-08-06T17:01:29.538+0000] {motower_daily.py:127} INFO - GET CA PARC FILE OF THE DAY 2024-01-31
+[2024-08-06T17:01:29.539+0000] {motower_daily.py:131} INFO - READING ca-parc/2024/01/31.csv
+[2024-08-06T17:01:29.622+0000] {motower_daily.py:136} INFO - DAILY KPI -      day_id       ca_voix       ca_data      parc  parc_data   parc_2g  parc_3g  parc_4g  parc_5g  parc_other      ca_total
+0  20240131  5.845120e+08  6.808793e+08  16602396    8785640  13164940   936290  6907659   406155     1710016  1.290713e+09
+[2024-08-06T17:01:29.625+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_total
+[2024-08-06T17:01:29.629+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_total ARE VALID
+[2024-08-06T17:01:29.631+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_voix
+[2024-08-06T17:01:29.634+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_voix ARE VALID
+[2024-08-06T17:01:29.635+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_data
+[2024-08-06T17:01:29.637+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_data ARE VALID
+[2024-08-06T17:01:29.637+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc
+[2024-08-06T17:01:29.641+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc ARE VALID
+[2024-08-06T17:01:29.642+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_data
+[2024-08-06T17:01:29.645+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_data ARE VALID
+[2024-08-06T17:01:29.646+0000] {motower_daily.py:139} INFO - MERGING BDD AND CA
+[2024-08-06T17:01:29.656+0000] {motower_daily.py:141} INFO - prepare final daily data
+[2024-08-06T17:01:29.660+0000] {logging_mixin.py:188} INFO - Index(['site', 'site bts', 'site physique', 'gestionnaire', 'proprietaire',
+       'code oci', 'equipementier telecom', 'longitude', 'latitude',
+       'type du site', 'antenna_mode', 'statut', 'couche en service',
+       'technologie', 'technologie sans tdd', 'date mes', 'date mes 2g',
+       'date mes 3g', 'date mes 4g', 'annee construction pylone', 'autre code',
+       'code esco', 'code ihs', 'statut partage', 'statut sharing',
+       'statut proprietaire', 'geo localite', 'commune', 'departement',
+       'region', 'district', 'partenaires', 'localisation', 'ville',
+       'quartier', 'type geolocalite', 'clutter', 'id quartier',
+       'id geolocalite', 'type baie', 'hauteur batiment', 'tower type',
+       'tower height', 'tower location', 'type energie', 'projet',
+       'new project', 'position site', 'type indoor', 'decoupage',
+       'sous coloc', 'tenant', 'mois', 'code oci id', 'day_id', 'id_site',
+       'ca_voix', 'ca_data', 'ca_total', 'trafic_voix_in', 'trafic_data_in',
+       'parc', 'parc_data', 'parc_2g', 'parc_3g', 'parc_4g', 'parc_5g',
+       'parc_other', 'jour'],
+      dtype='object')
+[2024-08-06T17:01:29.665+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:148: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final.rename(columns=DAILY_CAPARC_COL, inplace=True)
+
+[2024-08-06T17:01:29.667+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:149: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["trafic_data_in_mo"] = df_final["trafic_data_in"] / 1000
+
+[2024-08-06T17:01:29.669+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:150: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["ca_norm"] = None
+
+[2024-08-06T17:01:29.670+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:151: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["ca_mtd"] = None
+
+[2024-08-06T17:01:29.672+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:152: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["segment"] = None
+
+[2024-08-06T17:01:29.674+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:153: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["previous_segment"] = None
+
+[2024-08-06T17:01:29.675+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:154: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["evolution_segment"] = None
+
+[2024-08-06T17:01:29.676+0000] {logging_mixin.py:188} INFO - 1
+[2024-08-06T17:01:29.677+0000] {logging_mixin.py:188} INFO - 2024-01-31 00:00:00
+[2024-08-06T17:01:29.702+0000] {motower_daily.py:200} INFO - ADD  SEGMENT
+[2024-08-06T17:01:30.438+0000] {motower_daily.py:205} INFO - DATA VALIDATION AFTER MERGING
+[2024-08-06T17:01:30.438+0000] {data_validation.py:28} INFO - START VALIDATION 
+[2024-08-06T17:01:30.441+0000] {data_validation.py:40} INFO - VALID ACTIFS SITES 3482
+[2024-08-06T17:01:30.463+0000] {motower_daily.py:216} INFO - DAILY KPI -         jour       ca_voix       ca_data  parc_global  parc_data    parc_2g   parc_3g    parc_4g   parc_5g  autre_parc      ca_total
+0 2024-01-31  5.822453e+08  6.789818e+08   15169897.0  8764204.0  6370784.0  220886.0  4944021.0  356787.0    897429.0  1.286093e+09
+[2024-08-06T17:01:30.463+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_total
+[2024-08-06T17:01:30.466+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_total ARE VALID
+[2024-08-06T17:01:30.466+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_voix
+[2024-08-06T17:01:30.468+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_voix ARE VALID
+[2024-08-06T17:01:30.469+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_data
+[2024-08-06T17:01:30.471+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_data ARE VALID
+[2024-08-06T17:01:30.472+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_global
+[2024-08-06T17:01:30.475+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_global ARE VALID
+[2024-08-06T17:01:30.475+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_data
+[2024-08-06T17:01:30.477+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_data ARE VALID
+[2024-08-06T17:01:30.541+0000] {logging_mixin.py:188} INFO -         jour code_oci  code_oci_id  ... segment previous_segment evolution_segment
+0 2024-01-31  OCI4069       4069.0  ...    None             None              None
+1 2024-01-31  OCI4064       4064.0  ...    None             None              None
+2 2024-01-31  OCI4092       4092.0  ...    None             None              None
+3 2024-01-31  OCI4080       4080.0  ...    None             None              None
+4 2024-01-31  OCI4073       4073.0  ...    None             None              None
+
+[5 rows x 38 columns]
+[2024-08-06T17:01:30.602+0000] {logging_mixin.py:188} INFO -         jour code_oci  code_oci_id  ... segment previous_segment evolution_segment
+0 2024-01-31  OCI4069       4069.0  ...    None             None              None
+1 2024-01-31  OCI4064       4064.0  ...    None             None              None
+2 2024-01-31  OCI4092       4092.0  ...    None             None              None
+3 2024-01-31  OCI4080       4080.0  ...    None             None              None
+4 2024-01-31  OCI4073       4073.0  ...    None             None              None
+
+[5 rows x 38 columns]
+[2024-08-06T17:01:30.615+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/custom_dags/motower_daily.py:139: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_faits['mois'] = data["jour"].dt.month
+
+[2024-08-06T17:01:30.616+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/custom_dags/motower_daily.py:140: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_faits['annee'] = data["jour"].dt.year
+
+[2024-08-06T17:01:33.216+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-06T17:01:33.217+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-06T17:01:33.232+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=motower_dcaparc, run_id=scheduled__2024-02-01T06:00:00+00:00, execution_date=20240201T060000, start_date=20240806T170128, end_date=20240806T170133
+[2024-08-06T17:01:33.308+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-06T17:01:33.359+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-08-06T17:01:33.362+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-08-06T17:32:04.735+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-06T17:32:04.773+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [queued]>
+[2024-08-06T17:32:04.784+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [queued]>
+[2024-08-06T17:32:04.784+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-06T17:32:04.796+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): motower_dcaparc> on 2024-02-01 06:00:00+00:00
+[2024-08-06T17:32:04.803+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=6349) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-06T17:32:04.804+0000] {standard_task_runner.py:64} INFO - Started process 6351 to run task
+[2024-08-06T17:32:04.805+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'motower_dcaparc', 'scheduled__2024-02-01T06:00:00+00:00', '--job-id', '1682', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpeq993b1u']
+[2024-08-06T17:32:04.806+0000] {standard_task_runner.py:91} INFO - Job 1682: Subtask motower_dcaparc
+[2024-08-06T17:32:04.846+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [running]> on host 13681191f11c
+[2024-08-06T17:32:04.935+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='motower_dcaparc' AIRFLOW_CTX_EXECUTION_DATE='2024-02-01T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-02-01T06:00:00+00:00'
+[2024-08-06T17:32:04.936+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-06T17:32:04.952+0000] {motower_daily.py:106} INFO - get last modified bdd sites cleaned
+[2024-08-06T17:32:04.964+0000] {motower_daily.py:117} INFO - READING BASE_SITES-cleaned/2024/04/02.csv
+[2024-08-06T17:32:05.047+0000] {data_validation.py:28} INFO - START VALIDATION 
+[2024-08-06T17:32:05.049+0000] {data_validation.py:40} INFO - VALID ACTIFS SITES 3482
+[2024-08-06T17:32:05.050+0000] {motower_daily.py:127} INFO - GET CA PARC FILE OF THE DAY 2024-01-31
+[2024-08-06T17:32:05.050+0000] {motower_daily.py:131} INFO - READING ca-parc/2024/01/31.csv
+[2024-08-06T17:32:05.080+0000] {motower_daily.py:136} INFO - DAILY KPI -      day_id       ca_voix       ca_data      parc  parc_data   parc_2g  parc_3g  parc_4g  parc_5g  parc_other      ca_total
+0  20240131  5.845120e+08  6.808793e+08  16602396    8785640  13164940   936290  6907659   406155     1710016  1.290713e+09
+[2024-08-06T17:32:05.080+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_total
+[2024-08-06T17:32:05.082+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_total ARE VALID
+[2024-08-06T17:32:05.082+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_voix
+[2024-08-06T17:32:05.083+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_voix ARE VALID
+[2024-08-06T17:32:05.084+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_data
+[2024-08-06T17:32:05.085+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_data ARE VALID
+[2024-08-06T17:32:05.086+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc
+[2024-08-06T17:32:05.087+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc ARE VALID
+[2024-08-06T17:32:05.087+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_data
+[2024-08-06T17:32:05.089+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_data ARE VALID
+[2024-08-06T17:32:05.089+0000] {motower_daily.py:139} INFO - MERGING BDD AND CA
+[2024-08-06T17:32:05.094+0000] {motower_daily.py:141} INFO - prepare final daily data
+[2024-08-06T17:32:05.095+0000] {logging_mixin.py:188} INFO - Index(['site', 'site bts', 'site physique', 'gestionnaire', 'proprietaire',
+       'code oci', 'equipementier telecom', 'longitude', 'latitude',
+       'type du site', 'antenna_mode', 'statut', 'couche en service',
+       'technologie', 'technologie sans tdd', 'date mes', 'date mes 2g',
+       'date mes 3g', 'date mes 4g', 'annee construction pylone', 'autre code',
+       'code esco', 'code ihs', 'statut partage', 'statut sharing',
+       'statut proprietaire', 'geo localite', 'commune', 'departement',
+       'region', 'district', 'partenaires', 'localisation', 'ville',
+       'quartier', 'type geolocalite', 'clutter', 'id quartier',
+       'id geolocalite', 'type baie', 'hauteur batiment', 'tower type',
+       'tower height', 'tower location', 'type energie', 'projet',
+       'new project', 'position site', 'type indoor', 'decoupage',
+       'sous coloc', 'tenant', 'mois', 'code oci id', 'day_id', 'id_site',
+       'ca_voix', 'ca_data', 'ca_total', 'trafic_voix_in', 'trafic_data_in',
+       'parc', 'parc_data', 'parc_2g', 'parc_3g', 'parc_4g', 'parc_5g',
+       'parc_other', 'jour'],
+      dtype='object')
+[2024-08-06T17:32:05.098+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:148: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final.rename(columns=DAILY_CAPARC_COL, inplace=True)
+
+[2024-08-06T17:32:05.099+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:149: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["trafic_data_in_mo"] = df_final["trafic_data_in"] / 1000
+
+[2024-08-06T17:32:05.100+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:150: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["ca_norm"] = None
+
+[2024-08-06T17:32:05.101+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:151: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["ca_mtd"] = None
+
+[2024-08-06T17:32:05.102+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:152: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["segment"] = None
+
+[2024-08-06T17:32:05.103+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:153: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["previous_segment"] = None
+
+[2024-08-06T17:32:05.104+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:154: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["evolution_segment"] = None
+
+[2024-08-06T17:32:05.104+0000] {logging_mixin.py:188} INFO - 1
+[2024-08-06T17:32:05.104+0000] {logging_mixin.py:188} INFO - 2024-01-31 00:00:00
+[2024-08-06T17:32:05.118+0000] {motower_daily.py:200} INFO - ADD  SEGMENT
+[2024-08-06T17:32:05.437+0000] {motower_daily.py:205} INFO - DATA VALIDATION AFTER MERGING
+[2024-08-06T17:32:05.437+0000] {data_validation.py:28} INFO - START VALIDATION 
+[2024-08-06T17:32:05.438+0000] {data_validation.py:40} INFO - VALID ACTIFS SITES 3482
+[2024-08-06T17:32:05.448+0000] {motower_daily.py:216} INFO - DAILY KPI -         jour       ca_voix       ca_data  parc_global  parc_data    parc_2g   parc_3g    parc_4g   parc_5g  autre_parc      ca_total
+0 2024-01-31  5.822453e+08  6.789818e+08   15169897.0  8764204.0  6370784.0  220886.0  4944021.0  356787.0    897429.0  1.286093e+09
+[2024-08-06T17:32:05.448+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_total
+[2024-08-06T17:32:05.449+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_total ARE VALID
+[2024-08-06T17:32:05.449+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_voix
+[2024-08-06T17:32:05.450+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_voix ARE VALID
+[2024-08-06T17:32:05.450+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_data
+[2024-08-06T17:32:05.451+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_data ARE VALID
+[2024-08-06T17:32:05.451+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_global
+[2024-08-06T17:32:05.452+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_global ARE VALID
+[2024-08-06T17:32:05.453+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_data
+[2024-08-06T17:32:05.454+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_data ARE VALID
+[2024-08-06T17:32:05.490+0000] {logging_mixin.py:188} INFO -         jour code_oci  code_oci_id  ... segment previous_segment evolution_segment
+0 2024-01-31  OCI4069       4069.0  ...    None             None              None
+1 2024-01-31  OCI4064       4064.0  ...    None             None              None
+2 2024-01-31  OCI4092       4092.0  ...    None             None              None
+3 2024-01-31  OCI4080       4080.0  ...    None             None              None
+4 2024-01-31  OCI4073       4073.0  ...    None             None              None
+
+[5 rows x 38 columns]
+[2024-08-06T17:32:05.529+0000] {logging_mixin.py:188} INFO -         jour code_oci  code_oci_id  ... segment previous_segment evolution_segment
+0 2024-01-31  OCI4069       4069.0  ...    None             None              None
+1 2024-01-31  OCI4064       4064.0  ...    None             None              None
+2 2024-01-31  OCI4092       4092.0  ...    None             None              None
+3 2024-01-31  OCI4080       4080.0  ...    None             None              None
+4 2024-01-31  OCI4073       4073.0  ...    None             None              None
+
+[5 rows x 38 columns]
+[2024-08-06T17:32:05.538+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/custom_dags/motower_daily.py:139: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_faits['mois'] = data["jour"].dt.month
+
+[2024-08-06T17:32:05.539+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/custom_dags/motower_daily.py:140: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_faits['annee'] = data["jour"].dt.year
+
+[2024-08-06T17:32:07.384+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-06T17:32:07.386+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-06T17:32:07.399+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=motower_dcaparc, run_id=scheduled__2024-02-01T06:00:00+00:00, execution_date=20240201T060000, start_date=20240806T173204, end_date=20240806T173207
+[2024-08-06T17:32:07.469+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-06T17:32:07.483+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-08-06T18:19:08.041+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-06T18:19:08.144+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [queued]>
+[2024-08-06T18:19:08.182+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [queued]>
+[2024-08-06T18:19:08.183+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-06T18:19:08.227+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): motower_dcaparc> on 2024-02-01 06:00:00+00:00
+[2024-08-06T18:19:08.249+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=10008) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-06T18:19:08.253+0000] {standard_task_runner.py:64} INFO - Started process 10025 to run task
+[2024-08-06T18:19:08.262+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'motower_dcaparc', 'scheduled__2024-02-01T06:00:00+00:00', '--job-id', '2713', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpavp503g1']
+[2024-08-06T18:19:08.268+0000] {standard_task_runner.py:91} INFO - Job 2713: Subtask motower_dcaparc
+[2024-08-06T18:19:08.440+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.motower_dcaparc scheduled__2024-02-01T06:00:00+00:00 [running]> on host 13681191f11c
+[2024-08-06T18:19:08.913+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='motower_dcaparc' AIRFLOW_CTX_EXECUTION_DATE='2024-02-01T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-02-01T06:00:00+00:00'
+[2024-08-06T18:19:08.920+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-06T18:19:09.024+0000] {motower_daily.py:106} INFO - get last modified bdd sites cleaned
+[2024-08-06T18:19:09.080+0000] {motower_daily.py:117} INFO - READING BASE_SITES-cleaned/2024/04/02.csv
+[2024-08-06T18:19:09.376+0000] {data_validation.py:28} INFO - START VALIDATION 
+[2024-08-06T18:19:09.380+0000] {data_validation.py:40} INFO - VALID ACTIFS SITES 3482
+[2024-08-06T18:19:09.381+0000] {motower_daily.py:127} INFO - GET CA PARC FILE OF THE DAY 2024-01-31
+[2024-08-06T18:19:09.382+0000] {motower_daily.py:131} INFO - READING ca-parc/2024/01/31.csv
+[2024-08-06T18:19:09.443+0000] {motower_daily.py:136} INFO - DAILY KPI -      day_id       ca_voix       ca_data      parc  parc_data   parc_2g  parc_3g  parc_4g  parc_5g  parc_other      ca_total
+0  20240131  5.845120e+08  6.808793e+08  16602396    8785640  13164940   936290  6907659   406155     1710016  1.290713e+09
+[2024-08-06T18:19:09.444+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_total
+[2024-08-06T18:19:09.447+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_total ARE VALID
+[2024-08-06T18:19:09.448+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_voix
+[2024-08-06T18:19:09.450+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_voix ARE VALID
+[2024-08-06T18:19:09.451+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_data
+[2024-08-06T18:19:09.453+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_data ARE VALID
+[2024-08-06T18:19:09.453+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc
+[2024-08-06T18:19:09.455+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc ARE VALID
+[2024-08-06T18:19:09.456+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_data
+[2024-08-06T18:19:09.458+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_data ARE VALID
+[2024-08-06T18:19:09.459+0000] {motower_daily.py:139} INFO - MERGING BDD AND CA
+[2024-08-06T18:19:09.468+0000] {motower_daily.py:141} INFO - prepare final daily data
+[2024-08-06T18:19:09.471+0000] {logging_mixin.py:188} INFO - Index(['site', 'site bts', 'site physique', 'gestionnaire', 'proprietaire',
+       'code oci', 'equipementier telecom', 'longitude', 'latitude',
+       'type du site', 'antenna_mode', 'statut', 'couche en service',
+       'technologie', 'technologie sans tdd', 'date mes', 'date mes 2g',
+       'date mes 3g', 'date mes 4g', 'annee construction pylone', 'autre code',
+       'code esco', 'code ihs', 'statut partage', 'statut sharing',
+       'statut proprietaire', 'geo localite', 'commune', 'departement',
+       'region', 'district', 'partenaires', 'localisation', 'ville',
+       'quartier', 'type geolocalite', 'clutter', 'id quartier',
+       'id geolocalite', 'type baie', 'hauteur batiment', 'tower type',
+       'tower height', 'tower location', 'type energie', 'projet',
+       'new project', 'position site', 'type indoor', 'decoupage',
+       'sous coloc', 'tenant', 'mois', 'code oci id', 'day_id', 'id_site',
+       'ca_voix', 'ca_data', 'ca_total', 'trafic_voix_in', 'trafic_data_in',
+       'parc', 'parc_data', 'parc_2g', 'parc_3g', 'parc_4g', 'parc_5g',
+       'parc_other', 'jour'],
+      dtype='object')
+[2024-08-06T18:19:09.476+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:148: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final.rename(columns=DAILY_CAPARC_COL, inplace=True)
+
+[2024-08-06T18:19:09.479+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:149: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["trafic_data_in_mo"] = df_final["trafic_data_in"] / 1000
+
+[2024-08-06T18:19:09.481+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:150: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["ca_norm"] = None
+
+[2024-08-06T18:19:09.482+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:151: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["ca_mtd"] = None
+
+[2024-08-06T18:19:09.484+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:152: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["segment"] = None
+
+[2024-08-06T18:19:09.485+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:153: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["previous_segment"] = None
+
+[2024-08-06T18:19:09.487+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/motower_daily.py:154: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_final["evolution_segment"] = None
+
+[2024-08-06T18:19:09.488+0000] {logging_mixin.py:188} INFO - 1
+[2024-08-06T18:19:09.489+0000] {logging_mixin.py:188} INFO - 2024-01-31 00:00:00
+[2024-08-06T18:19:09.530+0000] {motower_daily.py:200} INFO - ADD  SEGMENT
+[2024-08-06T18:19:10.384+0000] {motower_daily.py:205} INFO - DATA VALIDATION AFTER MERGING
+[2024-08-06T18:19:10.385+0000] {data_validation.py:28} INFO - START VALIDATION 
+[2024-08-06T18:19:10.389+0000] {data_validation.py:40} INFO - VALID ACTIFS SITES 3482
+[2024-08-06T18:19:10.413+0000] {motower_daily.py:216} INFO - DAILY KPI -         jour       ca_voix       ca_data  parc_global  parc_data    parc_2g   parc_3g    parc_4g   parc_5g  autre_parc      ca_total
+0 2024-01-31  5.822453e+08  6.789818e+08   15169897.0  8764204.0  6370784.0  220886.0  4944021.0  356787.0    897429.0  1.286093e+09
+[2024-08-06T18:19:10.415+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_total
+[2024-08-06T18:19:10.417+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_total ARE VALID
+[2024-08-06T18:19:10.418+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_voix
+[2024-08-06T18:19:10.420+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_voix ARE VALID
+[2024-08-06T18:19:10.421+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN ca_data
+[2024-08-06T18:19:10.423+0000] {data_validation.py:20} INFO - DATA OF COLUMN ca_data ARE VALID
+[2024-08-06T18:19:10.423+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_global
+[2024-08-06T18:19:10.426+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_global ARE VALID
+[2024-08-06T18:19:10.426+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN parc_data
+[2024-08-06T18:19:10.429+0000] {data_validation.py:20} INFO - DATA OF COLUMN parc_data ARE VALID
+[2024-08-06T18:19:10.529+0000] {logging_mixin.py:188} INFO -         jour code_oci  code_oci_id  ... segment previous_segment evolution_segment
+0 2024-01-31  OCI4069       4069.0  ...    None             None              None
+1 2024-01-31  OCI4064       4064.0  ...    None             None              None
+2 2024-01-31  OCI4092       4092.0  ...    None             None              None
+3 2024-01-31  OCI4080       4080.0  ...    None             None              None
+4 2024-01-31  OCI4073       4073.0  ...    None             None              None
+
+[5 rows x 38 columns]
+[2024-08-06T18:19:10.638+0000] {logging_mixin.py:188} INFO -         jour code_oci  code_oci_id  ... segment previous_segment evolution_segment
+0 2024-01-31  OCI4069       4069.0  ...    None             None              None
+1 2024-01-31  OCI4064       4064.0  ...    None             None              None
+2 2024-01-31  OCI4092       4092.0  ...    None             None              None
+3 2024-01-31  OCI4080       4080.0  ...    None             None              None
+4 2024-01-31  OCI4073       4073.0  ...    None             None              None
+
+[5 rows x 38 columns]
+[2024-08-06T18:19:10.663+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/custom_dags/motower_daily.py:139: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_faits['mois'] = data["jour"].dt.month
+
+[2024-08-06T18:19:10.666+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/custom_dags/motower_daily.py:140: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_faits['annee'] = data["jour"].dt.year
+
+[2024-08-06T18:19:15.377+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-06T18:19:15.379+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-06T18:19:15.436+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=motower_dcaparc, run_id=scheduled__2024-02-01T06:00:00+00:00, execution_date=20240201T060000, start_date=20240806T181908, end_date=20240806T181915
+[2024-08-06T18:19:15.549+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-06T18:19:15.647+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-08-06T18:19:15.661+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

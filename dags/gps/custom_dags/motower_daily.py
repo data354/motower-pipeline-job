@@ -14,7 +14,7 @@ from gps.common.rwpg import write_pg
 # get variables
 
 #FTP_HOST = Variable.get('ftp_host')
-#FTP_USER = Variable.get('ftp_user')  
+#FTP_USER = Variable.get('ftp_user')     
 #FTP_PASSWORD = Variable.get('ftp_password')
 
 
@@ -116,7 +116,7 @@ def send_email_onfailure(**kwargs):
 def gen_motower_daily(**kwargs):
     """
     """
-    data = generate_daily_caparc(    
+    data = generate_daily_caparc(     
         CLIENT,
         SMTP_HOST,
         SMTP_PORT,  
@@ -163,7 +163,7 @@ def on_failure(context):
 
 
 ######################################### DAG DEFINITIONS    
-with DAG(
+with DAG(  
         'motower_daily_prod',
         default_args={
             'depends_on_past': False, 
@@ -178,7 +178,7 @@ with DAG(
                     },
         description='daily job',
         schedule_interval="0 6 * * *",
-        start_date=datetime(2024, 6, 2, 6, 0, 0),  
+        start_date=datetime(2024, 1, 2, 6, 0, 0),  
         catchup= True
 ) as dag:
     
@@ -228,7 +228,7 @@ with DAG(
     generate_motower_dcaparc = PythonOperator(
             task_id="motower_dcaparc",
             provide_context=True,
-            python_callable=gen_motower_daily,
+            python_callable=gen_motower_daily, 
             on_failure_callback=on_failure,
             depends_on_past= True,
             op_kwargs={

@@ -1,0 +1,84 @@
+[2024-08-06T17:06:40.176+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-06T17:06:40.343+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [queued]>
+[2024-08-06T17:06:40.372+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [queued]>
+[2024-08-06T17:06:40.373+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-06T17:06:40.456+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): extracta> on 2024-03-17 06:00:00+00:00
+[2024-08-06T17:06:40.490+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=3186) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-06T17:06:40.510+0000] {standard_task_runner.py:64} INFO - Started process 3195 to run task
+[2024-08-06T17:06:40.510+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'extracta', 'scheduled__2024-03-17T06:00:00+00:00', '--job-id', '728', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpskegh2rj']
+[2024-08-06T17:06:40.519+0000] {standard_task_runner.py:91} INFO - Job 728: Subtask extracta
+[2024-08-06T17:06:40.805+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [running]> on host 13681191f11c
+[2024-08-06T17:06:41.517+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='extracta' AIRFLOW_CTX_EXECUTION_DATE='2024-03-17T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-17T06:00:00+00:00'
+[2024-08-06T17:06:41.519+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-06T17:06:41.615+0000] {extract.py:126} INFO - Getting data of the table dtm_motower_gsm 
+[2024-08-06T17:06:41.615+0000] {extract.py:127} INFO - where date is 2024-03-16
+[2024-08-06T17:06:41.616+0000] {extract.py:102} INFO - get data to date 20240316
+[2024-08-06T17:06:41.651+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:103: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-08-06T17:06:42.042+0000] {rwminio.py:19} INFO - start to save data
+[2024-08-06T17:06:42.295+0000] {rwminio.py:34} INFO - data in minio ok
+[2024-08-06T17:06:42.297+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-06T17:06:42.298+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-06T17:06:42.338+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=extracta, run_id=scheduled__2024-03-17T06:00:00+00:00, execution_date=20240317T060000, start_date=20240806T170640, end_date=20240806T170642
+[2024-08-06T17:06:42.444+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-06T17:06:42.516+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-08-06T17:06:42.523+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-08-06T17:36:48.629+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-06T17:36:48.712+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [queued]>
+[2024-08-06T17:36:48.758+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [queued]>
+[2024-08-06T17:36:48.762+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-06T17:36:48.802+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): extracta> on 2024-03-17 06:00:00+00:00
+[2024-08-06T17:36:48.818+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=7294) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-06T17:36:48.822+0000] {standard_task_runner.py:64} INFO - Started process 7306 to run task
+[2024-08-06T17:36:48.837+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'extracta', 'scheduled__2024-03-17T06:00:00+00:00', '--job-id', '1982', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmplqcrxj4f']
+[2024-08-06T17:36:48.846+0000] {standard_task_runner.py:91} INFO - Job 1982: Subtask extracta
+[2024-08-06T17:36:49.083+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [running]> on host 13681191f11c
+[2024-08-06T17:36:49.695+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='extracta' AIRFLOW_CTX_EXECUTION_DATE='2024-03-17T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-17T06:00:00+00:00'
+[2024-08-06T17:36:49.697+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-06T17:36:49.784+0000] {extract.py:126} INFO - Getting data of the table dtm_motower_gsm 
+[2024-08-06T17:36:49.785+0000] {extract.py:127} INFO - where date is 2024-03-16
+[2024-08-06T17:36:49.785+0000] {extract.py:102} INFO - get data to date 20240316
+[2024-08-06T17:36:49.798+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:103: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-08-06T17:36:50.084+0000] {rwminio.py:19} INFO - start to save data
+[2024-08-06T17:36:50.338+0000] {rwminio.py:34} INFO - data in minio ok
+[2024-08-06T17:36:50.339+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-06T17:36:50.340+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-06T17:36:50.378+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=extracta, run_id=scheduled__2024-03-17T06:00:00+00:00, execution_date=20240317T060000, start_date=20240806T173648, end_date=20240806T173650
+[2024-08-06T17:36:50.493+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-06T17:36:50.632+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-08-06T17:36:50.635+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-08-06T18:24:25.461+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-06T18:24:25.556+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [queued]>
+[2024-08-06T18:24:25.586+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [queued]>
+[2024-08-06T18:24:25.587+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-06T18:24:25.616+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): extracta> on 2024-03-17 06:00:00+00:00
+[2024-08-06T18:24:25.631+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=11167) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-06T18:24:25.634+0000] {standard_task_runner.py:64} INFO - Started process 11177 to run task
+[2024-08-06T18:24:25.636+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'extracta', 'scheduled__2024-03-17T06:00:00+00:00', '--job-id', '3081', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmp1ir40uix']
+[2024-08-06T18:24:25.640+0000] {standard_task_runner.py:91} INFO - Job 3081: Subtask extracta
+[2024-08-06T18:24:25.732+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.extracta scheduled__2024-03-17T06:00:00+00:00 [running]> on host 13681191f11c
+[2024-08-06T18:24:25.919+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='extracta' AIRFLOW_CTX_EXECUTION_DATE='2024-03-17T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-17T06:00:00+00:00'
+[2024-08-06T18:24:25.920+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-06T18:24:25.950+0000] {extract.py:126} INFO - Getting data of the table dtm_motower_gsm 
+[2024-08-06T18:24:25.951+0000] {extract.py:127} INFO - where date is 2024-03-16
+[2024-08-06T18:24:25.951+0000] {extract.py:102} INFO - get data to date 20240316
+[2024-08-06T18:24:25.961+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:103: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-08-06T18:24:26.109+0000] {rwminio.py:19} INFO - start to save data
+[2024-08-06T18:24:26.212+0000] {rwminio.py:34} INFO - data in minio ok
+[2024-08-06T18:24:26.213+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-06T18:24:26.214+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-06T18:24:26.237+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=extracta, run_id=scheduled__2024-03-17T06:00:00+00:00, execution_date=20240317T060000, start_date=20240806T182425, end_date=20240806T182426
+[2024-08-06T18:24:26.301+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-06T18:24:26.365+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-08-06T18:24:26.370+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

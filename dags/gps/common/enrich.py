@@ -155,6 +155,8 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
     if objet is None:
         raise ValueError("Table 'OPEX_IHS' not found in configuration")
     filename = get_latest_file(client, objet["bucket"], prefix = f"{objet['folder']}-cleaned/{date_parts[0]}/{pre}/{date_parts[2]}")
+    print('###########################################')
+    print(filename)
     if filename is not None:
         ihs = read_file(client=client,bucket_name=objet['bucket'], object_name=filename , sep=",")
 

@@ -1,0 +1,56 @@
+[2024-07-30T11:05:53.437+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-30T11:05:53.481+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: enrich_prod.cleaning.cleaning_caparc manual__2024-07-30T11:05:51.175404+00:00 [queued]>
+[2024-07-30T11:05:53.496+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: enrich_prod.cleaning.cleaning_caparc manual__2024-07-30T11:05:51.175404+00:00 [queued]>
+[2024-07-30T11:05:53.497+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-30T11:05:53.517+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): cleaning.cleaning_caparc> on 2024-07-30 11:05:51.175404+00:00
+[2024-07-30T11:05:53.531+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=2659) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-30T11:05:53.533+0000] {standard_task_runner.py:64} INFO - Started process 2670 to run task
+[2024-07-30T11:05:53.535+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'enrich_prod', 'cleaning.cleaning_caparc', 'manual__2024-07-30T11:05:51.175404+00:00', '--job-id', '359', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/enrich.py', '--cfg-path', '/tmp/tmp4lhjad_d']
+[2024-07-30T11:05:53.538+0000] {standard_task_runner.py:91} INFO - Job 359: Subtask cleaning.cleaning_caparc
+[2024-07-30T11:05:53.598+0000] {task_command.py:426} INFO - Running <TaskInstance: enrich_prod.cleaning.cleaning_caparc manual__2024-07-30T11:05:51.175404+00:00 [running]> on host 7d7c82e77e1e
+[2024-07-30T11:05:53.859+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='enrich_prod' AIRFLOW_CTX_TASK_ID='cleaning.cleaning_caparc' AIRFLOW_CTX_EXECUTION_DATE='2024-07-30T11:05:51.175404+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-07-30T11:05:51.175404+00:00'
+[2024-07-30T11:05:53.860+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-30T11:05:54.474+0000] {cleaning.py:289} INFO - DATA VALIDATION
+[2024-07-30T11:05:54.512+0000] {cleaning.py:297} INFO - DAILY KPI -       day_id       ca_voix       ca_data      parc  parc_data   parc_2g  parc_3g  parc_4g  parc_5g  parc_other      ca_total
+0   20240601  5.327182e+08  8.044059e+08  16715871    9176426  12042566   875452  5841327   297932     1379325  1.395652e+09
+1   20240602  4.822626e+08  7.120804e+08  16714097    9177438  12057840   876499  5949531   319188     1385238  1.241494e+09
+2   20240603  5.767417e+08  7.912384e+08  16699131    9186215  12010574   873099  5756054   283564     1374011  1.416856e+09
+3   20240604  7.685736e+08  1.330852e+09  16665974    9196769  12058171   874454  5846039   292170     1381447  2.153703e+09
+4   20240605  5.338739e+08  6.537754e+08  16660757    9203792  12064542   874622  5863012   293647     1383269  1.238126e+09
+5   20240606  5.204942e+08  6.904167e+08  16650735    9208133  12082131   874665  5885569   295719     1385939  1.253289e+09
+6   20240607  6.764668e+08  8.043372e+08  16696220    9200361  12037120   873949  5873157   296128     1384633  1.526502e+09
+7   20240608  5.269060e+08  7.500433e+08  16690914    9266472  12017040   872927  5865224   302963     1382339  1.326831e+09
+8   20240609  4.886769e+08  7.143445e+08  16683492    9268730  12140247   877375  6059788   330959     1401896  1.245116e+09
+9   20240610  5.499279e+08  7.507506e+08  16683048    9277896         0        0        0        0           0  1.347035e+09
+10  20240611  7.147300e+08  1.274972e+09  16682024    9286426         0        0        0        0           0  2.116512e+09
+11  20240612  5.370959e+08  6.475457e+08  16685206    9316317  12132594   875120  5930993   299683     1398335  1.272913e+09
+12  20240613  5.068124e+08  6.639765e+08  16635386    9319941  12181396   876383  5996878   306444     1406477  1.210888e+09
+13  20240614  6.888568e+08  8.104376e+08  16695810    9331698  12101150   874668  5946004   303922     1400844  1.543841e+09
+14  20240615  5.835887e+08  7.961630e+08  16702991    9333757  12084521   873372  5910578   301919     1398522  1.423788e+09
+15  20240616  5.713497e+08  8.007501e+08  16699581    9318089  12080216   874715  6002819   328526     1405469  1.420801e+09
+16  20240617  5.883282e+08  7.914348e+08  16705048    9384367  12077678   873823  5982250   325860     1403999  1.423402e+09
+17  20240618  7.176500e+08  1.221908e+09  16714464    9324897  12054106   871416  5854949   302163     1395861  1.987056e+09
+18  20240619  5.203883e+08  6.657753e+08  16722769    9342134  12110945   873222  5954466   307840     1404891  1.237131e+09
+19  20240620  5.053236e+08  7.248778e+08  16734454    9416167  12136259   873738  5984699   310091     1410049  1.269207e+09
+20  20240621  6.412472e+08  8.142664e+08  16754054    9429272  12111954   872939  5985774   311254     1409427  1.496332e+09
+21  20240622  4.923264e+08  7.658733e+08  16703455    9435343  12136156   873032  5997956   315277     1412008  1.365722e+09
+22  20240623  4.612004e+08  7.240631e+08  16721647    9435626  11992936   851891  6063282   339113     1399668  1.247311e+09
+23  20240624  5.165637e+08  7.650778e+08  16733340    9443567  11943670   842089  5930353   309964     1387765  1.338748e+09
+24  20240625  6.664774e+08  1.243799e+09  16753745    9453602  11948494   841665  5929920   308836     1388920  1.970652e+09
+25  20240626  5.175478e+08  6.679043e+08  16776596    9460144  11955042   841559  5948098   311950     1391040  1.223150e+09
+26  20240627  4.995955e+08  7.077792e+08  16800991    9466269  12068544   856998  5974798   310410     1405516  1.246005e+09
+27  20240628  6.507343e+08  8.325999e+08  16824214    9475436  12082356   864321  5969856   309967     1410795  1.524851e+09
+28  20240629  5.171829e+08  7.928949e+08  16838645    9477332  12112307   864624  6002840   317214     1415064  1.349544e+09
+29  20240630  4.691776e+08  7.443228e+08  16844166    9476468  12119527   865313  6112501   341521     1421884  1.254197e+09
+[2024-07-30T11:05:54.512+0000] {cleaning.py:298} INFO - Le CA mensuel est de 43066654487.41
+[2024-07-30T11:05:54.513+0000] {cleaning.py:306} INFO - generate and save final data.
+[2024-07-30T11:05:54.550+0000] {cleaning.py:316} INFO - Start to save data
+[2024-07-30T11:05:54.551+0000] {rwminio.py:19} INFO - start to save data
+[2024-07-30T11:05:54.598+0000] {rwminio.py:34} INFO - data in minio ok
+[2024-07-30T11:05:54.599+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-30T11:05:54.600+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-30T11:05:54.613+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=enrich_prod, task_id=cleaning.cleaning_caparc, run_id=manual__2024-07-30T11:05:51.175404+00:00, execution_date=20240730T110551, start_date=20240730T110553, end_date=20240730T110554
+[2024-07-30T11:05:54.683+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-30T11:05:54.694+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

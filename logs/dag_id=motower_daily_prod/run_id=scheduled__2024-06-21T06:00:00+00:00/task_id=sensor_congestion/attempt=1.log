@@ -316,3 +316,82 @@
 [2024-07-29T14:32:45.904+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=sensor_congestion, run_id=scheduled__2024-06-21T06:00:00+00:00, execution_date=20240621T060000, start_date=20240729T143245, end_date=20240729T143245
 [2024-07-29T14:32:45.924+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
 [2024-07-29T14:32:45.932+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-07-30T09:02:34.398+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-30T09:02:34.879+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [queued]>
+[2024-07-30T09:02:34.909+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [queued]>
+[2024-07-30T09:02:34.910+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-30T09:02:34.954+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonSensor): sensor_congestion> on 2024-06-21 06:00:00+00:00
+[2024-07-30T09:02:34.974+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=349) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-30T09:02:34.977+0000] {standard_task_runner.py:64} INFO - Started process 366 to run task
+[2024-07-30T09:02:34.979+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'sensor_congestion', 'scheduled__2024-06-21T06:00:00+00:00', '--job-id', '120', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpd1enu5w9']
+[2024-07-30T09:02:34.987+0000] {standard_task_runner.py:91} INFO - Job 120: Subtask sensor_congestion
+[2024-07-30T09:02:35.099+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [running]> on host 7d7c82e77e1e
+[2024-07-30T09:02:35.317+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='sensor_congestion' AIRFLOW_CTX_EXECUTION_DATE='2024-06-21T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-21T06:00:00+00:00'
+[2024-07-30T09:02:35.324+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-30T09:02:35.358+0000] {python.py:75} INFO - Poking callable: <function check_data_in_table at 0x798a99957100>
+[2024-07-30T09:02:35.372+0000] {extract.py:126} INFO - Getting data of the table ks_hebdo_tdb_radio_drsi 
+[2024-07-30T09:02:35.373+0000] {extract.py:127} INFO - where date is 2024-06-20
+[2024-07-30T09:02:35.373+0000] {extract.py:98} INFO - get data to date 25 and year 2024
+[2024-07-30T09:02:35.384+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:99: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-07-30T09:02:35.414+0000] {base.py:294} INFO - Success criteria met. Exiting.
+[2024-07-30T09:02:35.415+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-30T09:02:35.433+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=sensor_congestion, run_id=scheduled__2024-06-21T06:00:00+00:00, execution_date=20240621T060000, start_date=20240730T090234, end_date=20240730T090235
+[2024-07-30T09:02:35.513+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-30T09:02:35.596+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-30T09:02:35.604+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-07-30T11:14:00.797+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-30T11:14:00.901+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [queued]>
+[2024-07-30T11:14:00.930+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [queued]>
+[2024-07-30T11:14:00.931+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-30T11:14:00.964+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonSensor): sensor_congestion> on 2024-06-21 06:00:00+00:00
+[2024-07-30T11:14:00.981+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=3205) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-30T11:14:00.984+0000] {standard_task_runner.py:64} INFO - Started process 3224 to run task
+[2024-07-30T11:14:00.989+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'sensor_congestion', 'scheduled__2024-06-21T06:00:00+00:00', '--job-id', '506', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmphidg8x8g']
+[2024-07-30T11:14:00.997+0000] {standard_task_runner.py:91} INFO - Job 506: Subtask sensor_congestion
+[2024-07-30T11:14:01.161+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [running]> on host 7d7c82e77e1e
+[2024-07-30T11:14:01.520+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='sensor_congestion' AIRFLOW_CTX_EXECUTION_DATE='2024-06-21T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-21T06:00:00+00:00'
+[2024-07-30T11:14:01.522+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-30T11:14:01.565+0000] {python.py:75} INFO - Poking callable: <function check_data_in_table at 0x798a999cb880>
+[2024-07-30T11:14:01.572+0000] {extract.py:126} INFO - Getting data of the table ks_hebdo_tdb_radio_drsi 
+[2024-07-30T11:14:01.572+0000] {extract.py:127} INFO - where date is 2024-06-20
+[2024-07-30T11:14:01.573+0000] {extract.py:98} INFO - get data to date 25 and year 2024
+[2024-07-30T11:14:01.586+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:99: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-07-30T11:14:01.624+0000] {base.py:294} INFO - Success criteria met. Exiting.
+[2024-07-30T11:14:01.625+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-30T11:14:01.654+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=sensor_congestion, run_id=scheduled__2024-06-21T06:00:00+00:00, execution_date=20240621T060000, start_date=20240730T111400, end_date=20240730T111401
+[2024-07-30T11:14:01.726+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-30T11:14:01.743+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-08-02T12:23:56.715+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-02T12:23:56.790+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [queued]>
+[2024-08-02T12:23:56.814+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [queued]>
+[2024-08-02T12:23:56.815+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-02T12:23:56.883+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonSensor): sensor_congestion> on 2024-06-21 06:00:00+00:00
+[2024-08-02T12:23:56.908+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=1055) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-02T12:23:56.911+0000] {standard_task_runner.py:64} INFO - Started process 1070 to run task
+[2024-08-02T12:23:56.921+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'sensor_congestion', 'scheduled__2024-06-21T06:00:00+00:00', '--job-id', '933', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpcjymn41s']
+[2024-08-02T12:23:56.925+0000] {standard_task_runner.py:91} INFO - Job 933: Subtask sensor_congestion
+[2024-08-02T12:23:57.068+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.sensor_congestion scheduled__2024-06-21T06:00:00+00:00 [running]> on host 0ed00079025b
+[2024-08-02T12:23:57.374+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='sensor_congestion' AIRFLOW_CTX_EXECUTION_DATE='2024-06-21T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-21T06:00:00+00:00'
+[2024-08-02T12:23:57.376+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-02T12:23:57.432+0000] {python.py:75} INFO - Poking callable: <function check_data_in_table at 0x7059affaf880>
+[2024-08-02T12:23:57.458+0000] {extract.py:126} INFO - Getting data of the table ks_hebdo_tdb_radio_drsi 
+[2024-08-02T12:23:57.459+0000] {extract.py:127} INFO - where date is 2024-06-20
+[2024-08-02T12:23:57.459+0000] {extract.py:98} INFO - get data to date 25 and year 2024
+[2024-08-02T12:23:57.470+0000] {warnings.py:112} WARNING - /opt/***/dags/gps/common/extract.py:99: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  df_ = pd.read_sql_query(sql_query, conn, params=params)
+
+[2024-08-02T12:23:57.517+0000] {base.py:294} INFO - Success criteria met. Exiting.
+[2024-08-02T12:23:57.517+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-02T12:23:57.547+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=sensor_congestion, run_id=scheduled__2024-06-21T06:00:00+00:00, execution_date=20240621T060000, start_date=20240802T122356, end_date=20240802T122357
+[2024-08-02T12:23:57.656+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-02T12:23:57.679+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

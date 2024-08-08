@@ -568,3 +568,83 @@
 [2024-07-29T14:32:32.589+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
 [2024-07-29T14:32:32.609+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
 [2024-07-29T14:32:32.610+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-07-30T09:13:02.768+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-30T09:13:02.844+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [queued]>
+[2024-07-30T09:13:02.868+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [queued]>
+[2024-07-30T09:13:02.870+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-30T09:13:02.903+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): clean_trafic_task> on 2024-06-15 06:00:00+00:00
+[2024-07-30T09:13:02.919+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=1150) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-30T09:13:02.921+0000] {standard_task_runner.py:64} INFO - Started process 1159 to run task
+[2024-07-30T09:13:02.928+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'clean_trafic_task', 'scheduled__2024-06-15T06:00:00+00:00', '--job-id', '342', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpqd6941h1']
+[2024-07-30T09:13:02.932+0000] {standard_task_runner.py:91} INFO - Job 342: Subtask clean_trafic_task
+[2024-07-30T09:13:03.045+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [running]> on host 7d7c82e77e1e
+[2024-07-30T09:13:03.242+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='clean_trafic_task' AIRFLOW_CTX_EXECUTION_DATE='2024-06-15T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-15T06:00:00+00:00'
+[2024-07-30T09:13:03.244+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-30T09:13:03.309+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN trafic_data_go
+[2024-07-30T09:13:03.311+0000] {data_validation.py:20} INFO - DATA OF COLUMN trafic_data_go ARE VALID
+[2024-07-30T09:13:03.312+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN trafic_voix_erl
+[2024-07-30T09:13:03.314+0000] {data_validation.py:20} INFO - DATA OF COLUMN trafic_voix_erl ARE VALID
+[2024-07-30T09:13:03.315+0000] {motower_daily.py:267} INFO - prepare final data
+[2024-07-30T09:13:03.332+0000] {logging_mixin.py:188} INFO - ================================
+[2024-07-30T09:13:03.332+0000] {logging_mixin.py:188} INFO - object
+[2024-07-30T09:13:03.384+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-30T09:13:03.385+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-30T09:13:03.401+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=clean_trafic_task, run_id=scheduled__2024-06-15T06:00:00+00:00, execution_date=20240615T060000, start_date=20240730T091302, end_date=20240730T091303
+[2024-07-30T09:13:03.431+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-30T09:13:03.457+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-30T09:13:03.459+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-07-30T11:13:51.243+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-30T11:13:51.337+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [queued]>
+[2024-07-30T11:13:51.364+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [queued]>
+[2024-07-30T11:13:51.364+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-07-30T11:13:51.399+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): clean_trafic_task> on 2024-06-15 06:00:00+00:00
+[2024-07-30T11:13:51.414+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=3168) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-30T11:13:51.416+0000] {standard_task_runner.py:64} INFO - Started process 3178 to run task
+[2024-07-30T11:13:51.420+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'clean_trafic_task', 'scheduled__2024-06-15T06:00:00+00:00', '--job-id', '494', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmp128e8hyl']
+[2024-07-30T11:13:51.423+0000] {standard_task_runner.py:91} INFO - Job 494: Subtask clean_trafic_task
+[2024-07-30T11:13:51.551+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [running]> on host 7d7c82e77e1e
+[2024-07-30T11:13:51.900+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='clean_trafic_task' AIRFLOW_CTX_EXECUTION_DATE='2024-06-15T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-15T06:00:00+00:00'
+[2024-07-30T11:13:51.902+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-30T11:13:52.036+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN trafic_data_go
+[2024-07-30T11:13:52.045+0000] {data_validation.py:20} INFO - DATA OF COLUMN trafic_data_go ARE VALID
+[2024-07-30T11:13:52.046+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN trafic_voix_erl
+[2024-07-30T11:13:52.049+0000] {data_validation.py:20} INFO - DATA OF COLUMN trafic_voix_erl ARE VALID
+[2024-07-30T11:13:52.050+0000] {motower_daily.py:267} INFO - prepare final data
+[2024-07-30T11:13:52.082+0000] {logging_mixin.py:188} INFO - ================================
+[2024-07-30T11:13:52.083+0000] {logging_mixin.py:188} INFO - object
+[2024-07-30T11:13:52.194+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-07-30T11:13:52.196+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-30T11:13:52.219+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=clean_trafic_task, run_id=scheduled__2024-06-15T06:00:00+00:00, execution_date=20240615T060000, start_date=20240730T111351, end_date=20240730T111352
+[2024-07-30T11:13:52.299+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-07-30T11:13:52.323+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
+[2024-08-02T12:23:47.619+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-08-02T12:23:47.958+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [queued]>
+[2024-08-02T12:23:47.986+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [queued]>
+[2024-08-02T12:23:47.988+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2024-08-02T12:23:48.044+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): clean_trafic_task> on 2024-06-15 06:00:00+00:00
+[2024-08-02T12:23:48.059+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:62: DeprecationWarning: This process (pid=1012) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-08-02T12:23:48.063+0000] {standard_task_runner.py:64} INFO - Started process 1023 to run task
+[2024-08-02T12:23:48.072+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'motower_daily_prod', 'clean_trafic_task', 'scheduled__2024-06-15T06:00:00+00:00', '--job-id', '920', '--raw', '--subdir', 'DAGS_FOLDER/gps/custom_dags/motower_daily.py', '--cfg-path', '/tmp/tmpb33ke45a']
+[2024-08-02T12:23:48.076+0000] {standard_task_runner.py:91} INFO - Job 920: Subtask clean_trafic_task
+[2024-08-02T12:23:48.192+0000] {task_command.py:426} INFO - Running <TaskInstance: motower_daily_prod.clean_trafic_task scheduled__2024-06-15T06:00:00+00:00 [running]> on host 0ed00079025b
+[2024-08-02T12:23:48.506+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='richmond.kongo@orange.com,assane.diop@orange.com,cyrille1.danho@orange.com,mohamed2.sylla@orange.com,amadou.diomande@orange.com,Jonas.kouame@orange.com,armand.kablan@orange.com,anicet.azombade@orange.com,etienne.kouadio@orange.com,bertine.kouakou@orange.com,florentine.kouakou@orange.com,ange.phaceli@orange.com,soulegame.soro@orange.com,innocent.yengo@orange.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='motower_daily_prod' AIRFLOW_CTX_TASK_ID='clean_trafic_task' AIRFLOW_CTX_EXECUTION_DATE='2024-06-15T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-15T06:00:00+00:00'
+[2024-08-02T12:23:48.508+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-08-02T12:23:48.697+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN trafic_data_go
+[2024-08-02T12:23:48.702+0000] {data_validation.py:20} INFO - DATA OF COLUMN trafic_data_go ARE VALID
+[2024-08-02T12:23:48.703+0000] {data_validation.py:11} INFO - START VALIDATION OF COLUMN trafic_voix_erl
+[2024-08-02T12:23:48.705+0000] {data_validation.py:20} INFO - DATA OF COLUMN trafic_voix_erl ARE VALID
+[2024-08-02T12:23:48.705+0000] {motower_daily.py:267} INFO - prepare final data
+[2024-08-02T12:23:48.731+0000] {logging_mixin.py:188} INFO - ================================
+[2024-08-02T12:23:48.755+0000] {logging_mixin.py:188} INFO - object
+[2024-08-02T12:23:48.859+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-08-02T12:23:48.861+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-08-02T12:23:48.890+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=motower_daily_prod, task_id=clean_trafic_task, run_id=scheduled__2024-06-15T06:00:00+00:00, execution_date=20240615T060000, start_date=20240802T122347, end_date=20240802T122348
+[2024-08-02T12:23:49.954+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2024-08-02T12:23:50.008+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-08-02T12:23:50.019+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
