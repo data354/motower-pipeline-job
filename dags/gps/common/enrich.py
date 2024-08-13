@@ -276,10 +276,10 @@ def oneforall(client, endpoint:str, accesskey:str, secretkey:str,  date: str, st
 
 
     # get thresold
-    interco = float(get_thresold("intercos")) /100 #CA-voix 
-    impot = float(get_thresold("impot_taxe"))/100 #CA
-    frais_dist = float( get_thresold("frais_distribution"))/100 #CA
-    seuil_renta = float(get_thresold("seuil_rentabilite"))/100
+    interco = float(get_thresold_prod("intercos")) /100 #CA-voix 
+    impot = float(get_thresold_prod("impot_taxe"))/100 #CA
+    frais_dist = float( get_thresold_prod("frais_distribution"))/100 #CA
+    seuil_renta = float(get_thresold_prod("seuil_rentabilite"))/100
 
 
     oneforall["interco"] = oneforall["ca_voix"]*interco

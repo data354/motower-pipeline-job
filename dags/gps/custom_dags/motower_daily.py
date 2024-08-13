@@ -141,7 +141,6 @@ def gen_motower_daily(**kwargs):
             
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, df_dimension, "motower_daily_caparc_dimension") 
         write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, df_faits, "motower_daily_caparc_faits") 
-        write_pg(PG_SAVE_HOST, PG_SAVE_DB, PG_SAVE_USER, PG_SAVE_PASSWORD, data, "motower_daily_caparc")
     else:
         raise RuntimeError(f"No data for {kwargs['ingest_date']}")
 
