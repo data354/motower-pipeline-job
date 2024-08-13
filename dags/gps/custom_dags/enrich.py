@@ -118,16 +118,37 @@ def gen_oneforall(**kwargs):
     )
     
     if not data.empty:
+        
+        data_faits = data[["days","code_oci","mois","ca_voix","ca_data","parc_global","parc_data","parc_2g","parc_3g","parc_4g","parc_5g","autre_parc","o_m","energie",
+                            "infra","maintenance_passive_preventive","garde_de_securite","discount","volume_discount","tva","opex_itn","trafic_data_v2_2g","trafic_data_v2_3g",
+                            "trafic_data_v2_4g","trafic_voix_v2_2g","trafic_voix_v2_3g","trafic_voix_v2_4g","cellules_v2_2g","cellules_congestionne_v2_2g","cellules_v2_3g",
+                            "cellules_congestionne_v2_3g","cellules_v2_4g","cellules_congestionne_v2_4g","ca_total","cellules_congestionnees_total_v2","cellules_total_v2","taux_congestion_2g_v2",
+                            "taux_congestion_3g_v2","taux_congestion_4g_v2","taux_congestion_total_v2","arpu","interco","impot","frais_dist","opex","autre_opex","ebitda","marge_ca"]]
+        
+        data_dim = data[["days","mois","code_oci","site","autre_code","longitude","latitude","type_du_site","statut","localisation","commune","departement",
+                        "region","partenaires","proprietaire","gestionnaire","type_geolocalite","segmentation_rentabilite_v2","recommandation_v2",
+                        "projet","clutter","position_site","segment","pareto","rentable","niveau_rentabilite","previous_segment","evolution_segment"]]
+        
         logging.info("START TO SAVE INTO POSTGRES")
         write_pg(
             host=PG_SAVE_HOST,
             database=PG_SAVE_DB, 
             user=PG_SAVE_USER,
             password=PG_SAVE_PASSWORD,
-            data=data,
-            table="motower_monthly")
+            data=data_faits,
+            table="motower_monthly_faits")
+        
+        write_pg(
+            host=PG_SAVE_HOST,
+            database=PG_SAVE_DB, 
+            user=PG_SAVE_USER,
+            password=PG_SAVE_PASSWORD,
+            data=data_dim,
+            table="motower_monthly_dimensions")
+        
         logging.info("START TO SAVE INTO MINIO")
-        save_minio(client=CLIENT, bucket=CONFIG["final_bucket"], date=kwargs["date"], data=data, folder= CONFIG["final_folder"])
+        save_minio(client=CLIENT, bucket=CONFIG["final_bucket"], date=kwargs["date"], data=data_faits, folder= CONFIG["final_folder"])
+        save_minio(client=CLIENT, bucket=CONFIG["final_bucket"], date=kwargs["date"], data=data_dim, folder= CONFIG["final_folder"])
     else:
         raise RuntimeError(f"No data for {kwargs['date']}")
 
